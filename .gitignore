@@ -1,0 +1,15 @@
+# .gitignore for skills library
+# Generated files
+*.tmp
+*.bak
+
+# Local overrides (skills can have local customizations)
+**/local/
+**/.local/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Lock files (if any)
+*.lock

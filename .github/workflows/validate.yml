@@ -1,0 +1,75 @@
+name: Skills Validation
+
+on:
+  push:
+    paths:
+      - 'skills/**/metadata.yaml'
+      - 'skills/**/SKILL.md'
+      - 'scripts/**'
+  pull_request:
+    paths:
+      - 'skills/**/metadata.yaml'
+      - 'skills/**/SKILL.md'
+      - 'scripts/**'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate metadata.yaml
+        run: |
+          echo "Validating all metadata.yaml files..."
+          for meta in skills/*/metadata.yaml; do
+            if [ -f "$meta" ]; then
+              name=$(grep "^name:" "$meta" | sed 's/^name: *//')
+              origin=$(grep "^origin:" "$meta" | sed 's/^origin: *//')
+              category=$(grep "^category:" "$meta" | sed 's/^category: *//')
+              
+              if [ -z "$name" ]; then
+                echo "❌ $meta: missing name"
+                exit 1
+              fi
+              if [ -z "$origin" ]; then
+                echo "❌ $meta: missing origin"
+                exit 1
+              fi
+              if [ -z "$category" ]; then
+                echo "❌ $meta: missing category"
+                exit 1
+              fi
+              echo "✅ $(dirname "$meta" | xargs basename): $origin"
+            fi
+          done
+
+      - name: Validate SKILL.md exists
+        run: |
+          echo "Checking all skills have SKILL.md..."
+          for skill_dir in skills/*/; do
+            skill_name=$(basename "$skill_dir")
+            if [ ! -f "$skill_dir/SKILL.md" ]; then
+              echo "❌ $skill_name: missing SKILL.md"
+              exit 1
+            fi
+          done
+          echo "✅ All skills have SKILL.md"
+
+      - name: Check for duplicates
+        run: |
+          echo "Checking for duplicate skill names..."
+          names=$(for meta in skills/*/metadata.yaml; do
+            grep "^name:" "$meta" 2>/dev/null
+          done | sort)
+          duplicates=$(echo "$names" | uniq -d)
+          if [ -n "$duplicates" ]; then
+            echo "❌ Duplicate skill names found:"
+            echo "$duplicates"
+            exit 1
+          fi
+          echo "✅ No duplicates"
+
+      - name: Summary
+        run: |
+          total=$(ls -1 skills/ | wc -l)
+          echo "📊 Skills library: $total skills validated"
