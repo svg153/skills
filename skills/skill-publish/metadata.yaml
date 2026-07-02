@@ -1,0 +1,13 @@
+name: skill-publish
+origin: https://github.com/svg153/skills
+origin_path: /skills/skill-publish
+category: devops
+status: active
+sync:
+  enabled: true
+  interval: weekly
+  strategy: manual
+tags:
+  - skills
+  - automation
+  - publish
