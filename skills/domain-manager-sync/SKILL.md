@@ -1,75 +1,121 @@
 ---
-name: domain-manager-sync
-description: 'Auto-update domain-manager skill from svg153/skills repo. Loads the latest SKILL.md and scripts from the repo before each run. Trigger: any domain management task — always sync first to get latest version.'
+name: repo-skills-sync
+description: 'Auto-sync all skills from svg153/skills GitHub repo to Hermes. Before any task, pulls latest changes and verifies symlinks. Trigger: any task that might benefit from updated skills from the centralized repo.'
 license: MIT
 metadata:
   author: svg153
   version: "1.0"
 ---
 
-# Domain Manager Sync
+# Repository Skills Sync
 
-Auto-syncs the domain-manager skill from the svg153/skills GitHub repo before each run.
+Synchronizes all skills from the `svg153/skills` GitHub repository to Hermes.
 
 ## How It Works
 
-Before executing any domain management task:
+The repo at `github.com/svg153/skills` is the **single source of truth** for project skills.
 
-1. **Sync the repo**: Pull latest changes from `svg153/skills`
-2. **Verify symlink**: Ensure `/hermes-home/skills/domain-manager` points to the repo
-3. **Proceed**: Execute the domain management task with latest code
+Hermes skills directory (`/hermes-home/skills/`) uses **symlinks** to point to the repo.
+
+```
+svg153/skills/                          /hermes-home/skills/
+├── .gitignore                          ├── domain-manager → ../../workspace/svg153-skills/skills/domain-manager
+├── skills/                             ├── domain-manager-sync → ...
+│   ├── domain-manager/                 └── (any other synced skill)
+│   │   ├── SKILL.md
+│   │   └── scripts/
+│   │       └── domain_manager.py
+│   ├── branch-pr/
+│   │   ├── SKILL.md
+│   │   └── metadata.yaml
+│   └── ... (22+ skills)
+└── scripts/
+    ├── check-updates.sh
+    └── migrate-skills.sh
+```
 
 ## Sync Procedure
+
+Before any task that could benefit from updated skills:
 
 ```bash
 cd /root/workspace/svg153-skills && git pull origin main
 ```
 
-The symlink at `/hermes-home/skills/domain-manager` → `/root/workspace/svg153-skills/skills/domain-manager` ensures Hermes always reads the latest version.
+## Adding New Skills to Sync
 
-## When to Push Updates
+When adding a new skill to the repo:
 
-After modifying the domain-manager skill:
+1. Create skill folder in `skills/<name>/` with `SKILL.md`
+2. Commit and push to `svg153/skills`
+3. Create symlink: `ln -sf /root/workspace/svg153-skills/skills/<name> /hermes-home/skills/<name>`
+4. Done — Hermes reads it automatically
 
-1. Edit `SKILL.md` and/or `scripts/domain_manager.py`
-2. Commit changes in the repo
-3. Push to `svg153/skills`
-4. The symlink picks up changes automatically
+## Removing Skills from Sync
 
-## Security Notes
+To stop syncing a skill:
 
-- **Never commit API keys** — the `.gitignore` excludes secrets
-- **Never expose credentials** in the SKILL.md or scripts output
-- **Use environment variables** for all sensitive data
-- **SKILL.md is public** — only include non-sensitive instructions
+```bash
+rm /hermes-home/skills/<name>
+```
+
+The skill stays in the repo (git history preserved), just no longer symlinked to Hermes.
+
+## Security Rules
+
+1. **NEVER commit API keys** — `.gitignore` excludes `*.env`, `*.key`, `hosts.yml`
+2. **NEVER expose credentials** in SKILL.md or scripts output
+3. **SKILL.md is public** — only non-sensitive instructions
+4. **Use environment variables** for all sensitive data
+5. **Scripts are public** — no hardcoded secrets, only env var references
 
 ## Repo Structure
 
 ```
 svg153-skills/
 ├── .gitignore          # Excludes secrets (*.env, *.key, hosts.yml)
+├── CONTRIBUTING.md
+├── README.md
 ├── skills/
-│   └── domain-manager/
-│       ├── SKILL.md    # Public instructions (no secrets)
-│       └── scripts/
-│           └── domain_manager.py  # Automation script
+│   ├── domain-manager/
+│   │   ├── SKILL.md
+│   │   └── scripts/
+│   │       └── domain_manager.py
+│   ├── branch-pr/
+│   │   ├── SKILL.md
+│   │   └── metadata.yaml
+│   ├── sdd-init/
+│   │   ├── SKILL.md
+│   │   └── metadata.yaml
+│   └── ... (22+ skills total)
 └── scripts/
     ├── check-updates.sh
     └── migrate-skills.sh
 ```
 
-## Updating the Script
+## Current Synced Skills
 
-When `domain_manager.py` changes:
+Run this to see which skills are currently symlinked:
 
-1. Edit `scripts/domain_manager.py` in the repo
-2. Commit and push
-3. The symlink is automatic — no restart needed
+```bash
+ls -la /hermes-home/skills/ | grep "^l"
+```
 
-## Updating the SKILL.md
+Each `l` (symlink) entry points to a skill in the repo that's active in Hermes.
 
-When instructions change:
+## Updating Any Skill
 
-1. Edit `SKILL.md` in the repo
-2. Commit and push
-3. Hermes reloads on next `skill_view` call
+To update any skill in the repo:
+
+1. Edit the file in `/root/workspace/svg153-skills/skills/<name>/`
+2. Commit and push: `git commit -m "fix: update <name> skill" && git push`
+3. Symlink picks up changes automatically — no restart needed
+
+## Pitfalls
+
+1. **Symlink must be absolute** — relative symlinks break when Hermes changes working directory
+2. **Git pull first** — always pull before assuming you have the latest skill version
+3. **SKILL.md frontmatter** — name must match folder name, description 10-1024 chars
+4. **Asset file sizes** — keep bundled assets under 5MB per file
+5. **Script permissions** — ensure scripts are executable (`chmod +x`)
+
