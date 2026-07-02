@@ -1,15 +1,15 @@
-# .gitignore for skills library
-# Generated files
-*.tmp
-*.bak
+# Secrets and credentials
+.env
+.env.*
+*.secret
+*.key
+hosts.yml
 
-# Local overrides (skills can have local customizations)
-**/local/
-**/.local/
+# Python
+__pycache__/
+*.pyc
+venv/
 
-# OS files
+# OS
 .DS_Store
 Thumbs.db
-
-# Lock files (if any)
-*.lock
