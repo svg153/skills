@@ -1,166 +1,114 @@
 ---
-name: repo-skills-sync
-description: 'Auto-sync all skills from svg153/skills GitHub repo to Hermes. Before any task, pulls latest changes and verifies symlinks. Trigger: any task that might benefit from updated skills from the centralized repo.'
+name: skill-sync
+description: 'Auto-sync all skills from svg153/skills GitHub repo. Maintains symlinks from /hermes-home/skills/ to the canonical repo. Before any task, verify symlinks are current by pulling latest from repo. Trigger: any skill management, skill updates, or when unsure if a skill is up to date.'
 license: MIT
 metadata:
   author: svg153
   version: "1.0"
 ---
 
-# Repository Skills Sync
+# Skill Sync — Sincronización Genérica de Skills
 
-Synchronizes ALL skills from the `svg153/skills` GitHub repository to Hermes.
+Mantiene todas las skills del repositorio `svg153/skills` sincronizadas con la carpeta de Hermes.
 
-## How It Works
-
-The repo at `github.com/svg153/skills` is the **single source of truth** for project skills.
-
-Hermes skills directory (`/hermes-home/skills/`) uses **symlinks** to point to the repo.
-
-Every skill in the repo is automatically symlinked to Hermes — no manual step needed.
+## Arquitectura
 
 ```
-svg153/skills/                          /hermes-home/skills/
-├── .gitignore                          ├── branch-pr → ../../workspace/svg153-skills/skills/branch-pr
-├── skills/                             ├── chained-pr → ...
-│   ├── branch-pr/                      ├── cognitive-doc-design → ...
-│   │   ├── SKILL.md                    ├── comment-writer → ...
-│   │   └── metadata.yaml               ├── domain-manager → ...
-│   ├── sdd-init/                       ├── gentle-ai-ecosystem → ...
-│   │   ├── SKILL.md                    ├── go-testing → ...
-│   │   └── metadata.yaml               ├── issue-creation → ...
-│   ├── ... (24 skills total)           ├── judgment-day → ...
-└── scripts/                            ├── sdd-apply → ...
-    ├── sync-all.sh ← MAIN SYNC SCRIPT   ├── sdd-archive → ...
-    ├── check-updates.sh                 ├── sdd-design → ...
-    └── migrate-skills.sh                ├── sdd-explore → ...
-                                         ├── sdd-init → ...
-                                         ├── sdd-onboard → ...
-                                         ├── sdd-propose → ...
-                                         ├── sdd-spec → ...
-                                         ├── sdd-tasks → ...
-                                         ├── sdd-verify → ...
-                                         ├── skill-creator → ...
-                                         ├── skill-improver → ...
-                                         ├── skill-registry → ...
-                                         └── work-unit-commits → ...
+svg153/skills (GitHub)  ←  CANONICAL (única fuente de verdad)
+        ↑
+        │  symlink
+        ↓
+/hermes-home/skills/   ←  Hermes lee desde aquí
 ```
 
-## Quick Sync (Recommended)
+- **Repositorio**: `github.com/svg153/skills` → `skills/<nombre>/`
+- **Symlinks**: `/hermes-home/skills/<nombre>` → `/root/workspace/svg153-skills/skills/<nombre>`
+- **Seguridad**: `.gitignore` excluye `*.env`, `*.key`, `hosts.yml`
+- **SKILL.md es público**: solo instrucciones, sin credenciales
 
-Run the automated sync script before any task:
+## Procedimiento de Sincronización
+
+Antes de cualquier tarea que use skills del repositorio:
 
 ```bash
-./scripts/sync-all.sh full
+cd /root/workspace/svg153-skills && git pull origin main
 ```
 
-This does:
-1. `git pull origin main` — fetch latest from remote
-2. Create/update symlinks for ALL skills
-3. Verify all SKILL.md files are accessible
-4. List all skills with status
-
-## Sync Modes
+Verificar que los symlinks están intactos:
 
 ```bash
-./scripts/sync-all.sh pull    # Only git pull
-./scripts/sync-all.sh symlink # Only create/update symlinks
-./scripts/sync-all.sh verify  # Verify all skills accessible
-./scripts/sync-all.sh list    # List all skills with status
-./scripts/sync-all.sh full    # All of the above (default)
+# Listar todos los symlinks
+ls -la /hermes-home/skills/ | grep "^l"
+
+# Verificar que cada skill del repo tiene su symlink
+for skill in $(ls /root/workspace/svg153-skills/skills/); do
+    if [ ! -L "/hermes-home/skills/$skill" ]; then
+        echo "MISSING: $skill"
+    fi
+done
 ```
 
-## Adding New Skills to Sync
+## Añadir una Nueva Skill al Repo
 
-When adding a new skill to the repo:
+1. Crear carpeta: `skills/<nombre-skill>/`
+2. Crear `SKILL.md` con frontmatter (name, description, license, metadata)
+3. Añadir scripts/activos en `scripts/` si los hay
+4. Commit y push:
+   ```bash
+   cd /root/workspace/svg153-skills
+   git add skills/<nombre-skill>/
+   git commit -m "feat: add <name> skill"
+   git push origin main
+   ```
+5. Crear symlink:
+   ```bash
+   ln -sf /root/workspace/svg153-skills/skills/<nombre-skill> /hermes-home/skills/<nombre-skill>
+   ```
 
-1. Create skill folder in `skills/<name>/` with `SKILL.md`
-2. Add `metadata.yaml` with origin info
-3. Commit and push to `svg153/skills`
-4. Run `./scripts/sync-all.sh full` — symlinks created automatically
-5. Done — Hermes reads it automatically
+## Actualizar una Skill Existente
 
-## Removing Skills from Sync
+1. Editar `SKILL.md` y/o `scripts/` en el repo
+2. Commit y push
+3. Hermes lee automáticamente el nuevo contenido (symlink + skill_view)
 
-To stop syncing a skill:
+## Eliminar una Skill
 
-```bash
-rm /hermes-home/skills/<name>
+1. Eliminar carpeta del repo
+2. Commit y push
+3. Eliminar symlink: `rm /hermes-home/skills/<nombre>`
+
+## Seguridad
+
+- **NUNCA** hardcodear API keys en SKILL.md o scripts
+- **NUNCA** commit de credenciales (`.gitignore` excluye `*.env`, `*.key`, `hosts.yml`)
+- **SKILL.md es público** — solo instrucciones no sensibles
+- Usar `***` como placeholder para credenciales
+- Referencias a GitHub Secrets: `${{ secrets.VAR }}`
+
+## Skills Actuales en el Repo
+
+```
+branch-pr, chained-pr, cognitive-doc-design, comment-writer,
+domain-manager, gentle-ai-ecosystem, go-testing, issue-creation,
+judgment-day, sdd-apply, sdd-archive, sdd-design, sdd-explore,
+sdd-init, sdd-onboard, sdd-propose, sdd-spec, sdd-tasks,
+sdd-verify, skill-creator, skill-improver, skill-publish,
+skill-registry, work-unit-commits
 ```
 
-The skill stays in the repo (git history preserved), just no longer symlinked to Hermes.
-
-## Handling Duplicate Removal
-
-If a skill exists both as a symlink and as a local directory in a category
-(e.g., `software-development/gentleman-ai/branch-pr`), the duplicate must be
-removed to avoid ambiguous skill name errors:
-
-```bash
-# Find duplicates
-find /hermes-home/skills -name "<skill-name>" -type d
-
-# Remove the duplicate (keep the symlink)
-rm -rf /hermes-home/skills/software-development/gentleman-ai/<skill-name>
-```
-
-This happened with: branch-pr, gentle-ai-ecosystem, issue-creation, skill-creator.
-
-## Security Rules
-
-1. **NEVER commit API keys** — `.gitignore` excludes `*.env`, `*.key`, `hosts.yml`
-2. **NEVER expose credentials** in SKILL.md or scripts output
-3. **SKILL.md is public** — only non-sensitive instructions
-4. **Use environment variables** for all sensitive data
-5. **Scripts are public** — no hardcoded secrets, only env var references
-
-## Repo Structure
+## Estructura del Repo
 
 ```
 svg153-skills/
-├── .gitignore          # Excludes secrets (*.env, *.key, hosts.yml)
+├── .gitignore          # Excluye: *.env, *.key, hosts.yml, __pycache__
 ├── CONTRIBUTING.md
 ├── README.md
 ├── skills/
-│   ├── domain-manager/
-│   │   ├── SKILL.md
-│   │   └── scripts/
-│   │       └── domain_manager.py
-│   ├── branch-pr/
-│   │   ├── SKILL.md
-│   │   └── metadata.yaml
-│   ├── sdd-init/
-│   │   ├── SKILL.md
-│   │   └── metadata.yaml
-│   └── ... (22+ skills total)
+│   ├── <skill-name>/
+│   │   ├── SKILL.md    # Instrucciones públicas (sin secretos)
+│   │   └── scripts/    # Scripts auxiliares (sin secretos)
+│   └── ...
 └── scripts/
     ├── check-updates.sh
     └── migrate-skills.sh
 ```
-
-## Current Synced Skills
-
-Run this to see which skills are currently symlinked:
-
-```bash
-ls -la /hermes-home/skills/ | grep "^l"
-```
-
-Each `l` (symlink) entry points to a skill in the repo that's active in Hermes.
-
-## Updating Any Skill
-
-To update any skill in the repo:
-
-1. Edit the file in `/root/workspace/svg153-skills/skills/<name>/`
-2. Commit and push: `git commit -m "fix: update <name> skill" && git push`
-3. Symlink picks up changes automatically — no restart needed
-
-## Pitfalls
-
-1. **Symlink must be absolute** — relative symlinks break when Hermes changes working directory
-2. **Git pull first** — always pull before assuming you have the latest skill version
-3. **SKILL.md frontmatter** — name must match folder name, description 10-1024 chars
-4. **Asset file sizes** — keep bundled assets under 5MB per file
-5. **Script permissions** — ensure scripts are executable (`chmod +x`)
-
