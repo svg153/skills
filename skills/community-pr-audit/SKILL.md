@@ -4,7 +4,7 @@ description: "Trigger: community PR review, collaborador, external PR, outsider 
 license: MIT
 metadata:
   author: svg153
-  version: "1.2"
+  version: "1.3"
 ---
 
 # Community PR Audit
@@ -37,6 +37,7 @@ Before looking at code, assess the contributor:
 - Contributor forked and pushed directly without forking
 - Contributor name differs from login (impersonation risk)
 - Multiple PRs targeting different unrelated repos in short timeframe
+- **Direct push to main** (no PR merge) — contributor has write access they shouldn't have, or bypassed the PR workflow entirely. Even with innocent intent, this bypasses code review.
 
 ## Phase 2 — Security Scan (Static Analysis)
 
@@ -154,3 +155,35 @@ At the end of the full report, add:
 - If there are merge conflicts, resolve them locally then merge.
 - Closing a PR without merging erases the contributor's credit from GitHub's contribution graph and commit history.
 - Exception: only close without merge if explicitly told to do so, or if there's a real security risk (malware, injection).
+
+## Direct Push to Main — Revert Procedure
+
+When a contributor pushes directly to `main` (bypassing PR workflow):
+
+1. **Identify the commit**: `git log --oneline -5` on main
+2. **Revert safely** (not reset — preserves history):
+   ```bash
+   git revert <bad-commit-sha> --no-edit
+   git push origin main
+   ```
+3. **Check if PRs auto-closed**: `gh pr list --state all --json number,state,headRefName,author`
+4. **Reopen each affected PR**: `gh pr reopen <number>`
+5. **Leave PRs open** so the contributor can fix and re-submit via the proper PR workflow (or you review and merge from the branch)
+
+Do NOT use `git reset --hard` on main — this rewrites public history and breaks any forks/clones.
+
+## Post-Merge Credit Recovery
+
+When PRs were accidentally closed without merging, the contributor's credit in GitHub's contribution graph is lost even if the commit author is set correctly. The commit author only shows line attribution, not PR merge attribution.
+
+**Recovery procedure:**
+1. Fetch the original branch or identify the commit SHA from the closed PR
+2. Ask the contributor to recreate the branch from the commit and reopen the PR (or create a new PR)
+3. Merge the new PR normally
+4. If the contributor can't recreate the branch, you can manually cherry-pick and create a new PR from the commit
+
+**Prevention:** Always use `gh pr merge` instead of `gh pr close`. The merge button preserves the PR linkage.
+
+## References
+
+- See `references/credit-recovery.md` for detailed recovery procedure and case study (claude-b-48 / reclaimit, 2025-07-04).
