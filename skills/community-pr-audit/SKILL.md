@@ -147,3 +147,10 @@ At the end of the full report, add:
 - **Copilot-reviewed doesn't mean correct**: Auto-reviews from Copilot are common — they often miss the actual scanning logic. They also hallucinate about language-specific behavior (see pitfall above).
 - **`node_modules/.cache/bun` in body but not in code**: Contributors often describe files they plan to add but forgot in the diff.
 - **Don't assume malicious intent**: Most external PRs are genuine contributions. Flag issues, don't assume sabotage. Escalate only when red flags cluster.
+
+## Golden Rule — NEVER close PRs without merging
+
+- **Always merge** (squash or normal) external PRs — never close them without merging first.
+- If there are merge conflicts, resolve them locally then merge.
+- Closing a PR without merging erases the contributor's credit from GitHub's contribution graph and commit history.
+- Exception: only close without merge if explicitly told to do so, or if there's a real security risk (malware, injection).
