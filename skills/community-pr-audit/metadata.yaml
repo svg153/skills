@@ -1,0 +1,15 @@
+name: community-pr-audit
+origin: https://github.com/svg153/skills
+origin_path: /skills/community-pr-audit
+category: software-development
+status: active
+sync:
+  enabled: true
+  interval: weekly
+  strategy: manual
+tags:
+  - code-review
+  - security
+  - community
+  - pr-review
+  - adversarial-audit
