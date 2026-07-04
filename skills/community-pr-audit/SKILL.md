@@ -4,7 +4,7 @@ description: "Trigger: community PR review, collaborador, external PR, outsider 
 license: MIT
 metadata:
   author: svg153
-  version: "1.0"
+  version: "1.2"
 ---
 
 # Community PR Audit
@@ -68,7 +68,7 @@ For EVERY file changed in the PR, scan added/modified lines:
 ## Phase 3 — Logic & Correctness Review
 
 ### Pattern Matching (from code-review skill)
-- **Correctness**: Do the new categories actually match? Verify against the scanner logic (e.g., `filepath.Ext(".DS_Store")` returns `""`, not `".ds_store"` — a common footgun)
+- **Correctness**: Do the new categories actually match? Verify against the scanner logic — but DO NOT trust AI-generated claims about language behavior. Always verify with a real program. Load `language-quirks` skill for the Go `filepath.Ext()` case study.
 - **Alternative paths**: What if the directory has nested items? What about symlinks? Permission errors?
 - **Incoherences**: Does the display name match the key? Are there naming inconsistencies?
 - **Boundary & safety**: Does size calculation handle nested directories correctly?
@@ -99,7 +99,7 @@ Produce a structured report:
 - [bullet points of what's correct]
 
 ### ⚠️ Para cambiar
-- [bullet points of issues, bugs, missing tests]
+- [bullet points of issues, missing tests]
 
 ### ❌ [CRITICAL/BLOCKER]
 - [security issues or broken features that must be fixed]
@@ -142,8 +142,8 @@ At the end of the full report, add:
 
 ## Pitfalls
 
-- **File extensions vs filenames**: `filepath.Ext(".DS_Store")` returns `""`, not `".ds_store"` — a file-category matcher will NEVER match a dotfile. This is the #1 bug in PRs adding file-based categories.
+- **Don't trust AI claims about language behavior**: Copilot (and other LLMs) frequently confuse behavior between languages. The #1 case: Go's `filepath.Ext(".DS_Store")` returns `".DS_Store"`, NOT `""` (Python's `os.path.splitext` returns `""`). Always verify with a real program before flagging "broken" functionality. Load `language-quirks` skill for the full case study.
 - **Tests only check registration**: A test that verifies "category appears in report" doesn't prove the scanner actually finds the files. Tests must verify `matchFile()`/`matchDirectory()` logic.
-- **Copilot-reviewed doesn't mean correct**: Auto-reviews from Copilot are common — they often miss the actual scanning logic mismatch
-- **`node_modules/.cache/bun` in body but not in code**: Contributors often describe files they plan to add but forgot in the diff
+- **Copilot-reviewed doesn't mean correct**: Auto-reviews from Copilot are common — they often miss the actual scanning logic. They also hallucinate about language-specific behavior (see pitfall above).
+- **`node_modules/.cache/bun` in body but not in code**: Contributors often describe files they plan to add but forgot in the diff.
 - **Don't assume malicious intent**: Most external PRs are genuine contributions. Flag issues, don't assume sabotage. Escalate only when red flags cluster.
