@@ -1,0 +1,14 @@
+interface:
+  display_name: Smart Shopping Advisor
+  short_description: Compare purchases by fit, evidence and lifetime cost
+  default_prompt: Use $smart-shopping-advisor to compare these products against my
+    actual needs and total ownership cost.
+  icon_small: assets/icon.svg
+  icon_large: assets/icon.svg
+policy:
+  products:
+  - chatgpt
+  - codex
+  - api
+  - atlas
+  allow_implicit_invocation: true
