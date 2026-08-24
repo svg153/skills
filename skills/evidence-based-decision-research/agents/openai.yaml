@@ -1,0 +1,14 @@
+interface:
+  display_name: Evidence-Based Decision Research
+  short_description: Investigate claims and compare decisions critically
+  default_prompt: Use $evidence-based-decision-research to investigate this claim,
+    compare alternatives, and explain what the evidence supports.
+  icon_small: assets/icon.svg
+  icon_large: assets/icon.svg
+policy:
+  products:
+  - chatgpt
+  - codex
+  - api
+  - atlas
+  allow_implicit_invocation: true
