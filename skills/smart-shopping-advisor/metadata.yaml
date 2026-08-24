@@ -1,0 +1,15 @@
+name: smart-shopping-advisor
+origin: https://github.com/svg153/skills
+origin_path: skills/smart-shopping-advisor
+category: productivity
+status: active
+sync:
+  enabled: false
+  interval: weekly
+  strategy: manual
+tags:
+  - shopping
+  - comparison
+  - consumer-research
+  - home
+  - technology
