@@ -1,0 +1,4 @@
+interface:
+  display_name: "Home Assistant Smart Home Planner"
+  short_description: "Plan reliable, local-first Home Assistant deployments"
+  default_prompt: "Use $home-assistant-smart-home-planner to design a compatible, reliable, phased smart-home setup around my actual constraints."

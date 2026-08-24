@@ -1,0 +1,14 @@
+name: evidence-based-decision-research
+origin: https://github.com/svg153/skills
+origin_path: skills/evidence-based-decision-research
+category: research
+status: active
+sync:
+  enabled: false
+  interval: weekly
+  strategy: manual
+tags:
+  - research
+  - evidence
+  - decision-making
+  - critical-thinking
