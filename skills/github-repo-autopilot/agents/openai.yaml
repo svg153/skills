@@ -1,0 +1,14 @@
+interface:
+  display_name: GitHub Repository Autopilot
+  short_description: Maintain repositories through verified issue-to-PR loops
+  default_prompt: Use $github-repo-autopilot to assess this repository and complete
+    its authorized backlog with verified pull requests.
+  icon_small: assets/icon.svg
+  icon_large: assets/icon.svg
+policy:
+  products:
+  - chatgpt
+  - codex
+  - api
+  - atlas
+  allow_implicit_invocation: true
