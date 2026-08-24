@@ -1,0 +1,15 @@
+name: home-assistant-smart-home-planner
+origin: https://github.com/svg153/skills
+origin_path: skills/home-assistant-smart-home-planner
+category: software-development
+status: active
+sync:
+  enabled: false
+  interval: weekly
+  strategy: manual
+tags:
+  - home-assistant
+  - smart-home
+  - zigbee
+  - matter
+  - local-first
