@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Sync one externally maintained skill into this library while preserving local metadata.yaml.
+# This is the common primitive used by scripts/sync-upstreams.sh and CI.
 # Usage: ./scripts/sync-upstream-skill.sh <skill-name>
 set -euo pipefail
 
@@ -20,14 +21,28 @@ if [ ! -f "$meta" ]; then
   exit 1
 fi
 
+read_sync_field() {
+  local field="$1"
+  awk -v field="$field" '
+    /^sync:/ { in_sync=1; next }
+    in_sync && /^[^ ]/ { in_sync=0 }
+    in_sync && $1 == field ":" { print $2; exit }
+  ' "$meta"
+}
+
 origin=$(grep '^origin:' "$meta" | sed 's/^origin: *//')
 origin_path=$(grep '^origin_path:' "$meta" | sed 's/^origin_path: *//' || true)
 origin_ref=$(grep '^origin_ref:' "$meta" | sed 's/^origin_ref: *//' || true)
-enabled=$(awk '/^sync:/{in_sync=1;next} in_sync && /^[^ ]/{in_sync=0} in_sync && $1=="enabled:"{print $2; exit}' "$meta")
-authoritative=$(awk '/^sync:/{in_sync=1;next} in_sync && /^[^ ]/{in_sync=0} in_sync && $1=="authoritative:"{print $2; exit}' "$meta")
+enabled=$(read_sync_field enabled)
+strategy=$(read_sync_field strategy)
+authoritative=$(read_sync_field authoritative)
 
 if [ "${enabled:-false}" != "true" ]; then
   echo "ERROR: sync is not enabled for $skill" >&2
+  exit 1
+fi
+if [ "${strategy:-manual}" != "download" ]; then
+  echo "ERROR: $skill uses sync.strategy=${strategy:-manual}; this script only handles download" >&2
   exit 1
 fi
 if [ "${authoritative:-}" != "upstream" ]; then
@@ -44,8 +59,8 @@ origin_path=${origin_path:-/}
 resolved_ref="$origin_ref"
 
 # `latest-release` tracks only stable semantic-version tags (vX.Y.Z).
-# This deliberately ignores main, prereleases and arbitrary tags so the
-# personal catalog cannot ingest unpublished upstream behavior by accident.
+# It deliberately ignores main, prereleases and arbitrary tags so the catalog
+# cannot ingest unpublished upstream behavior by accident.
 if [ "$origin_ref" = "latest-release" ]; then
   resolved_ref=$(
     {
@@ -78,6 +93,8 @@ if [ ! -f "$source_dir/SKILL.md" ]; then
   exit 1
 fi
 
+# Preserve catalog-only metadata. Everything else in the skill directory is
+# authoritative upstream content for download-managed skills.
 cp "$meta" "$tmp/metadata.yaml"
 find "$target" -mindepth 1 -maxdepth 1 ! -name metadata.yaml -exec rm -rf {} +
 

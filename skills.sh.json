@@ -1,0 +1,44 @@
+{
+  "$schema": "https://skills.sh/schemas/skills.sh.schema.json",
+  "notGrouped": "bottom",
+  "groupings": [
+    {
+      "title": "GitHub & Open Source",
+      "description": "Repository workflows, pull requests, due diligence, reuse decisions, and autonomous GitHub maintenance.",
+      "skills": [
+        "github-build-or-reuse",
+        "github-repo-autopilot",
+        "community-pr-audit",
+        "branch-pr",
+        "chained-pr",
+        "issue-creation"
+      ]
+    },
+    {
+      "title": "Research & Decisions",
+      "description": "Evidence-first research and planning workflows for decisions with real trade-offs.",
+      "skills": [
+        "evidence-based-decision-research",
+        "home-assistant-smart-home-planner"
+      ]
+    },
+    {
+      "title": "Writing & Publishing",
+      "description": "Credible comments, technical content, document design, and multi-platform social publishing.",
+      "skills": [
+        "social-publishing",
+        "comment-writer",
+        "cognitive-doc-design"
+      ]
+    },
+    {
+      "title": "Software Development",
+      "description": "Testing and implementation workflows for maintainable software.",
+      "skills": [
+        "go-testing",
+        "gentle-ai-ecosystem",
+        "judgment-day"
+      ]
+    }
+  ]
+}
