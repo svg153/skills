@@ -41,11 +41,31 @@ fi
 
 origin_ref=${origin_ref:-main}
 origin_path=${origin_path:-/}
+resolved_ref="$origin_ref"
+
+# `latest-release` tracks only stable semantic-version tags (vX.Y.Z).
+# This deliberately ignores main, prereleases and arbitrary tags so the
+# personal catalog cannot ingest unpublished upstream behavior by accident.
+if [ "$origin_ref" = "latest-release" ]; then
+  resolved_ref=$(
+    {
+      git ls-remote --tags --refs "$origin" 'refs/tags/v*' \
+        | awk '{sub("refs/tags/", "", $2); print $2}' \
+        | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' \
+        | sort -V \
+        | tail -n 1
+    } || true
+  )
+  if [ -z "$resolved_ref" ]; then
+    echo "ERROR: no stable vX.Y.Z tag found for $origin" >&2
+    exit 1
+  fi
+fi
 
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 
-git clone --depth 1 --branch "$origin_ref" "$origin" "$tmp/upstream"
+git clone --depth 1 --branch "$resolved_ref" "$origin" "$tmp/upstream"
 
 if [ "$origin_path" = "/" ] || [ "$origin_path" = "." ]; then
   source_dir="$tmp/upstream"
@@ -72,4 +92,4 @@ shopt -u dotglob nullglob
 
 cp "$tmp/metadata.yaml" "$meta"
 
-echo "Synced $skill from $origin@$origin_ref ($origin_path)"
+echo "Synced $skill from $origin@$resolved_ref ($origin_path; configured ref: $origin_ref)"
