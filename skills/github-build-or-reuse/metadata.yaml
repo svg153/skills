@@ -1,12 +1,14 @@
 name: github-build-or-reuse
-origin: https://github.com/svg153/skills
-origin_path: skills/github-build-or-reuse
+origin: https://github.com/ghspain/github-build-or-reuse
+origin_path: /
+origin_ref: main
 category: github
 status: active
 sync:
-  enabled: false
+  enabled: true
   interval: weekly
-  strategy: manual
+  strategy: download
+  authoritative: upstream
 tags:
   - github
   - open-source
