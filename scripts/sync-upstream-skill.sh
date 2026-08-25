@@ -48,11 +48,13 @@ resolved_ref="$origin_ref"
 # personal catalog cannot ingest unpublished upstream behavior by accident.
 if [ "$origin_ref" = "latest-release" ]; then
   resolved_ref=$(
-    git ls-remote --tags --refs "$origin" 'refs/tags/v*' \
-      | awk '{sub("refs/tags/", "", $2); print $2}' \
-      | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' \
-      | sort -V \
-      | tail -n 1
+    {
+      git ls-remote --tags --refs "$origin" 'refs/tags/v*' \
+        | awk '{sub("refs/tags/", "", $2); print $2}' \
+        | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' \
+        | sort -V \
+        | tail -n 1
+    } || true
   )
   if [ -z "$resolved_ref" ]; then
     echo "ERROR: no stable vX.Y.Z tag found for $origin" >&2
