@@ -1,7 +1,7 @@
 name: github-build-or-reuse
 origin: https://github.com/ghspain/github-build-or-reuse
 origin_path: skills/github-build-or-reuse
-origin_ref: main
+origin_ref: latest-release
 category: github
 status: active
 sync:
@@ -9,6 +9,7 @@ sync:
   interval: weekly
   strategy: download
   authoritative: upstream
+  channel: stable
 tags:
   - github
   - open-source
