@@ -1,6 +1,6 @@
 name: github-build-or-reuse
 origin: https://github.com/ghspain/github-build-or-reuse
-origin_path: /
+origin_path: skills/github-build-or-reuse
 origin_ref: main
 category: github
 status: active
@@ -12,9 +12,10 @@ sync:
 tags:
   - github
   - open-source
+  - agent-skills
   - due-diligence
   - software-architecture
-  - reuse
+  - software-reuse
   - build-vs-buy
 inspiration:
   - https://github.com/polmarza/github-repo-scout
