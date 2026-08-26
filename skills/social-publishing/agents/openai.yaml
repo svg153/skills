@@ -1,0 +1,11 @@
+interface:
+  display_name: Social Publishing
+  short_description: Draft credible social posts, reposts, threads, and articles
+  default_prompt: Use $social-publishing to research, fact-check, draft, adapt, and review this content for the target social or long-form publishing channel while preserving attribution, tone, evidence, and privacy.
+policy:
+  products:
+  - chatgpt
+  - codex
+  - api
+  - atlas
+  allow_implicit_invocation: true
