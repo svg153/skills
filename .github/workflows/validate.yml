@@ -102,17 +102,28 @@ jobs:
           grep -q 'social-publishing' /tmp/skills-list.txt
           echo "OK: npx skills discovers expected catalog entries"
 
-      - name: Validate APM package
+      - name: Validate APM skill consumption
         shell: bash
         run: |
           set -euo pipefail
           python -m pip install 'apm-cli>=0.28,<0.30'
-          (
-            cd skills/social-publishing
-            apm compile --validate
-            apm pack --dry-run --verbose
-          )
-          echo "OK: social-publishing is a valid standalone APM package"
+          source_dir="$GITHUB_WORKSPACE/skills/social-publishing"
+          consumer_dir="$(mktemp -d)"
+          cd "$consumer_dir"
+          cat > apm.yml <<'YAML'
+          name: apm-consumer-smoke-test
+          version: "1.0.0"
+          targets:
+            - agent-skills
+          dependencies:
+            apm: []
+            mcp: []
+          YAML
+          apm install "$source_dir" --target agent-skills --verbose
+          test -f .agents/skills/social-publishing/SKILL.md
+          grep -q '^name: social-publishing$' .agents/skills/social-publishing/SKILL.md
+          test -f apm.lock.yaml
+          echo "OK: APM consumes social-publishing as a single-skill bundle"
 
       - name: Validate generic upstream selector
         shell: bash
