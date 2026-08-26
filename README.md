@@ -2,8 +2,6 @@
 
 Centralized Agent Skills library with origin tracking, reproducible upstream synchronization, and portable installation across compatible agents.
 
-[![skills.sh](https://skills.sh/b/svg153/skills)](https://skills.sh/svg153/skills)
-
 ## Install with `npx skills`
 
 The Vercel `skills` CLI discovers every valid `SKILL.md` in this public repository.
@@ -22,11 +20,35 @@ npx skills@latest add svg153/skills --skill social-publishing --agent codex --gl
 
 You can also pass the full GitHub URL or a direct path to one skill directory.
 
+## Install with Microsoft APM
+
+For projects that want a committed dependency manifest, lockfile, integrity hashes, updates, and drift auditing, selected catalog entries can also be consumed with [Microsoft APM](https://github.com/microsoft/apm).
+
+`social-publishing` is packaged as a standalone APM package inside this repository:
+
+```bash
+# Add it to the current project's apm.yml and install it
+apm install svg153/skills/skills/social-publishing --target agent-skills
+
+# Reproduce a committed lockfile later
+apm install --frozen
+
+# Deliberately move to a newer upstream revision
+apm update
+
+# Check deployed content against the lockfile
+apm audit
+```
+
+APM deploys shared Agent Skills to `.agents/skills/` for Codex, Copilot, Cursor, OpenCode, Gemini, Windsurf and other compatible targets, while `apm.lock.yaml` records the resolved source and integrity metadata. The catalog remains the source of truth; consumers should not maintain copied skill source files.
+
 ## skills.sh discovery
 
 `skills.sh` and the `npx skills` CLI use the same Agent Skills ecosystem. There is no required GitHub label or topic that automatically enrolls a repository. Public skills become rankable through anonymous `npx skills add` install telemetry; search/index ingestion can lag behind successful CLI discovery.
 
 This repository includes `skills.sh.json` for catalog grouping and CI exercises the `skills` CLI with telemetry disabled so validation does not inflate install counts.
+
+The README intentionally does not show a skills.sh repository badge until the public index resolves this repository; otherwise the badge endpoint renders a misleading `not found` state even when CLI installation works.
 
 ## Structure
 
@@ -36,13 +58,14 @@ Each catalog entry normally contains:
 skills/<name>/
 ├── SKILL.md          # Portable Agent Skill
 ├── metadata.yaml     # Catalog provenance and lifecycle policy
+├── apm.yml           # Optional standalone APM package manifest
 ├── templates/        # Optional reusable templates
 ├── scripts/          # Optional helpers
 ├── references/       # Optional specs/examples
 └── assets/           # Optional supporting assets
 ```
 
-`SKILL.md` is portable runtime behavior. `metadata.yaml` belongs to this catalog and is not required by the Agent Skills specification.
+`SKILL.md` is portable runtime behavior. `metadata.yaml` belongs to this catalog and is not required by the Agent Skills specification. An `apm.yml` is optional and is added when an entry should also behave as an independently consumable APM package.
 
 ## Metadata and lifecycle
 
@@ -131,8 +154,9 @@ Keeping those directions separate prevents a runtime-specific Hermes operation f
 2. Add `metadata.yaml` for catalog provenance.
 3. Add supporting files only when they materially help the skill.
 4. Choose `local`, `manual`, or `download` lifecycle semantics deliberately.
-5. Run repository validation and `npx skills@latest add . --list` before merging.
-6. Submit a PR.
+5. Add `apm.yml` only if the entry should also be independently consumable through APM.
+6. Run repository validation and `npx skills@latest add . --list` before merging.
+7. Submit a PR.
 
 ## Categories
 

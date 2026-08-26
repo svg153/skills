@@ -1,0 +1,9 @@
+name: social-publishing
+version: "1.0.0"
+description: Evidence-aware editorial workflow for LinkedIn, X/Twitter, blogs, articles, reposts, attribution, fact-checking, and privacy.
+license: MIT
+includes: auto
+dependencies:
+  apm: []
+  mcp: []
+scripts: {}
