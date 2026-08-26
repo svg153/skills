@@ -9,6 +9,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: sync-upstream-skills
+  cancel-in-progress: false
+
 jobs:
   sync:
     runs-on: ubuntu-latest
@@ -20,15 +24,38 @@ jobs:
       - name: Sync due upstream skills
         shell: bash
         run: |
+          set -euo pipefail
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             ./scripts/sync-upstreams.sh --all
           else
             ./scripts/sync-upstreams.sh --due
           fi
 
+      - name: Validate synchronized catalog before commit
+        shell: bash
+        env:
+          DISABLE_TELEMETRY: '1'
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- skills/; then
+            echo "No upstream changes to validate"
+            exit 0
+          fi
+
+          git diff --check
+          python -m pip install 'PyYAML>=6,<7'
+          python scripts/validate-skills.py
+          npx -y skills@latest add . --list 2>&1 | tee /tmp/skills-list.txt
+          if grep -q 'Skipped .*SKILL.md' /tmp/skills-list.txt; then
+            echo "ERROR: npx skills skipped one or more synchronized catalog entries"
+            exit 1
+          fi
+          echo "OK: synchronized catalog validates before commit"
+
       - name: Commit upstream changes
         shell: bash
         run: |
+          set -euo pipefail
           if git diff --quiet -- skills/; then
             echo "No upstream changes"
             exit 0
