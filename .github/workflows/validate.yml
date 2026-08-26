@@ -26,6 +26,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Validate Agent Skill frontmatter
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install 'PyYAML>=6,<7'
+          python scripts/validate-skills.py
+
       - name: Validate metadata.yaml
         shell: bash
         run: |
@@ -65,24 +72,14 @@ jobs:
             echo "OK: $(dirname "$meta" | xargs basename): $origin (${strategy:-manual})"
           done
 
-      - name: Validate SKILL.md exists
-        shell: bash
-        run: |
-          set -euo pipefail
-          for skill_dir in skills/*/; do
-            skill_name=$(basename "$skill_dir")
-            [ -f "$skill_dir/SKILL.md" ] || { echo "ERROR: $skill_name missing SKILL.md"; exit 1; }
-          done
-          echo "OK: all catalog entries have SKILL.md"
-
-      - name: Check duplicate skill names
+      - name: Check duplicate catalog names
         shell: bash
         run: |
           set -euo pipefail
           names=$(for meta in skills/*/metadata.yaml; do grep '^name:' "$meta" 2>/dev/null; done | sort)
           duplicates=$(echo "$names" | uniq -d)
           if [ -n "$duplicates" ]; then
-            echo "ERROR: duplicate skill names found:"
+            echo "ERROR: duplicate catalog names found:"
             echo "$duplicates"
             exit 1
           fi
@@ -97,10 +94,15 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          npx -y skills@latest add . --list | tee /tmp/skills-list.txt
+          npx -y skills@latest add . --list 2>&1 | tee /tmp/skills-list.txt
+          if grep -q 'Skipped .*SKILL.md' /tmp/skills-list.txt; then
+            echo "ERROR: npx skills skipped one or more catalog entries"
+            exit 1
+          fi
           grep -q 'github-build-or-reuse' /tmp/skills-list.txt
           grep -q 'social-publishing' /tmp/skills-list.txt
-          echo "OK: npx skills discovers expected catalog entries"
+          grep -q 'gentle-ai-ecosystem' /tmp/skills-list.txt
+          echo "OK: npx skills discovers expected catalog entries without parser skips"
 
       - name: Validate APM skill consumption
         shell: bash

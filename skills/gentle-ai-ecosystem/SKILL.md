@@ -1,6 +1,6 @@
 ---
-title: Gentle-AI Ecosystem
-description: Complete Gentle-AI setup: persona, Engram MCP, GGA pre-commit, SDD skills
+name: gentle-ai-ecosystem
+description: "Complete Gentle-AI setup: persona, Engram MCP, GGA pre-commit, and SDD skills."
 ---
 
 # Gentle-AI Ecosystem
