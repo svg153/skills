@@ -5,6 +5,7 @@ on:
     paths:
       - 'skills/**/metadata.yaml'
       - 'skills/**/SKILL.md'
+      - 'skills/**/apm.yml'
       - 'skills.sh.json'
       - 'scripts/**'
       - '.github/workflows/**'
@@ -13,6 +14,7 @@ on:
     paths:
       - 'skills/**/metadata.yaml'
       - 'skills/**/SKILL.md'
+      - 'skills/**/apm.yml'
       - 'skills.sh.json'
       - 'scripts/**'
       - '.github/workflows/**'
@@ -99,6 +101,18 @@ jobs:
           grep -q 'github-build-or-reuse' /tmp/skills-list.txt
           grep -q 'social-publishing' /tmp/skills-list.txt
           echo "OK: npx skills discovers expected catalog entries"
+
+      - name: Validate APM package
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install 'apm-cli>=0.28,<0.30'
+          (
+            cd skills/social-publishing
+            apm compile --validate
+            apm pack --dry-run --verbose
+          )
+          echo "OK: social-publishing is a valid standalone APM package"
 
       - name: Validate generic upstream selector
         shell: bash
