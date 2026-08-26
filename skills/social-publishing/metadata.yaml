@@ -9,6 +9,9 @@ sync:
   strategy: local
   authoritative: local
 tags:
+  - agent-skills
+  - chatgpt
+  - codex
   - linkedin
   - twitter
   - x
