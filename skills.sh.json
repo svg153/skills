@@ -4,9 +4,10 @@
   "groupings": [
     {
       "title": "GitHub & Open Source",
-      "description": "Repository workflows, pull requests, due diligence, reuse decisions, and autonomous GitHub maintenance.",
+      "description": "Repository workflows, pull requests, due diligence, reuse decisions, publishing, and autonomous GitHub maintenance.",
       "skills": [
         "github-build-or-reuse",
+        "agent-skill-release-lifecycle",
         "github-repo-autopilot",
         "community-pr-audit",
         "branch-pr",
