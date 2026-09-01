@@ -1,0 +1,11 @@
+interface:
+  display_name: Agent Skill Release Lifecycle
+  short_description: Release, distribute, index, and verify Agent Skills end to end
+  default_prompt: Use $agent-skill-release-lifecycle to publish or audit this Agent Skill end to end: stable versioning, client validation, downstream catalogs, skills.sh detail/search indexing, GitHub discovery metadata, and post-release cleanup.
+policy:
+  products:
+  - chatgpt
+  - codex
+  - api
+  - atlas
+  allow_implicit_invocation: true
