@@ -10,7 +10,8 @@ This repository is a portable Agent Skills catalog. Keep runtime behavior in eac
 4. Add `agents/openai.yaml` when OpenAI/ChatGPT/Codex presentation metadata is useful; do not put private repository names, customer data, tokens, or secrets in public metadata.
 5. Add `apm.yml` only when the skill should also be consumable as a standalone Microsoft APM dependency.
 6. If the skill comes from another project, preserve attribution and verify that its license allows the intended reuse. Do not treat a public GitHub repository as permission to copy.
-7. Run validation and submit a PR.
+7. Add or update a catalog-owned behavioral suite under `evals/<name>/` when the skill is high-impact or changes behavior already protected by evals.
+8. Run validation and submit a PR.
 
 ## Portable `SKILL.md`
 
@@ -92,6 +93,31 @@ If an entry has `apm.yml`, also verify it can be consumed as the intended standa
 
 `npx skills` discovery working locally does not guarantee immediate ingestion by the external skills.sh search index. Do not generate artificial installs to influence ranking; use the upstream indexing process when search lags behind a valid repository.
 
+## Behavioral evals
+
+Catalog behavioral suites use Waza and live under `evals/<catalog-name>/`.
+
+- Keep evals outside `skills/<name>/` for `download` + `authoritative: upstream` entries. The mirrored payload must remain replaceable by upstream synchronization.
+- Every covered skill needs a positive trigger case and a negative/boundary case.
+- Positive cases need a behavioral grader in addition to trigger selection.
+- PR validation is deterministic and receives no model credential.
+- Model-backed runs happen only from the trusted scheduled/manual workflow.
+- Treat JSON/JUnit/transcript artifacts as regression evidence, not as a universal public quality score.
+
+Run the repository contract validator before submitting eval changes:
+
+```bash
+python scripts/validate-evals.py
+```
+
+With Waza installed, also run deterministic spec coverage:
+
+```bash
+waza spec verify --skill skills/<name> --eval evals/<name>/eval.yaml
+```
+
+See `docs/evals.md` for credential setup, retained results, and local model-backed execution.
+
 ## Categories
 
 Pick one most-specific catalog category. Current categories include:
@@ -116,3 +142,4 @@ Pick one most-specific catalog category. Current categories include:
 - [ ] Supporting files are relevant to the runtime skill rather than repository clutter.
 - [ ] `npx skills` discovers the skill without parser skips.
 - [ ] Automatic upstream entries use the generic sync mechanism; no new one-off workflow is introduced.
+- [ ] Covered high-impact behavior has positive and negative/boundary eval cases.
