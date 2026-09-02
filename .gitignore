@@ -13,6 +13,10 @@ venv/
 # Generated site
 _site/
 
+# Behavioral eval outputs
+.waza-cache/
+eval-results/
+
 # OS
 .DS_Store
 Thumbs.db
