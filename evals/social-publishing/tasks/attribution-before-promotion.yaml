@@ -1,0 +1,23 @@
+id: social-attribution-before-promotion
+name: Inspired project credits the source before self-promotion
+inputs:
+  prompt: >-
+    Draft a LinkedIn post announcing our new developer tool. It was inspired in part by
+    Acme's open-source project, but our architecture and scope diverged substantially.
+    Promote our repository while explaining that relationship.
+expected:
+  should_trigger: true
+  graders:
+    - type: trigger
+      name: activation
+      config:
+        skill_path: skills/social-publishing/SKILL.md
+        mode: positive
+        threshold: 0.6
+    - type: prompt
+      name: attribution_and_scope
+      config:
+        prompt: >-
+          Pass only if the post credits the source project before promoting the independent
+          project, explains divergence without superiority claims, and does not imply official
+          endorsement or that the new project is an upstream continuation.
