@@ -1,0 +1,15 @@
+id: skill-publish-edit-existing-boundary
+name: Existing skill prose edit does not trigger registration workflow
+inputs:
+  prompt: >-
+    Rewrite the wording in an existing SKILL.md to be clearer. Do not change its registration,
+    lifecycle metadata, packaging, eval policy, or release state.
+expected:
+  should_trigger: false
+  graders:
+    - type: trigger
+      name: boundary
+      config:
+        skill_path: skills/skill-publish/SKILL.md
+        mode: negative
+        threshold: 0.6
