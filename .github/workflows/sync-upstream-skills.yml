@@ -16,10 +16,13 @@ concurrency:
 jobs:
   sync:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Sync due upstream skills
         shell: bash
@@ -30,6 +33,17 @@ jobs:
           else
             ./scripts/sync-upstreams.sh --due
           fi
+
+      - name: Regenerate derived distribution surfaces
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- skills/; then
+            echo "No upstream changes; generated distribution remains current"
+            exit 0
+          fi
+          python -m pip install 'PyYAML>=6,<7'
+          python scripts/generate-distribution.py
 
       - name: Validate synchronized catalog before commit
         shell: bash
@@ -44,7 +58,9 @@ jobs:
 
           git diff --check
           python -m pip install 'PyYAML>=6,<7'
+          python scripts/validate-workflow-security.py
           python scripts/validate-skills.py
+          python scripts/generate-distribution.py --check
           npx -y skills@latest add . --list 2>&1 | tee /tmp/skills-list.txt
           if grep -q 'Skipped .*SKILL.md' /tmp/skills-list.txt; then
             echo "ERROR: npx skills skipped one or more synchronized catalog entries"
@@ -54,6 +70,8 @@ jobs:
 
       - name: Commit upstream changes
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           if git diff --quiet -- skills/; then
@@ -63,6 +81,6 @@ jobs:
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add skills/
+          git add skills/ plugin.json marketplace.json .agents/ .codex-plugin/ .claude-plugin/ .cursor-plugin/ gemini-extension.json
           git commit -m "chore(skills): sync managed upstream skills"
-          git push
+          git push "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:main
