@@ -1,0 +1,16 @@
+{
+  "name": "svg153-skills",
+  "description": "Cross-agent catalog of reusable Agent Skills with provenance-aware lifecycle management.",
+  "owner": {
+    "name": "Sergio Valverde",
+    "url": "https://github.com/svg153"
+  },
+  "plugins": [
+    {
+      "name": "svg153-skills",
+      "source": "./",
+      "description": "Cross-agent catalog of reusable Agent Skills with provenance-aware lifecycle management.",
+      "version": "1.0.0"
+    }
+  ]
+}

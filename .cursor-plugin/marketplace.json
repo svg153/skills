@@ -1,0 +1,16 @@
+{
+  "name": "svg153-skills",
+  "owner": {
+    "name": "Sergio Valverde"
+  },
+  "metadata": {
+    "description": "Cross-agent catalog of reusable Agent Skills with provenance-aware lifecycle management."
+  },
+  "plugins": [
+    {
+      "name": "svg153-skills",
+      "source": "./",
+      "description": "Cross-agent catalog of reusable Agent Skills with provenance-aware lifecycle management."
+    }
+  ]
+}
