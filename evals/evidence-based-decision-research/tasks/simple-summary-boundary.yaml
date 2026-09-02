@@ -1,0 +1,14 @@
+id: research-simple-summary-boundary
+name: A mechanical summary does not invoke consequential decision research
+inputs:
+  prompt: >-
+    Summarize this sentence in simpler words: 'The build completed after the cache was cleared.'
+expected:
+  should_trigger: false
+  graders:
+    - type: trigger
+      name: boundary
+      config:
+        skill_path: skills/evidence-based-decision-research/SKILL.md
+        mode: negative
+        threshold: 0.6
