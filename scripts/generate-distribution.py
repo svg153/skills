@@ -93,12 +93,14 @@ def reject_symlink(path: Path) -> None:
         fail(f"{path.relative_to(ROOT)}: symlinks are not allowed in canonical skill registration")
 
 
-def discover_skills() -> list[str]:
+def discover_skills() -> tuple[list[str], list[str]]:
     if not SKILLS.is_dir():
         fail("skills/: canonical skill directory is missing")
 
-    names: list[str] = []
-    seen: dict[str, Path] = {}
+    catalog_names: list[str] = []
+    runtime_names: list[str] = []
+    seen_catalog: dict[str, Path] = {}
+    seen_runtime: dict[str, Path] = {}
 
     for skill_dir in sorted(SKILLS.iterdir(), key=lambda path: path.name.casefold()):
         if not skill_dir.is_dir():
@@ -120,39 +122,47 @@ def discover_skills() -> list[str]:
         runtime_name = frontmatter.get("name")
         metadata_name = metadata.get("name")
 
-        if runtime_name != skill_dir.name:
-            fail(
-                f"{skill_file.relative_to(ROOT)}: frontmatter name {runtime_name!r} "
-                f"must match directory {skill_dir.name!r}"
-            )
+        if not isinstance(runtime_name, str) or not NAME_RE.fullmatch(runtime_name):
+            fail(f"{skill_file.relative_to(ROOT)}: invalid runtime skill name {runtime_name!r}")
         if metadata_name != skill_dir.name:
             fail(
                 f"{metadata_file.relative_to(ROOT)}: metadata name {metadata_name!r} "
-                f"must match directory {skill_dir.name!r}"
+                f"must match catalog directory {skill_dir.name!r}"
             )
         if not NAME_RE.fullmatch(skill_dir.name):
-            fail(f"{skill_dir.relative_to(ROOT)}: invalid skill directory name")
+            fail(f"{skill_dir.relative_to(ROOT)}: invalid catalog directory name")
 
-        identity = skill_dir.name.casefold()
-        previous = seen.get(identity)
-        if previous is not None:
+        catalog_identity = skill_dir.name.casefold()
+        previous_catalog = seen_catalog.get(catalog_identity)
+        if previous_catalog is not None:
             fail(
-                f"case-insensitive skill collision: {previous.relative_to(ROOT)} "
+                f"case-insensitive catalog collision: {previous_catalog.relative_to(ROOT)} "
                 f"and {skill_dir.relative_to(ROOT)}"
             )
-        seen[identity] = skill_dir
-        names.append(skill_dir.name)
+        seen_catalog[catalog_identity] = skill_dir
 
-    if not names:
+        runtime_identity = runtime_name.casefold()
+        previous_runtime = seen_runtime.get(runtime_identity)
+        if previous_runtime is not None:
+            fail(
+                f"case-insensitive runtime skill collision: {previous_runtime.relative_to(ROOT)} "
+                f"and {skill_file.relative_to(ROOT)}"
+            )
+        seen_runtime[runtime_identity] = skill_file
+
+        catalog_names.append(skill_dir.name)
+        runtime_names.append(runtime_name)
+
+    if not catalog_names:
         fail("skills/: no skills discovered")
-    return names
+    return catalog_names, runtime_names
 
 
 def dump(value: object) -> str:
     return json.dumps(value, indent=2, ensure_ascii=False) + "\n"
 
 
-def render(config: dict, skills: list[str]) -> dict[Path, str]:
+def render(config: dict, catalog_names: list[str], runtime_names: list[str]) -> dict[Path, str]:
     description = config["description"]
     author = config["author"]
     bundle = config["name"]
@@ -168,7 +178,8 @@ def render(config: dict, skills: list[str]) -> dict[Path, str]:
             "claude-code",
             "cursor",
             "gemini-cli",
-            *skills,
+            *catalog_names,
+            *runtime_names,
         }
     )
 
@@ -314,12 +325,12 @@ def main() -> int:
     args = parser.parse_args()
 
     config = load_config()
-    skills = discover_skills()
-    outputs = render(config, skills)
+    catalog_names, runtime_names = discover_skills()
+    outputs = render(config, catalog_names, runtime_names)
     unknown = set(outputs) ^ set(GENERATED_PATHS)
     if unknown:
         fail(f"internal generated-path mismatch: {sorted(str(path) for path in unknown)}")
-    print(f"Catalog skills discovered: {len(skills)}")
+    print(f"Catalog skills discovered: {len(catalog_names)}")
 
     if args.check:
         return check(outputs)

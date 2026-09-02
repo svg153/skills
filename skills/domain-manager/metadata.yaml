@@ -1,0 +1,16 @@
+name: domain-manager
+origin: https://github.com/svg153/skills
+origin_path: skills/domain-manager
+category: devops
+status: active
+sync:
+  enabled: false
+  interval: manual
+  strategy: local
+  authoritative: local
+tags:
+  - agent-skills
+  - domains
+  - dns
+  - cloudflare
+  - github-pages

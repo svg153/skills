@@ -1,0 +1,15 @@
+name: domain-manager-sync
+origin: https://github.com/svg153/skills
+origin_path: skills/domain-manager-sync
+category: productivity
+status: active
+sync:
+  enabled: false
+  interval: manual
+  strategy: local
+  authoritative: local
+tags:
+  - agent-skills
+  - skill-sync
+  - hermes
+  - repository-sync
