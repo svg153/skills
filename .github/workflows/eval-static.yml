@@ -47,7 +47,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          scripts/install-waza-ci.sh "$RUNNER_TEMP/waza"
+          bash scripts/install-waza-ci.sh "$RUNNER_TEMP/waza"
           echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
 
       - name: Verify Waza specs without model calls
