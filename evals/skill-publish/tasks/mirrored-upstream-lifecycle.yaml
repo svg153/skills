@@ -1,0 +1,23 @@
+id: skill-publish-mirrored-upstream
+name: Upstream-authoritative skill selects mirrored lifecycle
+inputs:
+  prompt: >-
+    Register an existing public upstream skill in svg153/skills. I want its stable upstream
+    releases to stay authoritative and the generic weekly sync to replace our local payload.
+expected:
+  should_trigger: true
+  graders:
+    - type: trigger
+      name: activation
+      config:
+        skill_path: skills/skill-publish/SKILL.md
+        mode: positive
+        threshold: 0.6
+    - type: prompt
+      name: mirrored_lifecycle
+      config:
+        prompt: >-
+          Pass only if the response selects MIRRORED_UPSTREAM (or an exactly equivalent explicit
+          lifecycle), preserves upstream provenance, uses download/upstream authority with an
+          explicit stable ref/channel and cadence, keeps catalog-owned eval policy outside the
+          replaceable upstream payload, and plans before applying.
