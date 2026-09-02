@@ -1,0 +1,51 @@
+skill: github-build-or-reuse
+version: "1.0"
+scenarios:
+  - id: nontrivial-build-research-first
+    expected_trigger: true
+    behavior: research-before-build
+    prompt: >-
+      Build me a self-hosted AI presentation generator that exports editable PPTX files.
+      Start implementing it now.
+    expectation: >-
+      The skill should activate, investigate credible GitHub/open-source alternatives before
+      substantial implementation, and lead to one USE, CONTRIBUTE, FORK, or BUILD verdict.
+
+  - id: compare-open-source-alternatives
+    expected_trigger: true
+    behavior: compare-and-decide
+    prompt: >-
+      Compare open-source GitHub projects I could reuse for browser automation in a service,
+      then tell me whether I should adopt one, contribute, fork, or build my own.
+    expectation: >-
+      The skill should activate, gather evidence for serious candidates, apply hard gates and
+      return one primary reuse verdict rather than ranking by stars alone.
+
+  - id: trivial-snippet-boundary
+    expected_trigger: false
+    behavior: avoid-disproportionate-discovery
+    prompt: >-
+      Write a tiny Python function that returns True when an integer is even.
+    expectation: >-
+      A full repository-discovery cycle would cost more than it saves, so this skill should not
+      force itself into a trivial snippet request.
+
+  - id: explicit-discovery-bypass
+    expected_trigger: true
+    behavior: disclose-bypass
+    prompt: >-
+      I know alternatives may exist, but explicitly skip GitHub/open-source discovery for this
+      feature and just help me implement my chosen design.
+    expectation: >-
+      The skill may activate to enforce its boundary, but must honor the explicit bypass and state
+      that repository reuse vetting was intentionally skipped instead of pretending it occurred.
+
+  - id: unavailable-search-disclosure
+    expected_trigger: true
+    behavior: disclose-evidence-gap
+    prompt: >-
+      Decide whether I should reuse an existing open-source notification service or build one,
+      but assume GitHub API, gh and web search are unavailable in this environment.
+    expectation: >-
+      The skill should not fabricate due diligence. It must disclose what could not be verified,
+      lower confidence, and avoid presenting unverified fallback reasoning as equivalent evidence.
