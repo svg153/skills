@@ -7,6 +7,14 @@ on:
       - 'skills/**/SKILL.md'
       - 'skills/**/apm.yml'
       - 'skills.sh.json'
+      - 'distribution.config.json'
+      - 'plugin.json'
+      - 'marketplace.json'
+      - '.agents/**'
+      - '.codex-plugin/**'
+      - '.claude-plugin/**'
+      - '.cursor-plugin/**'
+      - 'gemini-extension.json'
       - 'scripts/**'
       - '.github/workflows/**'
       - 'README.md'
@@ -16,6 +24,14 @@ on:
       - 'skills/**/SKILL.md'
       - 'skills/**/apm.yml'
       - 'skills.sh.json'
+      - 'distribution.config.json'
+      - 'plugin.json'
+      - 'marketplace.json'
+      - '.agents/**'
+      - '.codex-plugin/**'
+      - '.claude-plugin/**'
+      - '.cursor-plugin/**'
+      - 'gemini-extension.json'
       - 'scripts/**'
       - '.github/workflows/**'
       - 'README.md'
@@ -71,6 +87,12 @@ jobs:
 
             echo "OK: $(dirname "$meta" | xargs basename): $origin (${strategy:-manual})"
           done
+
+      - name: Validate generated cross-agent manifests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python scripts/generate-distribution.py --check
 
       - name: Check duplicate catalog names
         shell: bash
