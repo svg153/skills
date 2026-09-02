@@ -17,6 +17,7 @@ on:
       - 'gemini-extension.json'
       - 'scripts/**'
       - '.github/workflows/**'
+      - '.github/dependabot.yml'
       - 'README.md'
   pull_request:
     paths:
@@ -34,20 +35,33 @@ on:
       - 'gemini-extension.json'
       - 'scripts/**'
       - '.github/workflows/**'
+      - '.github/dependabot.yml'
       - 'README.md'
+
+permissions:
+  contents: read
 
 jobs:
   validate:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
-      - name: Validate Agent Skill frontmatter
+      - name: Install validation dependencies
         shell: bash
         run: |
           set -euo pipefail
           python -m pip install 'PyYAML>=6,<7'
-          python scripts/validate-skills.py
+
+      - name: Validate workflow security baseline
+        run: python scripts/validate-workflow-security.py
+
+      - name: Validate Agent Skill frontmatter
+        run: python scripts/validate-skills.py
 
       - name: Validate metadata.yaml
         shell: bash
@@ -89,10 +103,7 @@ jobs:
           done
 
       - name: Validate generated cross-agent manifests
-        shell: bash
-        run: |
-          set -euo pipefail
-          python scripts/generate-distribution.py --check
+        run: python scripts/generate-distribution.py --check
 
       - name: Check duplicate catalog names
         shell: bash
