@@ -7,6 +7,7 @@
       "description": "Repository workflows, pull requests, due diligence, reuse decisions, publishing, and autonomous GitHub maintenance.",
       "skills": [
         "github-build-or-reuse",
+        "skill-publish",
         "agent-skill-release-lifecycle",
         "github-repo-autopilot",
         "community-pr-audit",

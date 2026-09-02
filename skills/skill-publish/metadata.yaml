@@ -1,13 +1,21 @@
 name: skill-publish
 origin: https://github.com/svg153/skills
-origin_path: /skills/skill-publish
-category: devops
+origin_path: skills/skill-publish
+category: github
 status: active
 sync:
-  enabled: true
-  interval: weekly
-  strategy: manual
+  enabled: false
+  interval: manual
+  strategy: local
+  authoritative: local
 tags:
+  - agent-skills
+  - catalog
+  - github
+  - lifecycle
+  - provenance
+  - publishing
+  - registration
   - skills
-  - automation
-  - publish
+  - skills-sh
+  - waza

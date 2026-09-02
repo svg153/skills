@@ -1,0 +1,48 @@
+name: Skill Publish Transaction Tests
+
+on:
+  push:
+    paths:
+      - 'skills/skill-publish/**'
+      - 'tests/test_skill_publish.py'
+      - 'skills.sh.json'
+      - 'distribution.config.json'
+      - 'scripts/generate-distribution.py'
+      - 'scripts/validate-skills.py'
+      - 'scripts/validate-evals.py'
+      - '.github/workflows/skill-publish-test.yml'
+  pull_request:
+    paths:
+      - 'skills/skill-publish/**'
+      - 'tests/test_skill_publish.py'
+      - 'skills.sh.json'
+      - 'distribution.config.json'
+      - 'scripts/generate-distribution.py'
+      - 'scripts/validate-skills.py'
+      - 'scripts/validate-evals.py'
+      - '.github/workflows/skill-publish-test.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install test dependency
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install 'PyYAML>=6,<7'
+
+      - name: Run transactional unit tests
+        run: python -m unittest discover -s tests -p 'test_skill_publish.py' -v
+
+      - name: Validate registered skill and derived state
+        run: python skills/skill-publish/scripts/catalog_skill.py check --name skill-publish

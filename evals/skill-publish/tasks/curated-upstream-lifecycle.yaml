@@ -1,0 +1,23 @@
+id: skill-publish-curated-upstream
+name: Locally adapted upstream skill selects curated lifecycle
+inputs:
+  prompt: >-
+    Bring this upstream skill into svg153/skills as a starting point, but we are going to adapt it
+    locally and I never want the automatic upstream sync to overwrite our changes.
+expected:
+  should_trigger: true
+  graders:
+    - type: trigger
+      name: activation
+      config:
+        skill_path: skills/skill-publish/SKILL.md
+        mode: positive
+        threshold: 0.6
+    - type: prompt
+      name: curated_lifecycle
+      config:
+        prompt: >-
+          Pass only if the response selects CURATED_UPSTREAM (or an exactly equivalent explicit
+          lifecycle), retains upstream provenance while making local content authoritative,
+          disables automatic download synchronization, and uses the plan/approval boundary before
+          repository mutation.
