@@ -1,0 +1,23 @@
+id: research-vendor-claim-investigation
+name: Consequential vendor claim is tested against primary evidence
+inputs:
+  prompt: >-
+    A vendor says its €2,000 smart-home controller cuts household energy use by 40%. Is that
+    claim credible, and is it worth buying?
+expected:
+  should_trigger: true
+  graders:
+    - type: trigger
+      name: activation
+      config:
+        skill_path: skills/evidence-based-decision-research/SKILL.md
+        mode: positive
+        threshold: 0.6
+    - type: prompt
+      name: evidence_discipline
+      config:
+        prompt: >-
+          Pass only if the response distinguishes the vendor claim from verified evidence,
+          seeks or prioritizes current primary evidence, establishes a baseline or comparison,
+          states uncertainty or confidence, and gives a practical decision rather than treating
+          marketing language as proof.

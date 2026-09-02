@@ -1,0 +1,14 @@
+id: issue-unrelated-git-question
+name: An unrelated Git question does not trigger issue creation
+inputs:
+  prompt: >-
+    What does git status show in a working tree?
+expected:
+  should_trigger: false
+  graders:
+    - type: trigger
+      name: boundary
+      config:
+        skill_path: skills/issue-creation/SKILL.md
+        mode: negative
+        threshold: 0.6

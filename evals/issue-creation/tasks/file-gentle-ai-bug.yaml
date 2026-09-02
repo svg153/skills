@@ -1,0 +1,22 @@
+id: issue-file-gentle-ai-bug
+name: Gentle AI bug creation follows the issue-first workflow
+inputs:
+  prompt: >-
+    Create a Gentle AI bug report because setup.sh fails under zsh when a glob has no matches.
+    I want a proper issue ready for maintainers.
+expected:
+  should_trigger: true
+  graders:
+    - type: trigger
+      name: activation
+      config:
+        skill_path: skills/issue-creation/SKILL.md
+        mode: positive
+        threshold: 0.6
+    - type: prompt
+      name: issue_first_workflow
+      config:
+        prompt: >-
+          Pass only if the response searches or calls for duplicate checking, uses the bug-report
+          template and required fields, keeps status:needs-review semantics, and does not imply a
+          PR may be opened before status:approved.

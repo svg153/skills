@@ -1,0 +1,14 @@
+id: social-trivial-typo-boundary
+name: A typo-only edit does not invoke the full editorial workflow
+inputs:
+  prompt: >-
+    Change 'teh' to 'the' in this sentence and make no other edits.
+expected:
+  should_trigger: false
+  graders:
+    - type: trigger
+      name: boundary
+      config:
+        skill_path: skills/social-publishing/SKILL.md
+        mode: negative
+        threshold: 0.6

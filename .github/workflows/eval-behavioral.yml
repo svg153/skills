@@ -1,0 +1,71 @@
+name: Trusted Behavioral Skill Evaluations
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 4 * * 1'
+
+permissions:
+  contents: read
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      WAZA_NO_UPDATE_CHECK: '1'
+      COPILOT_SDK_TOKEN: ${{ secrets.COPILOT_SDK_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+
+      - name: Detect trusted model credential
+        id: credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -n "${COPILOT_SDK_TOKEN:-}" ]]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::COPILOT_SDK_TOKEN is not configured; model-backed evals were skipped."
+          fi
+
+      - name: Install pinned Waza
+        if: steps.credentials.outputs.available == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash scripts/install-waza-ci.sh "$RUNNER_TEMP/waza"
+          echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
+
+      - name: Run behavioral suites
+        if: steps.credentials.outputs.available == 'true'
+        shell: bash
+        run: |
+          set -uo pipefail
+          status=0
+          while IFS= read -r eval_file; do
+            skill="$(basename "$(dirname "$eval_file")")"
+            output_dir="eval-results/${skill}"
+            mkdir -p "$output_dir/transcripts"
+            echo "Evaluating ${skill}"
+            if ! waza run "$eval_file" \
+              --output "$output_dir/results.json" \
+              --reporter "junit:$output_dir/junit.xml" \
+              --transcript-dir "$output_dir/transcripts"; then
+              status=1
+            fi
+          done < <(find evals -mindepth 2 -maxdepth 2 -name eval.yaml -print | sort)
+          exit "$status"
+
+      - name: Upload behavioral evidence
+        if: always() && steps.credentials.outputs.available == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: waza-behavioral-results-${{ github.run_id }}
+          path: eval-results/
+          if-no-files-found: warn
+          retention-days: 14
