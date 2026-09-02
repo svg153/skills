@@ -1,0 +1,23 @@
+id: skill-publish-local-plan
+name: New local skill is planned before repository mutation
+inputs:
+  prompt: >-
+    Add a new locally maintained skill to svg153/skills for reviewing Terraform module changes.
+    It should appear in the GitHub catalog group and have behavioral evals.
+expected:
+  should_trigger: true
+  graders:
+    - type: trigger
+      name: activation
+      config:
+        skill_path: skills/skill-publish/SKILL.md
+        mode: positive
+        threshold: 0.6
+    - type: prompt
+      name: transactional_creation
+      config:
+        prompt: >-
+          Pass only if the response treats this as LOCAL ownership, checks for overlap/collisions,
+          produces or proposes a zero-write plan before mutation, requires approval of the exact
+          unchanged plan/hash before apply, and includes repository registration/eval validation.
+          Fail if it jumps directly to writing files or silently invents lifecycle values.
