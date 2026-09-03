@@ -1,0 +1,16 @@
+id: existing-repo-delivery-boundary
+name: Existing repository delivery routes away from reuse discovery
+inputs:
+  prompt: >-
+    In this existing repository, diagnose the failing CI, implement the fix, open a pull request,
+    validate it, and merge it when green. Do not evaluate replacing the repository or searching
+    for alternative projects.
+expected:
+  should_trigger: false
+  graders:
+    - type: trigger
+      name: repository_delivery_boundary
+      config:
+        skill_path: skills/github-build-or-reuse/SKILL.md
+        mode: negative
+        threshold: 0.6

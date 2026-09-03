@@ -1,0 +1,23 @@
+id: build-reuse-over-generic-research
+name: Build/reuse decision routes to the specialized reuse gate
+inputs:
+  prompt: >-
+    We need authentication for a new SaaS. Before implementing it, find existing GitHub and
+    open-source projects we could reuse and decide whether we should use one, contribute,
+    fork, or build our own solution.
+expected:
+  should_trigger: true
+  graders:
+    - type: trigger
+      name: specialized_routing
+      config:
+        skill_path: skills/github-build-or-reuse/SKILL.md
+        mode: positive
+        threshold: 0.6
+    - type: prompt
+      name: reuse_decision_contract
+      config:
+        prompt: >-
+          Pass only if the response treats this as a build-versus-reuse decision and converges
+          on one primary USE, CONTRIBUTE, FORK, or BUILD verdict. Generic evidence gathering
+          without the reuse decision contract is insufficient.
