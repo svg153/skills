@@ -5,8 +5,9 @@ category: software-development
 status: active
 sync:
   enabled: false
-  interval: weekly
-  strategy: manual
+  interval: manual
+  strategy: local
+  authoritative: local
 tags:
   - home-assistant
   - smart-home

@@ -16,9 +16,11 @@ on:
       - '.cursor-plugin/**'
       - 'gemini-extension.json'
       - 'scripts/**'
+      - 'integrations/**'
       - '.github/workflows/**'
       - '.github/dependabot.yml'
       - 'README.md'
+      - 'CONTRIBUTING.md'
   pull_request:
     paths:
       - 'skills/**/metadata.yaml'
@@ -34,9 +36,11 @@ on:
       - '.cursor-plugin/**'
       - 'gemini-extension.json'
       - 'scripts/**'
+      - 'integrations/**'
       - '.github/workflows/**'
       - '.github/dependabot.yml'
       - 'README.md'
+      - 'CONTRIBUTING.md'
 
 permissions:
   contents: read
@@ -63,44 +67,10 @@ jobs:
       - name: Validate Agent Skill frontmatter
         run: python scripts/validate-skills.py
 
-      - name: Validate metadata.yaml
-        shell: bash
+      - name: Validate metadata lifecycle
         run: |
-          set -euo pipefail
-          echo "Validating all metadata.yaml files..."
-
-          read_sync_field() {
-            local meta="$1"
-            local field="$2"
-            awk -v field="$field" '
-              /^sync:/ { in_sync=1; next }
-              in_sync && /^[^ ]/ { in_sync=0 }
-              in_sync && $1 == field ":" { print $2; exit }
-            ' "$meta"
-          }
-
-          for meta in skills/*/metadata.yaml; do
-            [ -f "$meta" ] || continue
-
-            name=$(grep '^name:' "$meta" | sed 's/^name: *//')
-            origin=$(grep '^origin:' "$meta" | sed 's/^origin: *//')
-            category=$(grep '^category:' "$meta" | sed 's/^category: *//')
-            strategy=$(read_sync_field "$meta" strategy)
-            authoritative=$(read_sync_field "$meta" authoritative)
-            enabled=$(read_sync_field "$meta" enabled)
-
-            [ -n "$name" ] || { echo "ERROR: $meta missing name"; exit 1; }
-            [ -n "$origin" ] || { echo "ERROR: $meta missing origin"; exit 1; }
-            [ -n "$category" ] || { echo "ERROR: $meta missing category"; exit 1; }
-
-            if [ "${strategy:-manual}" = "download" ]; then
-              [ "${enabled:-false}" = "true" ] || { echo "ERROR: $meta download sync must be enabled"; exit 1; }
-              [ "${authoritative:-}" = "upstream" ] || { echo "ERROR: $meta download sync must be authoritative: upstream"; exit 1; }
-              grep -q '^origin_path:' "$meta" || { echo "ERROR: $meta download sync needs origin_path"; exit 1; }
-            fi
-
-            echo "OK: $(dirname "$meta" | xargs basename): $origin (${strategy:-manual})"
-          done
+          python scripts/validate-metadata-lifecycle.py
+          python skills/skill-publish/scripts/metadata_repair.py check
 
       - name: Validate generated cross-agent manifests
         run: python scripts/generate-distribution.py --check
