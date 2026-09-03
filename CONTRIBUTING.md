@@ -2,6 +2,8 @@
 
 This repository is a portable Agent Skills catalog. Keep runtime behavior in each skill and keep catalog provenance/lifecycle policy in `metadata.yaml`.
 
+Before contributing, read [GOVERNANCE.md](GOVERNANCE.md), [NOTICE.md](NOTICE.md), and [SECURITY.md](SECURITY.md). Security-sensitive reports do not belong in normal public issues.
+
 ## Preferred path: `skill-publish`
 
 For a new or newly registered skill, use the repository-native transactional workflow instead of editing all surfaces manually.
@@ -101,7 +103,7 @@ license: MIT
 ...
 ```
 
-Imported or synchronized skills retain their real license; a public repository is not permission to copy incompatible content.
+Imported or synchronized skills retain their real license; a public repository is not permission to copy incompatible content. The root repository license never overrides a more specific skill or upstream license; see [NOTICE.md](NOTICE.md).
 
 ## Validation
 
@@ -129,6 +131,7 @@ Waza suites live under `evals/<catalog-name>/`.
 - Positive cases need behavioral grading, not only trigger selection.
 - PR checks are deterministic and secret-free.
 - Model-backed runs execute only from trusted repository state.
+- For upstream-authoritative mirrors, upstream owns intrinsic behavior; catalog evals should focus on integration/routing concerns.
 - Preserve raw JSON/JUnit/transcript evidence; do not publish a context-free universal quality score.
 
 The framework selection evidence is preserved in `docs/adr/0001-behavioral-skill-evaluations.md`; obsolete comparison prototypes are not production inputs.

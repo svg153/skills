@@ -1,0 +1,58 @@
+name: Catalog or tooling bug
+description: Report a reproducible problem with the catalog, tooling, sync, packaging, evals, or website.
+title: "[bug] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve the catalog. Do not include secrets or sensitive vulnerability details here; use the Security policy instead.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Skill runtime or metadata
+        - skill-publish or metadata repair
+        - Upstream synchronization
+        - Cross-agent distribution manifests
+        - npx skills / skills.sh / APM discovery
+        - Behavioral evals
+        - GitHub Pages catalog
+        - GitHub Actions / repository automation
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: skill
+    attributes:
+      label: Affected skill
+      description: Leave blank if this is repository-wide.
+      placeholder: github-build-or-reuse
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What should have happened?
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: Include the smallest reproducible example and relevant command output.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Agent/CLI/OS/version information that materially affects reproduction.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched existing issues and the public catalog for the same problem.
+          required: true
+        - label: This report contains no secrets, private repository data, or sensitive exploit details.
+          required: true
