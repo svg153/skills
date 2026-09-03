@@ -63,6 +63,26 @@ class MetadataRepairTests(unittest.TestCase):
         plan = module.build_plan(self.root)
         self.assertEqual([], plan["changes"])
 
+    def test_semantically_normal_local_yaml_does_not_drift_on_formatting(self):
+        path = self.root / "skills" / "formatted-local"
+        path.mkdir()
+        metadata = path / "metadata.yaml"
+        metadata.write_text(
+            """name: formatted-local
+origin: 'https://github.com/svg153/skills'
+origin_path: skills/formatted-local
+category: github
+status: active
+sync: {enabled: false, interval: manual, strategy: local, authoritative: local}
+tags: [test]
+""",
+            encoding="utf-8",
+        )
+        before = metadata.read_bytes()
+        plan = module.build_plan(self.root)
+        self.assertEqual([], plan["changes"])
+        self.assertEqual(before, metadata.read_bytes())
+
     def test_plan_is_zero_write_and_stable(self):
         path = self.write_meta("local-one", module.CATALOG_ORIGIN, {"enabled": False, "interval": "weekly", "strategy": "manual"})
         before = path.read_bytes()
