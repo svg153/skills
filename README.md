@@ -1,8 +1,22 @@
 # SVG153 Skills
 
+[![Skills Validation](https://github.com/svg153/skills/actions/workflows/validate.yml/badge.svg)](https://github.com/svg153/skills/actions/workflows/validate.yml)
+[![Catalog Validation](https://github.com/svg153/skills/actions/workflows/catalog-validate.yml/badge.svg)](https://github.com/svg153/skills/actions/workflows/catalog-validate.yml)
+[![Behavioral Eval Static Validation](https://github.com/svg153/skills/actions/workflows/eval-static.yml/badge.svg)](https://github.com/svg153/skills/actions/workflows/eval-static.yml)
+
 Cross-agent catalog of reusable Agent Skills with provenance-aware lifecycle management, reproducible upstream synchronization, behavioral evals, and generated distribution surfaces.
 
 **Public catalog:** https://svg153.github.io/skills/
+
+## Why this catalog exists
+
+Agent Skills are easy to copy and hard to govern once they come from multiple sources. This repository keeps portability without losing the information needed to operate a real catalog:
+
+- **provenance** — where a skill came from and which source is authoritative;
+- **lifecycle** — local, curated-upstream, or automatically mirrored ownership;
+- **distribution** — one canonical catalog rendered for several agent/plugin ecosystems;
+- **regression evidence** — deterministic checks plus Waza behavioral suites where useful;
+- **safe reuse** — imported content keeps its upstream authorship and license rather than being silently relicensed.
 
 ## Install
 
@@ -24,7 +38,7 @@ apm audit
 
 ## One source of truth, multiple consumers
 
-Canonical state lives in:
+Canonical catalog state lives in:
 
 ```text
 skills/<name>/SKILL.md       portable runtime behavior
@@ -78,7 +92,7 @@ python skills/skill-publish/scripts/catalog_skill.py apply \
   --approve <approval_hash>
 ```
 
-The workflow handles canonical metadata, optional APM/eval scaffolding, skills.sh registration, derived manifests, collision checks and rollback on validation failure.
+The workflow handles canonical metadata, optional APM/eval scaffolding, skills.sh registration, derived manifests, collision checks, and rollback on validation failure.
 
 Legacy metadata can be normalized with the same approval boundary:
 
@@ -107,7 +121,7 @@ Automatic synchronization is intentionally generic: no per-skill sync workflows.
 
 Catalog-owned behavioral suites live under `evals/<catalog-name>/` and use Waza. PR validation is deterministic and requires no model credential; trusted scheduled/manual runs execute model-backed suites and retain machine-readable evidence.
 
-For upstream-authoritative mirrors, evals stay outside `skills/<name>/` so synchronization cannot overwrite catalog policy or imply upstream authorship.
+For upstream-authoritative mirrors, intrinsic behavior belongs upstream while catalog suites focus on routing/integration concerns and stay outside `skills/<name>/` so synchronization cannot overwrite catalog policy or imply upstream authorship.
 
 See [docs/evals.md](docs/evals.md) and [ADR 0001](docs/adr/0001-behavioral-skill-evaluations.md).
 
@@ -140,6 +154,13 @@ external upstream -> svg153/skills catalog -> local Hermes runtime
 
 `npx skills` discovery and `skills.sh` search ingestion are separate concerns. CI runs `npx skills` with telemetry disabled and never generates artificial installs to influence ranking.
 
-## Contributing
+## Contributing and project policy
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). Runtime behavior belongs in `SKILL.md`; catalog provenance/lifecycle belongs in `metadata.yaml`; generated distribution files must remain derived outputs.
+Contributions are welcome through the repository issue forms and pull-request template. Start with [CONTRIBUTING.md](CONTRIBUTING.md) and the lifecycle/provenance model above.
+
+- [LICENSE](LICENSE) — MIT for repository-authored material, subject to more specific per-skill licenses.
+- [NOTICE.md](NOTICE.md) — license precedence and third-party provenance model.
+- [SECURITY.md](SECURITY.md) — private vulnerability reporting and security scope.
+- [GOVERNANCE.md](GOVERNANCE.md) — maintainer roles, decision model, and catalog invariants.
+
+Runtime behavior belongs in `SKILL.md`; catalog provenance/lifecycle belongs in `metadata.yaml`; generated distribution files remain derived outputs.

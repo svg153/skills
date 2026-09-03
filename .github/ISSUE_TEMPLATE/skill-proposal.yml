@@ -1,0 +1,63 @@
+name: Propose a skill
+description: Propose a new local, curated-upstream, or mirrored-upstream Agent Skill for the catalog.
+title: "[skill] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Start with the user need, not the implementation. The catalog avoids duplicate triggers and keeps provenance explicit.
+  - type: textarea
+    id: use_case
+    attributes:
+      label: Use case and trigger
+      description: What task should activate this skill, and what should not activate it?
+    validations:
+      required: true
+  - type: textarea
+    id: overlap
+    attributes:
+      label: Existing catalog overlap
+      description: Which existing skills did you check, and why is extension/composition not enough?
+    validations:
+      required: true
+  - type: dropdown
+    id: ownership
+    attributes:
+      label: Proposed ownership mode
+      options:
+        - LOCAL — authored and authoritative here
+        - CURATED_UPSTREAM — adapted locally from an identified upstream
+        - MIRRORED_UPSTREAM — stable upstream payload remains authoritative
+        - Unsure — needs maintainer triage
+    validations:
+      required: true
+  - type: input
+    id: origin
+    attributes:
+      label: Origin repository or source
+      description: Required for upstream-derived proposals; use a public canonical source when possible.
+      placeholder: https://github.com/owner/repository
+  - type: input
+    id: license
+    attributes:
+      label: License
+      description: State the known license or explain what still needs verification.
+      placeholder: MIT / Apache-2.0 / needs verification
+    validations:
+      required: true
+  - type: textarea
+    id: value
+    attributes:
+      label: Why this belongs in the catalog
+      description: Explain reuse value, expected frequency, portability, and any agent-specific constraints.
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I checked the public catalog and repository for an equivalent skill.
+          required: true
+        - label: I understand upstream-derived content keeps its original license and attribution obligations.
+          required: true

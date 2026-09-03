@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Browse the public skills catalog
+    url: https://svg153.github.io/skills/
+    about: Check existing skills, provenance, and install information before proposing a duplicate.
+  - name: Security reporting guidance
+    url: https://github.com/svg153/skills/security
+    about: Do not disclose sensitive vulnerability details in a public issue.
