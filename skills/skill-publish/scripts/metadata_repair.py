@@ -81,9 +81,14 @@ def build_plan(root: Path) -> dict[str, Any]:
     for path in sorted((root / "skills").glob("*/metadata.yaml")):
         name = path.parent.name
         before = path.read_bytes()
-        after_data, ownership = normalized(load(path), name)
-        after = dump(after_data)
-        if after != before:
+        before_data = load(path)
+        after_data, ownership = normalized(before_data, name)
+
+        # Drift is semantic, not a formatting preference. A hand-authored YAML file
+        # that already represents the canonical lifecycle must not be rewritten just
+        # because PyYAML would serialize it differently.
+        if after_data != before_data:
+            after = dump(after_data)
             changes.append({
                 "path": path.relative_to(root).as_posix(),
                 "ownership": ownership,
