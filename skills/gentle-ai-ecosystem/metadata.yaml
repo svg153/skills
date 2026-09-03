@@ -4,11 +4,10 @@ origin_path: /gentle-ai
 category: software-development
 status: active
 sync:
-  enabled: true
-  interval: weekly
+  enabled: false
+  interval: manual
   strategy: manual
+  authoritative: local
 tags:
   - gentle-ai
-  - code-review
   - sdd
-  - persona

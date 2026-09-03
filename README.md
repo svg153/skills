@@ -1,176 +1,145 @@
-# Skills Library
+# SVG153 Skills
 
-Centralized Agent Skills library with origin tracking, reproducible upstream synchronization, and portable installation across compatible agents.
+Cross-agent catalog of reusable Agent Skills with provenance-aware lifecycle management, reproducible upstream synchronization, behavioral evals, and generated distribution surfaces.
 
-## Install with `npx skills`
+**Public catalog:** https://svg153.github.io/skills/
 
-The Vercel `skills` CLI discovers every valid `SKILL.md` in this public repository.
+## Install
+
+Inspect or install with the cross-agent `skills` CLI:
 
 ```bash
-# Inspect the catalog
 npx skills@latest add svg153/skills --list
-
-# Install one skill
 npx skills@latest add svg153/skills --skill github-build-or-reuse
-npx skills@latest add svg153/skills --skill social-publishing
-
-# Install globally for a specific agent
 npx skills@latest add svg153/skills --skill social-publishing --agent codex --global
 ```
 
-You can also pass the full GitHub URL or a direct path to one skill directory.
-
-## Install with Microsoft APM
-
-For projects that want a committed dependency manifest, lockfile, integrity hashes, updates, and drift auditing, selected catalog entries can also be consumed with [Microsoft APM](https://github.com/microsoft/apm).
-
-`social-publishing` is packaged as a standalone APM package inside this repository:
+Selected entries can also be consumed as Microsoft APM packages. For example:
 
 ```bash
-# Add it to the current project's apm.yml and install it
 apm install svg153/skills/skills/social-publishing --target agent-skills
-
-# Reproduce a committed lockfile later
 apm install --frozen
-
-# Deliberately move to a newer upstream revision
-apm update
-
-# Check deployed content against the lockfile
 apm audit
 ```
 
-APM deploys shared Agent Skills to `.agents/skills/` for Codex, Copilot, Cursor, OpenCode, Gemini, Windsurf and other compatible targets, while `apm.lock.yaml` records the resolved source and integrity metadata. The catalog remains the source of truth; consumers should not maintain copied skill source files.
+## One source of truth, multiple consumers
 
-## skills.sh discovery
-
-`skills.sh` and the `npx skills` CLI use the same Agent Skills ecosystem. There is no required GitHub label or topic that automatically enrolls a repository. Public skills become rankable through anonymous `npx skills add` install telemetry; search/index ingestion can lag behind successful CLI discovery.
-
-This repository includes `skills.sh.json` for catalog grouping and CI exercises the `skills` CLI with telemetry disabled so validation does not inflate install counts.
-
-The README intentionally does not show a skills.sh repository badge until the public index resolves this repository; otherwise the badge endpoint renders a misleading `not found` state even when CLI installation works.
-
-## Structure
-
-Each catalog entry normally contains:
+Canonical state lives in:
 
 ```text
-skills/<name>/
-├── SKILL.md          # Portable Agent Skill
-├── metadata.yaml     # Catalog provenance and lifecycle policy
-├── apm.yml           # Optional standalone APM package manifest
-├── templates/        # Optional reusable templates
-├── scripts/          # Optional helpers
-├── references/       # Optional specs/examples
-└── assets/           # Optional supporting assets
+skills/<name>/SKILL.md       portable runtime behavior
+skills/<name>/metadata.yaml  catalog provenance + lifecycle
+skills.sh.json               curated grouping/discovery
 ```
 
-`SKILL.md` is portable runtime behavior. `metadata.yaml` belongs to this catalog and is not required by the Agent Skills specification. An `apm.yml` is optional and is added when an entry should also behave as an independently consumable APM package.
+The repository deterministically derives plugin/marketplace surfaces for Agent Plugins, Codex, Claude Code, Cursor, and Gemini. Generated manifests are outputs, not independent configuration.
 
-## Metadata and lifecycle
-
-Example:
-
-```yaml
-name: skill-name
-origin: https://github.com/original/repo
-origin_path: skills/skill-name
-origin_ref: latest-release
-category: github
-status: active
-sync:
-  enabled: true
-  interval: weekly        # daily | weekly | monthly | manual
-  strategy: download      # download | manual | local
-  authoritative: upstream # upstream | local
-  channel: stable         # optional catalog policy
-tags:
-  - agent-skills
+```bash
+python scripts/generate-distribution.py
+python scripts/generate-distribution.py --check
 ```
 
-### `download`
+## Lifecycle model
 
-For an externally maintained skill whose upstream files should replace the catalog copy. Automatic sync requires all three:
+Every catalog entry has one explicit ownership mode:
 
-```yaml
-sync:
-  enabled: true
-  strategy: download
-  authoritative: upstream
+| Ownership | Metadata | Meaning |
+| --- | --- | --- |
+| `LOCAL` | `strategy: local`, disabled, `authoritative: local` | Authored and maintained here. |
+| `CURATED_UPSTREAM` | `strategy: manual`, disabled, `authoritative: local` | Upstream provenance retained, local adaptation authoritative. |
+| `MIRRORED_UPSTREAM` | `strategy: download`, enabled, `authoritative: upstream` | Stable upstream payload can replace the local mirror. |
+
+`origin_ref: latest-release` resolves only stable `vX.Y.Z` releases. It deliberately ignores prereleases and unpublished `main` changes.
+
+Validate lifecycle state with:
+
+```bash
+python scripts/validate-metadata-lifecycle.py
+python skills/skill-publish/scripts/metadata_repair.py check
 ```
 
-`origin_ref: latest-release` resolves only stable `vX.Y.Z` tags and deliberately ignores prereleases and unpublished `main` changes.
+## Add or register a skill
 
-### `manual`
+Use `skill-publish` as the normal path instead of manually touching every catalog surface.
 
-The catalog records the origin, but automation does not overwrite the local copy. Use this for skills that need curation, adaptation, or upstream layouts that cannot be mirrored safely.
+1. Decide `LOCAL`, `MIRRORED_UPSTREAM`, or `CURATED_UPSTREAM`.
+2. Prepare the spec described in `skills/skill-publish/references/creation-contract.md`.
+3. Produce a zero-write plan:
 
-### `local`
+```bash
+python skills/skill-publish/scripts/catalog_skill.py plan --spec /path/to/spec.json
+```
 
-The skill is authored in this repository. No upstream synchronization applies.
+4. Review and approve the exact hash, then apply:
+
+```bash
+python skills/skill-publish/scripts/catalog_skill.py apply \
+  --spec /path/to/spec.json \
+  --approve <approval_hash>
+```
+
+The workflow handles canonical metadata, optional APM/eval scaffolding, skills.sh registration, derived manifests, collision checks and rollback on validation failure.
+
+Legacy metadata can be normalized with the same approval boundary:
+
+```bash
+python skills/skill-publish/scripts/metadata_repair.py plan
+python skills/skill-publish/scripts/metadata_repair.py apply --approve <approval_hash>
+```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the manual/fallback contract.
 
 ## Upstream synchronization
 
-There is no per-skill workflow anymore. The generic workflow scans metadata and invokes the same scripts for every eligible entry.
+Automatic synchronization is intentionally generic: no per-skill sync workflows.
 
 ```bash
-# Show all automatically managed upstream skills
 ./scripts/sync-upstreams.sh --list
-
-# Sync every auto-managed skill now
 ./scripts/sync-upstreams.sh --all
-
-# Sync only entries due for today's metadata interval
 ./scripts/sync-upstreams.sh --due
-
-# Sync one download-managed skill
 ./scripts/sync-upstream-skill.sh github-build-or-reuse
-
-# Non-destructively compare managed skills with their upstreams
 ./scripts/check-updates.sh
 ```
 
-`.github/workflows/sync-upstream-skills.yml` runs daily. The metadata `interval` decides whether a skill is due; manual workflow dispatch processes every auto-managed skill.
+`.github/workflows/sync-upstream-skills.yml` runs daily; each `MIRRORED_UPSTREAM` entry's metadata controls whether it is due.
 
-## Why `sync-all.sh` is separate
+## Behavioral evals
 
-`sync-all.sh` solves a different direction of synchronization:
+Catalog-owned behavioral suites live under `evals/<catalog-name>/` and use Waza. PR validation is deterministic and requires no model credential; trusted scheduled/manual runs execute model-backed suites and retain machine-readable evidence.
 
-```text
-svg153/skills -> local Hermes runtime (/hermes-home/skills)
+For upstream-authoritative mirrors, evals stay outside `skills/<name>/` so synchronization cannot overwrite catalog policy or imply upstream authorship.
+
+See [docs/evals.md](docs/evals.md) and [ADR 0001](docs/adr/0001-behavioral-skill-evaluations.md).
+
+## Public catalog
+
+The GitHub Pages site is generated from canonical metadata, not maintained separately:
+
+```bash
+python scripts/generate-catalog.py --output /tmp/skills-catalog --base-path /skills
+python scripts/validate-catalog.py --site-dir /tmp/skills-catalog --base-path /skills
 ```
 
-It pulls this repository and manages local symlinks. By contrast, `sync-upstream-skill.sh` and `sync-upstreams.sh` perform:
+Published at https://svg153.github.io/skills/.
 
-```text
-external upstream -> svg153/skills catalog
+## Optional Hermes integration
+
+Hermes is a local consumer, not part of portable catalog lifecycle logic. Its helper therefore lives under `integrations/hermes/`:
+
+```bash
+./integrations/hermes/sync-all.sh full
 ```
 
-Keeping those directions separate prevents a runtime-specific Hermes operation from becoming part of portable upstream lifecycle logic.
+This direction is separate from upstream synchronization:
 
-## Adding a skill
+```text
+external upstream -> svg153/skills catalog -> local Hermes runtime
+```
 
-1. Create `skills/<name>/SKILL.md` with valid `name` and `description` frontmatter.
-2. Add `metadata.yaml` for catalog provenance.
-3. Add supporting files only when they materially help the skill.
-4. Choose `local`, `manual`, or `download` lifecycle semantics deliberately.
-5. Add `apm.yml` only if the entry should also be independently consumable through APM.
-6. Run repository validation and `npx skills@latest add . --list` before merging.
-7. Submit a PR.
+## External discovery
 
-## Categories
-
-| Category | Description |
-| --- | --- |
-| `software-development` | Coding patterns, frameworks, workflows |
-| `devops` | Docker, CI/CD, infrastructure |
-| `github` | GitHub workflows, PRs, reviews |
-| `mlops` | ML operations, model serving, training |
-| `creative` | Social, design, writing and content workflows |
-| `data-science` | Data analysis, notebooks, visualization |
-| `research` | Research and evidence gathering |
-| `productivity` | Docs, presentations, spreadsheets |
+`npx skills` discovery and `skills.sh` search ingestion are separate concerns. CI runs `npx skills` with telemetry disabled and never generates artificial installs to influence ranking.
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md).
+See [CONTRIBUTING.md](CONTRIBUTING.md). Runtime behavior belongs in `SKILL.md`; catalog provenance/lifecycle belongs in `metadata.yaml`; generated distribution files must remain derived outputs.

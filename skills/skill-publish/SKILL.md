@@ -1,78 +1,62 @@
 ---
 name: skill-publish
-description: "Create or register skills in svg153/skills through a zero-write plan, explicit ownership, approval hash, rollback, catalog registration, and validation. Use for adding a catalog skill, not editing or releasing one."
+description: "Create, register, or repair skills in svg153/skills through zero-write plans, explicit ownership, approval hashes, rollback, catalog registration, and validation. Use for catalog lifecycle work, not ordinary skill prose edits or releases."
 license: MIT
 metadata:
   author: svg153
-  version: "2.0"
+  version: "2.1"
 ---
 
 # Skill Publish
 
-Add one skill to `svg153/skills` without inventing lifecycle policy, duplicating an existing capability, or mutating repository state before the exact plan is approved.
+Manage catalog registration in `svg153/skills` without inventing lifecycle policy, duplicating an existing capability, or mutating repository state before the exact plan is approved.
 
 ## Activation Contract
 
-Use this skill when the job is to create or register a catalog skill, including:
+Use this skill when the job is to create, register, or repair catalog lifecycle state, including:
 
 - a new locally authored skill;
 - an external skill that should remain upstream-authoritative and synchronize automatically;
 - an upstream-derived skill that will intentionally diverge and be maintained locally;
-- registration work involving `metadata.yaml`, `skills.sh`, APM packaging, behavioral evals, or generated cross-agent manifests.
+- registration involving `metadata.yaml`, `skills.sh`, APM packaging, behavioral evals, or generated cross-agent manifests;
+- normalization of legacy lifecycle metadata already present in the catalog.
 
-Do **not** use it merely to edit the prose or behavior of an already registered skill; use `skill-creator`/the owning skill workflow instead. Do not use it for release/tag/indexing work after registration; hand that phase to `agent-skill-release-lifecycle`.
+Do **not** use it merely to edit the prose or behavior of an already registered `SKILL.md`; use `skill-creator`/the owning workflow instead. Do not use it for tag/release/indexing work after registration; hand that phase to `agent-skill-release-lifecycle`.
 
 ## Hard Rules
 
-1. Search existing catalog names, runtime names, descriptions, triggers, and use cases before planning a new skill. Prefer extending an existing skill when the overlap is substantial.
-2. Choose exactly one ownership mode before mutation: `LOCAL`, `MIRRORED_UPSTREAM`, or `CURATED_UPSTREAM`.
+1. Search existing catalog names, runtime names, descriptions, triggers, and use cases before planning a new skill. Prefer extending an existing skill when overlap is substantial.
+2. Choose exactly one ownership mode: `LOCAL`, `MIRRORED_UPSTREAM`, or `CURATED_UPSTREAM`.
 3. Never silently invent provenance, authority, synchronization cadence, channel, license, or APM/eval policy.
-4. `plan` is the mandatory first mutation boundary. It must be zero-write and produce the complete file plan plus an approval hash.
-5. Apply only the unchanged plan whose hash was approved. Any relevant repository or input change requires a fresh plan and approval.
-6. Reject case-insensitive catalog/runtime collisions, unsafe paths, symlinked canonical surfaces, source symlinks, and existing destinations.
-7. Generated plugin/distribution manifests come from canonical catalog state. Never patch them independently.
-8. Keep behavioral evals catalog-owned under `evals/<catalog-name>/`; do not place catalog-specific eval policy inside an upstream-authoritative mirrored payload.
-9. Application is transactional where practical: stage first, write canonical roots atomically, regenerate derived surfaces, run deterministic repository validation, and roll back registration if validation fails.
-10. This skill does not commit, push, merge, tag, or publish releases. Those are separate Git/GitHub authorization boundaries.
+4. A zero-write `plan` is the mandatory mutation boundary and must produce an approval hash.
+5. Apply only the unchanged plan whose hash was approved; repository or input drift requires a new plan.
+6. Reject case-insensitive catalog/runtime collisions, unsafe paths, symlinked canonical surfaces, source symlinks, and silent overwrites.
+7. Generated distribution manifests come from canonical catalog state. Never patch them independently.
+8. Keep catalog behavioral evals under `evals/<catalog-name>/`; do not place local eval policy in an upstream-authoritative mirrored payload.
+9. Apply transactionally where practical and roll back registration/repair if deterministic validation fails.
+10. This skill does not commit, push, merge, tag, or publish releases.
 
 ## Ownership Decision
 
 | Mode | Authority | Sync strategy | Use when |
 | --- | --- | --- | --- |
 | `LOCAL` | local | `local`, disabled | The skill is authored and maintained in this catalog. |
-| `MIRRORED_UPSTREAM` | upstream | `download`, enabled | The upstream artifact must remain authoritative and generic sync may replace the local payload. |
-| `CURATED_UPSTREAM` | local | `manual`, disabled | The skill starts from upstream but local adaptation must never be overwritten automatically. |
+| `MIRRORED_UPSTREAM` | upstream | `download`, enabled | Stable upstream payload remains authoritative. |
+| `CURATED_UPSTREAM` | local | `manual`, disabled | Upstream provenance is retained but local adaptation must not be overwritten. |
 
-For `MIRRORED_UPSTREAM`, require `origin`, `origin_path`, `origin_ref`, sync interval, and channel. For `CURATED_UPSTREAM`, retain provenance but keep local authority and manual synchronization.
+## Create or register a skill
 
-## Execution Steps
-
-### 1. Discover and de-duplicate
-
-Inspect the repository's actual conventions and existing skill catalog. Compare the proposed name and `use_for` phrases with existing runtime names and descriptions. If another skill owns the same job, stop and propose extending it unless the overlap is deliberate and explicitly recorded with `allow_overlap_with`.
-
-Use `skill-creator` to shape a LOCAL skill's runtime contract when needed. Use `github-build-or-reuse` before introducing substantial new implementation that may already exist upstream.
-
-### 2. Build the spec
-
-Create a temporary JSON spec using the repository-native schema described in `references/creation-contract.md`. Collect only missing values. The spec must state ownership, category, status, tags, optional `skills_sh_group`, whether APM packaging is wanted, and whether Waza eval scaffolding is wanted.
-
-For upstream modes, obtain a regular local `source_dir` containing the exact payload intended for registration. Verify its provenance/ref before planning; the tool deliberately does not pretend a local directory proves remote provenance.
-
-### 3. Produce a zero-write plan
-
-From the repository root:
+1. Inspect repository conventions and existing skills for overlap/collisions.
+2. Use `skill-creator` for the runtime contract when needed and `github-build-or-reuse` before substantial new implementation.
+3. Build the JSON spec described in `references/creation-contract.md`.
+4. Produce a zero-write plan:
 
 ```bash
-python skills/skill-publish/scripts/catalog_skill.py plan \
-  --spec /path/to/skill-spec.json
+python skills/skill-publish/scripts/catalog_skill.py plan --spec /path/to/skill-spec.json
 ```
 
-Review the complete JSON plan: ownership, runtime name, repository fingerprint, accepted overlap exceptions, every file create/update, generated manifests, validations, post-apply client checks, and `approval_hash`.
-
-Do not mutate the repository during planning. Show the material plan to the user and obtain approval of that exact plan/hash before applying.
-
-### 4. Apply the unchanged approved plan
+5. Review the complete plan and approve its exact `approval_hash`.
+6. Apply the unchanged plan:
 
 ```bash
 python skills/skill-publish/scripts/catalog_skill.py apply \
@@ -80,52 +64,40 @@ python skills/skill-publish/scripts/catalog_skill.py apply \
   --approve <approval_hash>
 ```
 
-The command recomputes the plan immediately before application. A stale repository fingerprint, changed spec, new collision, or different target produces a different hash and must fail closed.
+7. Run every reported client check and repository CI before declaring registration complete.
 
-Application may create:
-
-- `skills/<name>/SKILL.md` for LOCAL skills, or copy the regular upstream payload for upstream modes;
-- `skills/<name>/metadata.yaml` with the selected lifecycle semantics;
-- optional `skills/<name>/apm.yml`;
-- optional catalog-owned `evals/<name>/...` Waza scaffold;
-- one append-only registration in an existing `skills.sh.json` grouping;
-- regenerated cross-agent distribution manifests.
-
-### 5. Verify before declaring success
-
-Application runs deterministic repository checks and rolls back the new registration if they fail. Then run every reported `post_apply_client_checks`, including telemetry-disabled `npx skills` discovery and APM consumption when applicable.
-
-For an already registered skill, the read-only check path is:
+For an existing registered skill, use:
 
 ```bash
 python skills/skill-publish/scripts/catalog_skill.py check --name <name>
 ```
 
-Before a PR is considered complete, repository CI must also pass the skill-publish unit tests, catalog validation, workflow-security baseline, Waza static validation when evals are present, `npx skills` discovery, and existing APM smoke tests.
+## Repair legacy lifecycle metadata
+
+Use the repository-wide repair path when old entries do not conform to the current ownership semantics:
+
+```bash
+python skills/skill-publish/scripts/metadata_repair.py plan
+python skills/skill-publish/scripts/metadata_repair.py apply --approve <approval_hash>
+python skills/skill-publish/scripts/metadata_repair.py check
+```
+
+The repair path derives `LOCAL` only from the catalog's own origin, treats external manual entries as `CURATED_UPSTREAM`, and leaves valid upstream-authoritative downloads untouched. It never treats `strategy: manual` as an enabled synchronization mode.
 
 ## Coordination Boundaries
 
-- `skill-creator`: author or improve the runtime `SKILL.md` contract.
-- `skill-publish`: choose lifecycle, plan, register, regenerate, validate, and roll back registration failures.
-- `skill-registry`: index skills for a workspace; it is not repository authority.
-- `agent-skill-release-lifecycle`: tag/release, downstream synchronization, skills.sh indexing, and post-merge discoverability.
+- `skill-creator`: author or improve runtime `SKILL.md` behavior.
+- `skill-publish`: lifecycle choice, plan, register/repair, regenerate and validate.
+- `skill-registry`: workspace index only; not repository authority.
+- `agent-skill-release-lifecycle`: tag/release, downstream sync, skills.sh indexing and post-merge discoverability.
 
-Do not introduce `.skills-repo/state.json` or another competing repository authority. Canonical `skills/`, `metadata.yaml`, `skills.sh.json`, distribution config, and catalog-owned evals remain the source state.
+Canonical `skills/`, `metadata.yaml`, `skills.sh.json`, distribution config and catalog-owned evals remain the source state. Do not introduce `.skills-repo/state.json` or another competing authority.
 
 ## Output Contract
 
-Report:
-
-- selected ownership mode and why;
-- overlap/collision result;
-- exact approval hash and whether it was applied unchanged;
-- files created/updated and generated surfaces regenerated;
-- deterministic validation results;
-- client checks actually executed and their outcomes;
-- remaining Git/PR/release work as separate authorized steps.
-
-Never report a skill as registered from a dry-run alone or as published merely because registration succeeded.
+Report ownership mode, overlap/collision findings, exact approval hash, whether it was applied unchanged, changed/generated files, validation results, client checks actually run, and remaining Git/release work. Never report a dry-run as applied or registration as a published release.
 
 ## References
 
-- `references/creation-contract.md` — schema, lifecycle examples, and verification contract.
+- `references/creation-contract.md` — creation/registration schema and verification contract.
+- `references/metadata-repair.md` — lifecycle normalization semantics and commands.

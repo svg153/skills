@@ -5,8 +5,9 @@ category: productivity
 status: active
 sync:
   enabled: false
-  interval: weekly
-  strategy: manual
+  interval: manual
+  strategy: local
+  authoritative: local
 tags:
   - shopping
   - comparison
