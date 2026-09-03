@@ -1,9 +1,9 @@
-name: github-build-or-reuse-behavioral
+name: github-build-or-reuse-catalog-routing
 description: >-
-  Catalog-owned behavioral evaluation suite for github-build-or-reuse.
+  Catalog-owned integration suite for routing github-build-or-reuse among overlapping skills.
 skill: github-build-or-reuse
 schemaVersion: "1.2"
-version: "1.0"
+version: "1.1"
 
 config:
   trials_per_task: 1
@@ -14,10 +14,10 @@ config:
 
 metrics:
   - name: trigger_accuracy
-    weight: 0.45
+    weight: 0.55
     threshold: 0.8
   - name: behavior_quality
-    weight: 0.35
+    weight: 0.25
     threshold: 0.7
   - name: task_completion
     weight: 0.20
