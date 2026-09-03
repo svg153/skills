@@ -134,7 +134,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          chmod +x scripts/*.sh
           ./scripts/sync-upstreams.sh --list
 
       - name: Summary
