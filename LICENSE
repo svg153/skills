@@ -19,11 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
----
-
-Scope note: this root MIT license applies to repository-authored infrastructure,
-automation, documentation, and locally authored material unless a more specific
-file or directory declares another license. It does not relicense imported,
-mirrored, or upstream-derived skills. See NOTICE.md and each skill's SKILL.md
-and metadata.yaml for the applicable provenance and license.
