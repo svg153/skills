@@ -55,6 +55,28 @@ def iter_steps(data: dict):
                 yield str(job_name), index, step
 
 
+def validate_direct_local_command(location: str, stripped: str, errors: list[str]) -> None:
+    """Require workflow-local commands invoked as ./path to be executable in Git."""
+    if not stripped.startswith("./"):
+        return
+
+    command = stripped.split(maxsplit=1)[0]
+    relative = Path(command[2:])
+    if not relative.parts or ".." in relative.parts:
+        errors.append(f"{location}: unsafe direct local command {command!r}")
+        return
+
+    target = ROOT / relative
+    if not target.is_file():
+        errors.append(f"{location}: direct local command {command!r} does not exist")
+        return
+    if target.stat().st_mode & 0o111 == 0:
+        errors.append(
+            f"{location}: direct local command {command!r} is not executable; "
+            "commit the executable bit or invoke it explicitly through its interpreter"
+        )
+
+
 def validate(path: Path) -> list[str]:
     data = load_workflow(path)
     rel = path.relative_to(ROOT)
@@ -108,6 +130,7 @@ def validate(path: Path) -> list[str]:
                 stripped = line.strip()
                 if stripped.startswith("npm ci") and "--ignore-scripts" not in stripped:
                     errors.append(f"{location}: npm ci must use --ignore-scripts")
+                validate_direct_local_command(location, stripped, errors)
 
     return errors
 
