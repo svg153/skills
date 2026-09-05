@@ -38,12 +38,13 @@ apm audit
 
 ## One source of truth, multiple consumers
 
-Canonical catalog state lives in:
+Canonical catalog/package state lives in:
 
 ```text
 skills/<name>/SKILL.md       portable runtime behavior
 skills/<name>/metadata.yaml  catalog provenance + lifecycle
 skills.sh.json               curated grouping/discovery
+distribution.config.json     package identity + optional MCP composition/provenance
 ```
 
 The distribution architecture is **plugin-first, skill-canonical**:
@@ -68,6 +69,18 @@ See [ADR 0002](docs/adr/0002-plugin-first-distribution.md) and [distribution man
 python scripts/generate-distribution.py
 python scripts/generate-distribution.py --check
 ```
+
+## Optional MCP composition
+
+Agent Plugins 1.0 can package connections to **existing MCP servers** alongside skills; the MCP server does not need to be implemented in this repository.
+
+`distribution.config.json` may define package-level `mcpServers`. Each entry keeps portable connection config separate from catalog provenance. The generator emits root `mcp.json` only when at least one server is configured.
+
+The policy supports `streamable-http`, intentional `stdio`, and legacy `sse` with justification. It rejects non-loopback cleartext HTTP, credential-bearing headers/environment variables, unsafe stdio commands/paths, and missing server provenance. OAuth, PATs and tokens remain client-managed rather than committed to package metadata.
+
+This is deliberately a **package-level** concern: registering an individual skill does not silently inject an MCP into the whole catalog bundle.
+
+See [docs/mcp-composition.md](docs/mcp-composition.md).
 
 ## Lifecycle model
 
@@ -108,7 +121,7 @@ python skills/skill-publish/scripts/catalog_skill.py apply \
   --approve <approval_hash>
 ```
 
-The workflow handles canonical metadata, optional APM/eval scaffolding, skills.sh registration, derived manifests, collision checks, and rollback on validation failure. Agent Plugin/MCP composition support is being generalized through the Agent Plugins initiative; until then, do not hand-maintain competing runtime copies.
+The workflow handles canonical metadata, optional APM/eval scaffolding, skills.sh registration, derived manifests, collision checks, and rollback on validation failure. Package-level MCP composition is governed separately by `distribution.config.json`; a skill-publish spec does not make an MCP mandatory for the whole bundle.
 
 Legacy metadata can be normalized with the same approval boundary:
 
@@ -181,4 +194,4 @@ Contributions are welcome through the repository issue forms and pull-request te
 - [SECURITY.md](SECURITY.md) — private vulnerability reporting and security scope.
 - [GOVERNANCE.md](GOVERNANCE.md) — maintainer roles, decision model, and catalog invariants.
 
-Runtime behavior belongs in `SKILL.md`; catalog provenance/lifecycle belongs in `metadata.yaml`; generated distribution files remain derived outputs.
+Runtime behavior belongs in `SKILL.md`; catalog provenance/lifecycle belongs in `metadata.yaml`; package-level MCP composition belongs in `distribution.config.json`; generated distribution files remain derived outputs.
