@@ -74,7 +74,7 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Validate GitHub Copilot CLI plugin installation
+      - name: Validate GitHub Copilot CLI plugin and MCP discovery
         env:
           COPILOT_HOME: ${{ runner.temp }}/copilot-home
         shell: bash
@@ -85,4 +85,10 @@ jobs:
           copilot plugin install ./plugins/planning
           copilot plugin list 2>&1 | tee /tmp/copilot-plugins.txt
           grep -q 'planning' /tmp/copilot-plugins.txt
-          echo 'OK: Copilot CLI installed and discovered the planning Agent Plugin'
+
+          copilot mcp list --json > /tmp/copilot-mcps.json
+          cat /tmp/copilot-mcps.json
+          grep -q '"github"' /tmp/copilot-mcps.json
+          grep -q '"atlassian"' /tmp/copilot-mcps.json
+
+          echo 'OK: Copilot CLI installed planning and discovered both plugin-provided MCP servers'
