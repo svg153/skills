@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "name": "planning",
+  "version": "0.1.0",
+  "description": "Plan and manage delivery work across GitHub and Jira without introducing a third project-management source of truth.",
+  "author": {
+    "name": "svg153",
+    "url": "https://github.com/svg153"
+  },
+  "repository": "https://github.com/svg153/skills",
+  "homepage": "https://github.com/svg153/skills/tree/main/plugins/planning",
+  "license": "MIT",
+  "keywords": [
+    "planning",
+    "project-management",
+    "backlog",
+    "github-projects",
+    "jira",
+    "atlassian",
+    "mcp",
+    "delivery"
+  ],
+  "mcpServers": {
+    "github": {
+      "config": {
+        "type": "streamable-http",
+        "url": "https://api.githubcopilot.com/mcp/"
+      },
+      "provenance": {
+        "kind": "official",
+        "owner": "GitHub",
+        "source": "https://github.com/github/github-mcp-server",
+        "purpose": "Read and manage GitHub Issues, Projects, pull-request links, and delivery traceability when GitHub is a planning provider.",
+        "reviewed": "2026-09-05"
+      }
+    },
+    "atlassian": {
+      "config": {
+        "type": "streamable-http",
+        "url": "https://mcp.atlassian.com/v1/mcp/authv2"
+      },
+      "provenance": {
+        "kind": "official",
+        "owner": "Atlassian",
+        "source": "https://support.atlassian.com/atlassian-ai-gateway/docs/use-rovo-mcp-with-other-supported-mcp-clients/",
+        "purpose": "Read and manage Jira projects, backlogs, issues, relationships, and status when Jira is a planning provider.",
+        "reviewed": "2026-09-05"
+      }
+    }
+  }
+}
