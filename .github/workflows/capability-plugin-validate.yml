@@ -68,3 +68,21 @@ jobs:
           grep -q 'planning' /tmp/planning-skills.txt
           grep -q 'backlog-management' /tmp/planning-skills.txt
           echo 'OK: planning plugin exposes both portable skills'
+
+      - name: Set up Node.js for Copilot CLI
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '22'
+
+      - name: Validate GitHub Copilot CLI plugin installation
+        env:
+          COPILOT_HOME: ${{ runner.temp }}/copilot-home
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --global '@github/copilot@1.0.83'
+          copilot --version
+          copilot plugin install ./plugins/planning
+          copilot plugin list 2>&1 | tee /tmp/copilot-plugins.txt
+          grep -q 'planning' /tmp/copilot-plugins.txt
+          echo 'OK: Copilot CLI installed and discovered the planning Agent Plugin'
