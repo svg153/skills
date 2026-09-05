@@ -1,0 +1,26 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "planning",
+  "version": "0.1.0",
+  "description": "Plan and manage delivery work across GitHub and Jira without introducing a third project-management source of truth.",
+  "author": {
+    "name": "svg153",
+    "url": "https://github.com/svg153"
+  },
+  "homepage": "https://github.com/svg153/skills/tree/main/plugins/planning",
+  "repository": "https://github.com/svg153/skills",
+  "license": "MIT",
+  "keywords": [
+    "agent-plugins",
+    "agent-skills",
+    "atlassian",
+    "backlog",
+    "backlog-management",
+    "delivery",
+    "github-projects",
+    "jira",
+    "mcp",
+    "planning",
+    "project-management"
+  ]
+}
