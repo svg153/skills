@@ -91,9 +91,8 @@ jobs:
           copilot --version
 
           copilot plugin marketplace add .
-          copilot plugin marketplace browse svg153-skills --json > /tmp/copilot-marketplace.json
-          cat /tmp/copilot-marketplace.json
-          grep -q '"planning"' /tmp/copilot-marketplace.json
+          copilot plugin marketplace browse svg153-skills 2>&1 | tee /tmp/copilot-marketplace.txt
+          grep -q 'planning' /tmp/copilot-marketplace.txt
 
           copilot plugin install planning@svg153-skills
           copilot plugin list 2>&1 | tee /tmp/copilot-plugins.txt
