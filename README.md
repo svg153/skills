@@ -46,7 +46,23 @@ skills/<name>/metadata.yaml  catalog provenance + lifecycle
 skills.sh.json               curated grouping/discovery
 ```
 
-The repository deterministically derives plugin/marketplace surfaces for Agent Plugins, Codex, Claude Code, Cursor, and Gemini. Generated manifests are outputs, not independent configuration.
+The distribution architecture is **plugin-first, skill-canonical**:
+
+```text
+Agent Plugin package                 preferred installable capability boundary
+├── plugin.json
+├── skills/*/SKILL.md                canonical portable behavior
+├── mcp.json                         optional reusable MCP composition
+└── client-specific extensions       only when necessary
+
+External distribution/discovery
+├── skills.sh                         retained while it adds discovery/install reach
+└── host adapters                     generated compatibility surfaces, retired by parity
+```
+
+Agent Plugins can become the primary package without creating a second runtime source of truth. Host-specific manifests remain derived outputs and are candidates for retirement once native Agent Plugins install, discovery, runtime, update and governance parity is verified. skills.sh is deliberately evaluated separately and remains supported while it materially improves discovery.
+
+See [ADR 0002](docs/adr/0002-plugin-first-distribution.md) and [distribution manifests](docs/distribution-manifests.md).
 
 ```bash
 python scripts/generate-distribution.py
@@ -92,7 +108,7 @@ python skills/skill-publish/scripts/catalog_skill.py apply \
   --approve <approval_hash>
 ```
 
-The workflow handles canonical metadata, optional APM/eval scaffolding, skills.sh registration, derived manifests, collision checks, and rollback on validation failure.
+The workflow handles canonical metadata, optional APM/eval scaffolding, skills.sh registration, derived manifests, collision checks, and rollback on validation failure. Agent Plugin/MCP composition support is being generalized through the Agent Plugins initiative; until then, do not hand-maintain competing runtime copies.
 
 Legacy metadata can be normalized with the same approval boundary:
 
@@ -153,6 +169,8 @@ external upstream -> svg153/skills catalog -> local Hermes runtime
 ## External discovery
 
 `npx skills` discovery and `skills.sh` search ingestion are separate concerns. CI runs `npx skills` with telemetry disabled and never generates artificial installs to influence ranking.
+
+skills.sh is intentionally retained while it contributes practical discovery/install reach. It should not be removed merely because a portable `plugin.json` exists.
 
 ## Contributing and project policy
 
