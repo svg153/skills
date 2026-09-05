@@ -52,24 +52,30 @@ The split is intentional: planning new work and operating an existing backlog ha
 
 No credentials are committed. `distribution.config.json` records endpoint provenance/purpose/review metadata; generated `mcp.json` contains only the portable Agent Plugins shape.
 
-## Install / test with GitHub Copilot CLI
+## Install with GitHub Copilot CLI
 
-Copilot CLI supports installing a plugin from a GitHub repository subdirectory:
+Use the repository marketplace rather than a direct repo/path install. Copilot CLI 1.0.83 warns that direct plugin installs are deprecated and that future releases will support marketplace installs only.
 
 ```bash
-copilot plugin install svg153/skills:plugins/planning
+copilot plugin marketplace add svg153/skills
+copilot plugin marketplace browse svg153-skills
+copilot plugin install planning@svg153-skills
 ```
 
-For local development:
+For local development, register the checked-out repository itself as the marketplace:
 
 ```bash
-copilot plugin install ./plugins/planning
+copilot plugin marketplace add .
+copilot plugin install planning@svg153-skills
 copilot plugin list
+copilot mcp list --json
 ```
 
-Authentication is completed through the client/provider flow. Installing this repository does not grant GitHub or Atlassian access by itself.
+The root `marketplace.json` is generated from repository/package state and publishes `plugins/planning` as the `planning` entry. This keeps the install path compatible with Copilot's marketplace-first direction while retaining the plugin as a monorepo subdirectory.
 
-CI verifies the local package with a pinned Copilot CLI and requires `planning` to appear in `copilot plugin list`. See [`docs/compatibility.md`](docs/compatibility.md) for the client/version/evidence matrix.
+Authentication is completed through the client/provider flow. Installing the plugin does not grant GitHub or Atlassian access by itself.
+
+CI verifies the marketplace path with a pinned Copilot CLI, requires `planning` to appear in `copilot plugin list`, and requires both `github` and `atlassian` to appear as plugin-provided servers in `copilot mcp list --json`. See [`docs/compatibility.md`](docs/compatibility.md) for the client/version/evidence matrix.
 
 ## Degraded operation
 
@@ -107,18 +113,17 @@ Cross-links are traceability, not implicit synchronization.
 
 ## Generate and validate
 
-The package manifests are derived from `distribution.config.json` and the local `skills/` tree:
+The package manifests are derived from `distribution.config.json` and the local `skills/` tree, while the repository marketplace is derived from root catalog state plus discovered capability packages:
 
 ```bash
 python scripts/generate-capability-plugin.py \
-  --config plugins/planning/distribution.config.json
-
-python scripts/generate-capability-plugin.py \
   --config plugins/planning/distribution.config.json \
   --check
+
+python scripts/generate-distribution.py --check
 ```
 
-Repository CI also validates skill frontmatter, MCP security/provenance policy, generated-manifest drift, cross-agent skill discovery, and Copilot CLI plugin installation.
+Repository CI also validates skill frontmatter, MCP security/provenance policy, generated-manifest drift, cross-agent skill discovery, marketplace installation, and Copilot CLI MCP discovery.
 
 ## Status
 
@@ -126,16 +131,20 @@ This is an **experimental pilot** for `svg153/skills#36`.
 
 - Agent Plugins/Agent Skills conformance: verified.
 - `npx skills` discovery: verified.
-- GitHub Copilot CLI 1.0.83 install/discovery: verified in CI.
+- GitHub Copilot CLI 1.0.83 marketplace install/discovery: verified in CI.
+- GitHub MCP discovery from plugin: verified in CI.
+- Atlassian MCP discovery from plugin: verified in CI.
 - GitHub MCP authenticated tool call: pending.
 - Atlassian MCP authenticated tool call: pending.
 - end-to-end cross-provider mutation scenario: pending.
 
-Do not treat install/discovery evidence as proof that every client can authenticate to both remote MCP servers. Runtime evidence is recorded separately per client and version in [`docs/compatibility.md`](docs/compatibility.md).
+Do not treat MCP discovery evidence as proof that every client can authenticate to both remote MCP servers. Runtime evidence is recorded separately per client and version in [`docs/compatibility.md`](docs/compatibility.md).
 
 ## References
 
 - Agent Plugins 1.0: https://agent-plugins.org/specification
+- GitHub Copilot CLI plugin reference: https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-plugin-reference
+- GitHub Copilot CLI marketplaces: https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/plugins-marketplace
 - GitHub MCP Server: https://github.com/github/github-mcp-server
 - GitHub MCP setup: https://docs.github.com/en/copilot/how-tos/provide-context/use-mcp-in-your-ide/set-up-the-github-mcp-server
 - Atlassian Rovo MCP: https://support.atlassian.com/atlassian-ai-gateway/docs/use-rovo-mcp-with-other-supported-mcp-clients/

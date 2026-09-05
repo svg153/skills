@@ -20,8 +20,10 @@ from agent_plugin_mcp import (
 
 ROOT = Path(__file__).resolve().parents[1]
 SKILLS = ROOT / "skills"
+PLUGINS = ROOT / "plugins"
 CONFIG_PATH = ROOT / "distribution.config.json"
 NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+SEMVER_RE = re.compile(r"^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$")
 
 REQUIRED_GENERATED_PATHS = (
     Path("plugin.json"),
@@ -52,6 +54,16 @@ def read_yaml(path: Path) -> dict:
     return data
 
 
+def read_json(path: Path) -> dict:
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        fail(f"{path.relative_to(ROOT)}: invalid JSON: {exc}")
+    if not isinstance(data, dict):
+        fail(f"{path.relative_to(ROOT)}: expected a JSON object")
+    return data
+
+
 def read_frontmatter(path: Path) -> dict:
     text = path.read_text(encoding="utf-8")
     if not text.startswith("---\n"):
@@ -69,10 +81,7 @@ def read_frontmatter(path: Path) -> dict:
 
 
 def load_config() -> dict:
-    try:
-        config = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
-        fail(f"{CONFIG_PATH.relative_to(ROOT)}: invalid JSON: {exc}")
+    config = read_json(CONFIG_PATH)
     required = (
         "schemaVersion",
         "name",
@@ -171,6 +180,65 @@ def discover_skills() -> tuple[list[str], list[str]]:
     return catalog_names, runtime_names
 
 
+def discover_capability_plugins(root_bundle: str) -> list[dict[str, str]]:
+    """Discover independently installable capability packages for the repository marketplace."""
+    if not PLUGINS.exists():
+        return []
+    if not PLUGINS.is_dir() or PLUGINS.is_symlink():
+        fail("plugins/: expected a regular directory")
+
+    entries: list[dict[str, str]] = []
+    seen = {root_bundle.casefold()}
+    for plugin_dir in sorted(PLUGINS.iterdir(), key=lambda path: path.name.casefold()):
+        if not plugin_dir.is_dir():
+            continue
+        reject_symlink(plugin_dir)
+        config_path = plugin_dir / "distribution.config.json"
+        manifest_path = plugin_dir / "plugin.json"
+        if not config_path.is_file():
+            fail(f"{plugin_dir.relative_to(ROOT)}: missing distribution.config.json")
+        if not manifest_path.is_file():
+            fail(f"{plugin_dir.relative_to(ROOT)}: missing generated plugin.json")
+        reject_symlink(config_path)
+        reject_symlink(manifest_path)
+
+        config = read_json(config_path)
+        if config.get("schemaVersion") != 1:
+            fail(f"{config_path.relative_to(ROOT)}: schemaVersion must be 1")
+        name = config.get("name")
+        version = config.get("version")
+        description = config.get("description")
+        if not isinstance(name, str) or not NAME_RE.fullmatch(name):
+            fail(f"{config_path.relative_to(ROOT)}: invalid plugin name")
+        if plugin_dir.name != name:
+            fail(
+                f"{config_path.relative_to(ROOT)}: plugin name {name!r} "
+                f"must match directory {plugin_dir.name!r}"
+            )
+        if not isinstance(version, str) or not SEMVER_RE.fullmatch(version):
+            fail(f"{config_path.relative_to(ROOT)}: invalid semantic version")
+        if not isinstance(description, str) or not description.strip():
+            fail(f"{config_path.relative_to(ROOT)}: description is required")
+        identity = name.casefold()
+        if identity in seen:
+            fail(f"{config_path.relative_to(ROOT)}: duplicate marketplace plugin name {name!r}")
+        seen.add(identity)
+
+        manifest = read_json(manifest_path)
+        if manifest.get("name") != name or manifest.get("version") != version:
+            fail(f"{manifest_path.relative_to(ROOT)}: identity/version drift from package config")
+
+        entries.append(
+            {
+                "name": name,
+                "source": f"./{plugin_dir.relative_to(ROOT).as_posix()}",
+                "description": description,
+                "version": version,
+            }
+        )
+    return entries
+
+
 def dump(value: object) -> str:
     return json.dumps(value, indent=2, ensure_ascii=False) + "\n"
 
@@ -207,18 +275,20 @@ def render(config: dict, catalog_names: list[str], runtime_names: list[str]) -> 
         "keywords": keywords,
     }
 
+    marketplace_plugins = [
+        {
+            "name": bundle,
+            "source": "./",
+            "description": description,
+            "version": version,
+        },
+        *discover_capability_plugins(bundle),
+    ]
     root_marketplace = {
         "name": bundle,
         "owner": author,
         "metadata": {"description": description},
-        "plugins": [
-            {
-                "name": bundle,
-                "source": "./",
-                "description": description,
-                "version": version,
-            }
-        ],
+        "plugins": marketplace_plugins,
     }
 
     host_plugin = {
@@ -368,6 +438,7 @@ def main() -> int:
         }
         fail(f"internal generated-path mismatch: {details}")
     print(f"Catalog skills discovered: {len(catalog_names)}")
+    print(f"Capability plugins discovered: {len(discover_capability_plugins(config['name']))}")
 
     if args.check:
         return check(outputs)

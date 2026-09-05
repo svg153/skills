@@ -4,14 +4,18 @@ on:
   push:
     paths:
       - 'plugins/**'
+      - 'marketplace.json'
       - 'scripts/generate-capability-plugin.py'
+      - 'scripts/generate-distribution.py'
       - 'scripts/agent_plugin_mcp.py'
       - 'tests/test_capability_plugins.py'
       - '.github/workflows/capability-plugin-validate.yml'
   pull_request:
     paths:
       - 'plugins/**'
+      - 'marketplace.json'
       - 'scripts/generate-capability-plugin.py'
+      - 'scripts/generate-distribution.py'
       - 'scripts/agent_plugin_mcp.py'
       - 'tests/test_capability_plugins.py'
       - '.github/workflows/capability-plugin-validate.yml'
@@ -37,6 +41,9 @@ jobs:
 
       - name: Validate workflow security baseline
         run: python scripts/validate-workflow-security.py
+
+      - name: Validate root marketplace generation
+        run: python scripts/generate-distribution.py --check
 
       - name: Validate planning package generation
         run: |
@@ -74,7 +81,7 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Validate GitHub Copilot CLI plugin installation
+      - name: Validate GitHub Copilot CLI marketplace, plugin and MCP discovery
         env:
           COPILOT_HOME: ${{ runner.temp }}/copilot-home
         shell: bash
@@ -82,7 +89,19 @@ jobs:
           set -euo pipefail
           npm install --global '@github/copilot@1.0.83'
           copilot --version
-          copilot plugin install ./plugins/planning
+
+          copilot plugin marketplace add .
+          copilot plugin marketplace browse svg153-skills 2>&1 | tee /tmp/copilot-marketplace.txt
+          grep -q 'planning' /tmp/copilot-marketplace.txt
+
+          copilot plugin install planning@svg153-skills
           copilot plugin list 2>&1 | tee /tmp/copilot-plugins.txt
           grep -q 'planning' /tmp/copilot-plugins.txt
-          echo 'OK: Copilot CLI installed and discovered the planning Agent Plugin'
+
+          copilot mcp list --json > /tmp/copilot-mcps.json
+          cat /tmp/copilot-mcps.json
+          grep -q '"github"' /tmp/copilot-mcps.json
+          grep -q '"atlassian"' /tmp/copilot-mcps.json
+          grep -q '"sourcePlugin": "planning"' /tmp/copilot-mcps.json
+
+          echo 'OK: Copilot CLI marketplace installed planning and discovered both plugin-provided MCP servers'
