@@ -11,12 +11,19 @@ from pathlib import Path
 
 import yaml
 
+from agent_plugin_mcp import (
+    MCPConfigError,
+    PLUGIN_SCHEMA,
+    mcp_manifest_from_distribution_config,
+    normalize_mcp_servers,
+)
+
 ROOT = Path(__file__).resolve().parents[1]
 SKILLS = ROOT / "skills"
 CONFIG_PATH = ROOT / "distribution.config.json"
 NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 
-GENERATED_PATHS = (
+REQUIRED_GENERATED_PATHS = (
     Path("plugin.json"),
     Path("marketplace.json"),
     Path(".agents/plugins/marketplace.json"),
@@ -26,6 +33,8 @@ GENERATED_PATHS = (
     Path(".cursor-plugin/marketplace.json"),
     Path("gemini-extension.json"),
 )
+OPTIONAL_GENERATED_PATHS = (Path("mcp.json"),)
+MANAGED_PATHS = REQUIRED_GENERATED_PATHS + OPTIONAL_GENERATED_PATHS
 
 
 def fail(message: str) -> "NoReturn":
@@ -85,6 +94,10 @@ def load_config() -> dict:
     author = config["author"]
     if not isinstance(author, dict) or not author.get("name") or not author.get("url"):
         fail(f"{CONFIG_PATH.relative_to(ROOT)}: author requires name and url")
+    try:
+        normalize_mcp_servers(config.get("mcpServers"))
+    except MCPConfigError as exc:
+        fail(f"{CONFIG_PATH.relative_to(ROOT)}: {exc}")
     return config
 
 
@@ -184,7 +197,7 @@ def render(config: dict, catalog_names: list[str], runtime_names: list[str]) -> 
     )
 
     portable_plugin = {
-        "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+        "$schema": PLUGIN_SCHEMA,
         "name": bundle,
         "version": version,
         "description": description,
@@ -217,7 +230,7 @@ def render(config: dict, catalog_names: list[str], runtime_names: list[str]) -> 
         "skills": "./skills/",
     }
 
-    return {
+    outputs = {
         Path("plugin.json"): dump(portable_plugin),
         Path("marketplace.json"): dump(root_marketplace),
         Path(".agents/plugins/marketplace.json"): dump(
@@ -277,6 +290,14 @@ def render(config: dict, catalog_names: list[str], runtime_names: list[str]) -> 
         ),
     }
 
+    try:
+        mcp_manifest = mcp_manifest_from_distribution_config(config)
+    except MCPConfigError as exc:
+        fail(f"{CONFIG_PATH.relative_to(ROOT)}: {exc}")
+    if mcp_manifest is not None:
+        outputs[Path("mcp.json")] = dump(mcp_manifest)
+    return outputs
+
 
 def check(outputs: dict[Path, str]) -> int:
     drift: list[str] = []
@@ -288,6 +309,9 @@ def check(outputs: dict[Path, str]) -> int:
         actual = target.read_text(encoding="utf-8")
         if actual != expected:
             drift.append(f"{relative}: stale")
+    for relative in OPTIONAL_GENERATED_PATHS:
+        if relative not in outputs and (ROOT / relative).exists():
+            drift.append(f"{relative}: stale optional output; no MCP servers are configured")
     if drift:
         for item in drift:
             print(f"DRIFT: {item}", file=sys.stderr)
@@ -311,6 +335,14 @@ def write(outputs: dict[Path, str]) -> int:
         target.write_text(content, encoding="utf-8")
         print(f"WROTE: {relative}")
         changed += 1
+    for relative in OPTIONAL_GENERATED_PATHS:
+        if relative in outputs:
+            continue
+        target = ROOT / relative
+        if target.exists():
+            target.unlink()
+            print(f"REMOVED: {relative}")
+            changed += 1
     print(f"OK: {changed} manifest(s) updated")
     return 0
 
@@ -327,9 +359,14 @@ def main() -> int:
     config = load_config()
     catalog_names, runtime_names = discover_skills()
     outputs = render(config, catalog_names, runtime_names)
-    unknown = set(outputs) ^ set(GENERATED_PATHS)
-    if unknown:
-        fail(f"internal generated-path mismatch: {sorted(str(path) for path in unknown)}")
+    unknown = set(outputs) - set(MANAGED_PATHS)
+    missing_required = set(REQUIRED_GENERATED_PATHS) - set(outputs)
+    if unknown or missing_required:
+        details = {
+            "unknown": sorted(str(path) for path in unknown),
+            "missing_required": sorted(str(path) for path in missing_required),
+        }
+        fail(f"internal generated-path mismatch: {details}")
     print(f"Catalog skills discovered: {len(catalog_names)}")
 
     if args.check:

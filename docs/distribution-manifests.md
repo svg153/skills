@@ -18,14 +18,16 @@ python scripts/generate-distribution.py
 python scripts/generate-distribution.py --check
 ```
 
-`--check` is zero-write and exits non-zero when a generated file is missing or
-stale. CI runs it on pull requests.
+`--check` is zero-write and exits non-zero when a generated file is missing,
+stale, or an optional generated file exists without canonical configuration. CI
+runs it on pull requests.
 
 ## Generated surfaces
 
 | Surface | Role | Current policy |
 | --- | --- | --- |
 | `plugin.json` | Portable Agent Plugins v1 package | **Primary package boundary** |
+| `mcp.json` | Optional portable MCP composition | Generated only when package-level MCPs are configured |
 | `skills/*/SKILL.md` | Portable Agent Skills | **Canonical runtime behavior; not an adapter** |
 | `skills.sh.json` | Public discovery/install metadata | **Keep while it adds material reach** |
 | `marketplace.json` | Generic marketplace compatibility | Keep until equivalent native distribution exists |
@@ -49,9 +51,13 @@ cadence. Do not create a plugin per skill mechanically.
 
 ## Source of truth
 
-`distribution.config.json` stores repository-level package identity only:
-package name, display name, version, author, repository URL and description.
-It does **not** own skill provenance, update policy or synchronization.
+`distribution.config.json` stores **package-level** distribution state:
+
+- package name, display name, version, author, repository URL and description;
+- optional Agent Plugin MCP composition plus catalog-only MCP provenance.
+
+It does **not** own individual skill provenance, update policy or
+synchronization.
 
 Per-skill lifecycle remains in `skills/<name>/metadata.yaml`, including:
 
@@ -64,6 +70,57 @@ Per-skill lifecycle remains in `skills/<name>/metadata.yaml`, including:
 The generator validates that every immediate `skills/` directory has both a
 valid `SKILL.md` and `metadata.yaml`, that both declare the directory name, and
 that case-insensitive identities do not collide.
+
+## Optional MCP composition
+
+A package may add an `mcpServers` object to `distribution.config.json`. Each
+server separates the portable Agent Plugins config from catalog governance
+metadata:
+
+```json
+{
+  "mcpServers": {
+    "github": {
+      "config": {
+        "type": "streamable-http",
+        "url": "https://api.githubcopilot.com/mcp/"
+      },
+      "provenance": {
+        "kind": "official",
+        "owner": "GitHub",
+        "source": "https://github.com/github/github-mcp-server",
+        "purpose": "Provide GitHub tools required by this capability.",
+        "reviewed": "2026-09-05"
+      }
+    }
+  }
+}
+```
+
+Only `config` is emitted into portable `mcp.json`; `provenance` stays in
+canonical repository state. With zero configured servers, `mcp.json` is absent.
+If a stale `mcp.json` exists while no servers are configured, generation removes
+it and `--check` fails until repository state is clean.
+
+Supported policy:
+
+- prefer `streamable-http` for new remote MCP integrations;
+- allow `stdio` for intentional existing local executables;
+- allow `sse` only with an explicit legacy justification;
+- require HTTPS for non-loopback remote endpoints;
+- reject credential-like fixed headers and stdio environment variables;
+- keep OAuth/tokens client-managed;
+- require owner/source/purpose/review-date provenance for every server.
+
+See [Agent Plugin MCP composition](mcp-composition.md) for the full contract.
+
+### Why MCP composition is package-level
+
+Do not place MCP requirements in individual skill lifecycle metadata. A skill may
+be usable with several host-native or MCP-backed tool paths, while an installable
+capability plugin may intentionally standardize a specific set of connections.
+Keeping the decision at the plugin/package layer avoids making one skill's tool
+choice mandatory for every other skill in a catalog bundle.
 
 ## Adapter retirement policy
 
@@ -90,20 +147,13 @@ skills.sh directly consumes the portable Agent Plugins package. Removing a tiny
 generated metadata file before then would save little and unnecessarily reduce
 discoverability.
 
-## MCP composition direction
-
-Agent Plugins v1 defines optional MCP configuration at root `mcp.json`. A plugin
-may compose existing remote or local MCP servers; the server does not need to be
-implemented by the plugin author.
-
-The catalog will add generated/validated optional MCP composition separately in
-issue #35. Credentials remain client-managed and must not be embedded in
-portable manifests.
-
 ## Compatibility policy
 
-The portable `plugin.json` follows Agent Plugins v1.0.0:
+The portable `plugin.json` and optional `mcp.json` follow Agent Plugins v1.0.0:
 https://agent-plugins.org/specification
+
+The generator uses the matching canonical `plugin.schema.json` and
+`mcp.schema.json` identifiers from the same Agent Plugins specification version.
 
 Host-specific manifests remain generated from the same canonical configuration
 only while they provide compatibility or distribution value. They should be
