@@ -82,6 +82,34 @@ This is deliberately a **package-level** concern: registering an individual skil
 
 See [docs/mcp-composition.md](docs/mcp-composition.md).
 
+## Capability plugins
+
+The repository can also host coherent Agent Plugins under `plugins/` when a capability needs an independent install boundary, multiple related skills, or its own MCP/tool composition. These packages do not make their MCPs dependencies of the catalog-wide root bundle.
+
+The first pilot is [`plugins/planning/`](plugins/planning/):
+
+```text
+planning Agent Plugin
+├── planning skill
+├── backlog-management skill
+├── GitHub official MCP
+└── Atlassian Rovo MCP
+```
+
+It keeps GitHub/Jira as the authoritative planning systems rather than creating another project-management store. With GitHub Copilot CLI it can be installed directly from the monorepo subdirectory:
+
+```bash
+copilot plugin install svg153/skills:plugins/planning
+```
+
+Package manifests are deterministic outputs of each capability's local `distribution.config.json` plus its local `skills/` tree:
+
+```bash
+python scripts/generate-capability-plugin.py \
+  --config plugins/planning/distribution.config.json \
+  --check
+```
+
 ## Lifecycle model
 
 Every catalog entry has one explicit ownership mode:
