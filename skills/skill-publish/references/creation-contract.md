@@ -19,6 +19,16 @@ Every spec uses `schemaVersion: 1` and requires:
 
 When `evals` is true, also supply `eval_positive_prompt`, `eval_negative_prompt`, and `eval_behavior`.
 
+## MCP composition is not a skill-registration field
+
+Do **not** add MCP endpoints or credentials to a skill-publish spec or to `skills/<name>/metadata.yaml` merely because a skill can use those tools.
+
+Agent Plugins MCP composition is a **package-level** concern. When an installable plugin intentionally carries one or more MCP connections, declare them in that package's `distribution.config.json` under optional `mcpServers`; `scripts/generate-distribution.py` validates the governed config and emits root `mcp.json`.
+
+This separation prevents registering one skill from silently making an MCP mandatory for every other skill in the catalog bundle. Host-native connectors/APIs can remain optional access paths without being promoted into package dependencies.
+
+See `docs/mcp-composition.md`.
+
 ## LOCAL
 
 LOCAL skills are authored and authoritative in this repository. They require `license`, `author`, and a Markdown `body` beginning with a heading. Upstream fields are forbidden.
@@ -130,12 +140,12 @@ python skills/skill-publish/scripts/catalog_skill.py apply \
 
 ## Validation contract
 
-Successful application regenerates and checks derived distribution manifests, validates skill frontmatter and catalog evals, validates `skills.sh.json`, and checks generic upstream selection. The report also lists client checks that must be executed before declaring the overall workflow complete:
+Successful application regenerates and checks derived distribution manifests, including optional package-level `mcp.json` when configured, validates skill frontmatter and catalog evals, validates `skills.sh.json`, and checks generic upstream selection. The report also lists client checks that must be executed before declaring the overall workflow complete:
 
 - telemetry-disabled `npx skills` discovery;
 - APM consumption when the skill is packaged for APM.
 
-Repository CI additionally runs workflow-security checks, skill-publish unit tests, catalog validation, Waza static verification, `npx skills` discovery, and the repository's APM smoke test.
+Repository CI additionally runs workflow-security checks, skill-publish unit tests, Agent Plugin MCP composition tests, catalog validation, Waza static verification, `npx skills` discovery, and the repository's APM smoke test.
 
 A model-backed Waza run is evidence for behavior regression, not a universal quality score, and stays on the trusted scheduled/manual workflow defined by the catalog eval policy.
 
@@ -144,3 +154,5 @@ A model-backed Waza run is evidence for behavior regression, not a universal qua
 Planning fails before mutation for duplicate/case-insensitive names, runtime collisions, substantial unapproved trigger overlap, unknown overlap exceptions, unsafe upstream URLs/paths, ambiguous `skills.sh` groups, symlinks, existing destinations, or incomplete lifecycle fields.
 
 During application, the new skill/eval roots and mutable derived registration surfaces are backed up or staged. A deterministic validation failure removes the new roots and restores the previous registration/generated content where practical.
+
+Package-level MCP configuration failures are detected by distribution validation before a package can be considered clean. MCP credentials are never accepted as portable package data.
