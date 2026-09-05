@@ -45,7 +45,7 @@ jobs:
             --check
 
       - name: Run capability plugin unit tests
-        run: python -m unittest tests.test_capability_plugins -v
+        run: python -m unittest discover -s tests -p 'test_capability_plugins.py' -v
 
       - name: Validate Agent Skills reference specification
         shell: bash
