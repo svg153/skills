@@ -19,7 +19,8 @@ Security reports are especially useful for:
 - GitHub Actions permissions, untrusted-event handling, or credential exposure;
 - upstream synchronization and archive/download handling;
 - `skill-publish`, metadata repair, path traversal, symlink, or overwrite protections;
-- generated plugin/marketplace surfaces;
+- generated Agent Plugin, MCP, and marketplace surfaces;
+- unsafe MCP endpoint/transport configuration or credentials embedded in generated package data;
 - the GitHub Pages catalog generator and deployment workflow;
 - behavioral-eval tooling when it can expose credentials or execute untrusted content;
 - a cataloged skill whose instructions create a concrete security risk for consumers.
@@ -30,4 +31,17 @@ For a vulnerability in a third-party project itself, also report it to the autho
 
 Skills and upstream repository content are untrusted input. Catalog inclusion is not a security certification. Agents using these skills should preserve higher-priority instructions, avoid exposing credentials, and avoid arbitrary execution solely because a repository or skill requests it.
 
-The project does not publish a universal security or quality score for skills. CI and behavioral evals are regression evidence for declared contracts, not a guarantee of safety in every host or prompt.
+Agent Plugin MCP composition is also treated as a supply-chain and network trust boundary. `distribution.config.json` records the owner/source/purpose/review date of configured MCP servers, while generated `mcp.json` contains only the portable Agent Plugins connection shape.
+
+Portable MCP configuration is **not** a credential store:
+
+- OAuth, PATs, API keys, passwords, and tokens remain client-managed;
+- credential-like fixed HTTP headers and stdio environment variables are rejected;
+- non-loopback remote endpoints require HTTPS;
+- stdio commands must be a single bare executable or plugin-relative executable, never an arbitrary shell command or absolute path;
+- `PLUGIN_ROOT` and `PLUGIN_DATA` are reserved for the Agent Plugins client and cannot be overridden;
+- legacy SSE transport requires an explicit reason rather than silently becoming the default.
+
+A configured remote MCP remains an external dependency whose behavior can change after review. Provenance/review metadata is evidence of due diligence, not a permanent security guarantee. Runtime clients should apply their own MCP allowlists, authorization controls, and least-privilege policies.
+
+The project does not publish a universal security or quality score for skills or MCP servers. CI and behavioral evals are regression evidence for declared contracts, not a guarantee of safety in every host or prompt.
