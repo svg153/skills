@@ -9,6 +9,7 @@ plugins/planning/
 ├── plugin.json
 ├── mcp.json
 ├── distribution.config.json
+├── docs/compatibility.md
 └── skills/
     ├── planning/
     │   ├── SKILL.md
@@ -68,6 +69,8 @@ copilot plugin list
 
 Authentication is completed through the client/provider flow. Installing this repository does not grant GitHub or Atlassian access by itself.
 
+CI verifies the local package with a pinned Copilot CLI and requires `planning` to appear in `copilot plugin list`. See [`docs/compatibility.md`](docs/compatibility.md) for the client/version/evidence matrix.
+
 ## Degraded operation
 
 The skills are independent from either MCP server:
@@ -115,11 +118,20 @@ python scripts/generate-capability-plugin.py \
   --check
 ```
 
-Repository CI also validates skill frontmatter, MCP security/provenance policy, generated-manifest drift, and the package's failure/mutation contracts.
+Repository CI also validates skill frontmatter, MCP security/provenance policy, generated-manifest drift, cross-agent skill discovery, and Copilot CLI plugin installation.
 
 ## Status
 
-This is an **experimental pilot** for `svg153/skills#36`. Manifest/package conformance does not by itself prove every client can authenticate to both remote MCP servers. Runtime evidence is recorded separately per client and version.
+This is an **experimental pilot** for `svg153/skills#36`.
+
+- Agent Plugins/Agent Skills conformance: verified.
+- `npx skills` discovery: verified.
+- GitHub Copilot CLI 1.0.83 install/discovery: verified in CI.
+- GitHub MCP authenticated tool call: pending.
+- Atlassian MCP authenticated tool call: pending.
+- end-to-end cross-provider mutation scenario: pending.
+
+Do not treat install/discovery evidence as proof that every client can authenticate to both remote MCP servers. Runtime evidence is recorded separately per client and version in [`docs/compatibility.md`](docs/compatibility.md).
 
 ## References
 
