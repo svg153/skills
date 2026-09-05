@@ -1,0 +1,70 @@
+name: Capability Plugin Validation
+
+on:
+  push:
+    paths:
+      - 'plugins/**'
+      - 'scripts/generate-capability-plugin.py'
+      - 'scripts/agent_plugin_mcp.py'
+      - 'tests/test_capability_plugins.py'
+      - '.github/workflows/capability-plugin-validate.yml'
+  pull_request:
+    paths:
+      - 'plugins/**'
+      - 'scripts/generate-capability-plugin.py'
+      - 'scripts/agent_plugin_mcp.py'
+      - 'tests/test_capability_plugins.py'
+      - '.github/workflows/capability-plugin-validate.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install validation dependency
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install 'PyYAML>=6,<7'
+
+      - name: Validate workflow security baseline
+        run: python scripts/validate-workflow-security.py
+
+      - name: Validate planning package generation
+        run: |
+          python scripts/generate-capability-plugin.py \
+            --config plugins/planning/distribution.config.json \
+            --check
+
+      - name: Run capability plugin unit tests
+        run: python -m unittest tests.test_capability_plugins -v
+
+      - name: Validate Agent Skills reference specification
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 https://github.com/agentskills/agentskills.git /tmp/agentskills
+          git -C /tmp/agentskills fetch --depth 1 origin 69ef37e9424c0a7ea9dd2293b559e43ec8176379
+          git -C /tmp/agentskills checkout 69ef37e9424c0a7ea9dd2293b559e43ec8176379
+          python -m pip install /tmp/agentskills/skills-ref
+          skills-ref validate plugins/planning/skills/planning
+          skills-ref validate plugins/planning/skills/backlog-management
+
+      - name: Validate cross-agent skill discovery
+        env:
+          DISABLE_TELEMETRY: '1'
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx -y skills@latest add ./plugins/planning --list 2>&1 | tee /tmp/planning-skills.txt
+          grep -q 'planning' /tmp/planning-skills.txt
+          grep -q 'backlog-management' /tmp/planning-skills.txt
+          echo 'OK: planning plugin exposes both portable skills'
