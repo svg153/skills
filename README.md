@@ -6,7 +6,7 @@
 
 Cross-agent catalog of reusable Agent Skills with provenance-aware lifecycle management, reproducible upstream synchronization, behavioral evals, and generated distribution surfaces.
 
-**Public catalog:** https://svg153.github.io/skills/
+**Public catalog:** https://svg153.github.io/skills/.
 
 ## Why this catalog exists
 
@@ -96,18 +96,26 @@ planning Agent Plugin
 └── Atlassian Rovo MCP
 ```
 
-It keeps GitHub/Jira as the authoritative planning systems rather than creating another project-management store. With GitHub Copilot CLI it can be installed directly from the monorepo subdirectory:
+It keeps GitHub/Jira as the authoritative planning systems rather than creating another project-management store.
+
+Capability packages are automatically included in the generated root `marketplace.json`. For GitHub Copilot CLI, use the marketplace path rather than a direct repo/subdirectory install:
 
 ```bash
-copilot plugin install svg153/skills:plugins/planning
+copilot plugin marketplace add svg153/skills
+copilot plugin marketplace browse svg153-skills
+copilot plugin install planning@svg153-skills
 ```
 
-Package manifests are deterministic outputs of each capability's local `distribution.config.json` plus its local `skills/` tree:
+Copilot CLI 1.0.83 warns that direct repo/URL/path plugin installs are deprecated and future releases will support marketplace installs only. CI therefore validates the marketplace-first path and requires both plugin-provided MCP servers to be discovered after installation.
+
+Package manifests are deterministic outputs of each capability's local `distribution.config.json` plus its local `skills/` tree, while the root marketplace is generated from the catalog plus discovered capability packages:
 
 ```bash
 python scripts/generate-capability-plugin.py \
   --config plugins/planning/distribution.config.json \
   --check
+
+python scripts/generate-distribution.py --check
 ```
 
 ## Lifecycle model
