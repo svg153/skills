@@ -10,7 +10,7 @@ Last updated: 2026-09-05.
 | --- | --- |
 | `conformance` | Package/manifests pass deterministic local/spec validation |
 | `install/discovery verified` | A named client/version installs the plugin and discovers it/its skills |
-| `MCP discovery verified` | The named client loads the declared MCP server configuration |
+| `MCP discovery verified` | The named client loads the declared MCP server configuration from the plugin |
 | `authenticated tool call verified` | Provider auth succeeds and at least one real tool call returns provider state |
 | `end-to-end verified` | A representative planning workflow crosses skills + provider tools successfully |
 
@@ -23,9 +23,9 @@ Do not promote a lower evidence level to a stronger claim.
 | Agent Plugins package | Agent Plugins 1.0.0 | `plugin.json` + `mcp.json` deterministic generation and policy tests | `conformance` ✅ |
 | Agent Skills | pinned `agentskills/skills-ref` validation | both `planning` and `backlog-management` validate | `conformance` ✅ |
 | `npx skills` | `skills@latest`, telemetry disabled | both packaged skills discovered from `plugins/planning` | `install/discovery verified` ✅ |
-| GitHub Copilot CLI | `@github/copilot` 1.0.83, Node 22, GitHub Actions Ubuntu runner | `copilot plugin install ./plugins/planning` succeeds and `copilot plugin list` discovers `planning` | `install/discovery verified` ✅ |
-| GitHub MCP through Copilot CLI | remote `https://api.githubcopilot.com/mcp/` | client-managed OAuth/tool-call evidence not captured yet | pending |
-| Atlassian Rovo MCP through Copilot CLI | remote `https://mcp.atlassian.com/v1/mcp/authv2` | client-managed OAuth/tool-call evidence not captured yet | pending |
+| GitHub Copilot CLI | `@github/copilot` 1.0.83, Node 22, GitHub Actions Ubuntu runner | repository marketplace exposes `planning`; `planning@svg153-skills` installs and `copilot plugin list` discovers it | `install/discovery verified` ✅ |
+| GitHub MCP through Copilot CLI | remote `https://api.githubcopilot.com/mcp/` | `copilot mcp list --json` reports `sourcePlugin: planning`, version `0.1.0`, enabled | `MCP discovery verified` ✅ |
+| Atlassian Rovo MCP through Copilot CLI | remote `https://mcp.atlassian.com/v1/mcp/authv2` | `copilot mcp list --json` reports `sourcePlugin: planning`, version `0.1.0`, enabled | `MCP discovery verified` ✅ |
 | VS Code / Copilot | current Agent Plugins-capable release | not executed in this repository yet | pending |
 | Codex / ChatGPT plugin path | current supported surface | not executed in this repository yet | pending |
 | additional Agent Plugins client | TBD | not executed yet | pending |
@@ -38,18 +38,36 @@ The CI check pins:
 
 - Node 22;
 - `@github/copilot@1.0.83`;
-- the plugin source to the checked-out `./plugins/planning` directory.
+- the plugin source to the checked-out repository marketplace.
 
-It executes:
+### Marketplace-first installation
+
+An earlier direct-install smoke test succeeded but Copilot CLI 1.0.83 emitted this product warning:
+
+> Direct plugin installs are deprecated; future releases will support marketplace installs only.
+
+The repository therefore moved the durable validation path to the marketplace immediately rather than normalizing a deprecated install route.
+
+The current test executes:
 
 ```bash
-copilot plugin install ./plugins/planning
+copilot plugin marketplace add .
+copilot plugin marketplace browse svg153-skills --json
+copilot plugin install planning@svg153-skills
 copilot plugin list
+copilot mcp list --json
 ```
 
-and fails unless the installed list contains `planning`.
+It requires the marketplace to expose `planning`, the installed-plugin list to contain `planning`, and the MCP list to contain both `github` and `atlassian` as plugin-provided servers.
 
-This proves the package is accepted by a real Copilot CLI plugin loader. It does **not** prove provider authentication because the workflow intentionally has only `contents: read` permission and no user/provider credentials.
+The observed Copilot CLI MCP representation normalizes the Agent Plugins `streamable-http` transport to its runtime `http` representation while preserving the configured endpoint. Both entries report:
+
+- `sourcePlugin: planning`;
+- `sourcePluginVersion: 0.1.0`;
+- `source: plugin`;
+- `enabled: true`.
+
+This proves the package is accepted by a real Copilot CLI plugin loader **and** that its two MCP configurations are loaded from the plugin. It does **not** prove provider authentication because the workflow intentionally has only `contents: read` permission and no user/provider credentials.
 
 ## Remaining runtime gates
 
@@ -57,7 +75,7 @@ This proves the package is accepted by a real Copilot CLI plugin loader. It does
 
 Capture on a real authenticated client:
 
-1. plugin installed;
+1. plugin installed from the marketplace;
 2. GitHub MCP discovered;
 3. client-managed GitHub auth completed;
 4. read-only tool call returns a known repository/issue/project state;
@@ -67,7 +85,7 @@ Capture on a real authenticated client:
 
 Capture on a real authenticated client with access to a test Jira site/project:
 
-1. plugin installed;
+1. plugin installed from the marketplace;
 2. Atlassian MCP discovered;
 3. OAuth 2.1 flow completed by the client;
 4. read-only tool call returns a known Jira project/backlog/issue;
