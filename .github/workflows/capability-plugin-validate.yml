@@ -9,7 +9,9 @@ on:
       - 'scripts/generate-capability-plugin.py'
       - 'scripts/generate-distribution.py'
       - 'scripts/agent_plugin_mcp.py'
+      - 'scripts/validate-planning-runtime-evidence.py'
       - 'tests/test_capability_plugins.py'
+      - 'tests/test_planning_runtime_evidence.py'
       - '.github/workflows/capability-plugin-validate.yml'
   pull_request:
     paths:
@@ -19,7 +21,9 @@ on:
       - 'scripts/generate-capability-plugin.py'
       - 'scripts/generate-distribution.py'
       - 'scripts/agent_plugin_mcp.py'
+      - 'scripts/validate-planning-runtime-evidence.py'
       - 'tests/test_capability_plugins.py'
+      - 'tests/test_planning_runtime_evidence.py'
       - '.github/workflows/capability-plugin-validate.yml'
 
 permissions:
@@ -55,6 +59,11 @@ jobs:
 
       - name: Run capability plugin unit tests
         run: python -m unittest discover -s tests -p 'test_capability_plugins.py' -v
+
+      - name: Run planning runtime evidence tests
+        run: |
+          python -m unittest discover -s tests -p 'test_planning_runtime_evidence.py' -v
+          python scripts/validate-planning-runtime-evidence.py
 
       - name: Validate Agent Skills reference specification
         shell: bash
