@@ -2,7 +2,7 @@
 
 Compatibility claims are recorded by **evidence level**, not inferred from manifest shape.
 
-Last updated: 2026-09-05.
+Last updated: 2026-09-07.
 
 ## Evidence levels
 
@@ -26,8 +26,11 @@ Do not promote a lower evidence level to a stronger claim.
 | GitHub Copilot CLI | `@github/copilot` 1.0.83, Node 22, GitHub Actions Ubuntu runner | repository marketplace exposes `planning`; `planning@svg153-skills` installs and `copilot plugin list` discovers it | `install/discovery verified` ✅ |
 | GitHub MCP through Copilot CLI | remote `https://api.githubcopilot.com/mcp/` | `copilot mcp list --json` reports `sourcePlugin: planning`, version `0.1.0`, enabled | `MCP discovery verified` ✅ |
 | Atlassian Rovo MCP through Copilot CLI | remote `https://mcp.atlassian.com/v1/mcp/authv2` | `copilot mcp list --json` reports `sourcePlugin: planning`, version `0.1.0`, enabled | `MCP discovery verified` ✅ |
+| OpenAI Codex CLI | `@openai/codex` 0.153.4, Node 22, GitHub Actions Ubuntu runner | repo-local `.agents/plugins/marketplace.json` exposes `planning`; `codex plugin add planning@svg153-skills` installs and enables the **portable root Agent Plugin** | `install/discovery verified` ✅ |
+| GitHub MCP through Codex CLI | same portable `plugins/planning/mcp.json` | `codex mcp list --json` reports `github`, `streamable_http`, enabled, `auth_status: not_logged_in` | `MCP discovery verified` ✅ |
+| Atlassian Rovo MCP through Codex CLI | same portable `plugins/planning/mcp.json` | `codex mcp list --json` reports `atlassian`, `streamable_http`, enabled, `auth_status: not_logged_in` | `MCP discovery verified` ✅ |
 | VS Code / Copilot | current Agent Plugins-capable release | not executed in this repository yet | pending |
-| Codex / ChatGPT plugin path | current supported surface | not executed in this repository yet | pending |
+| ChatGPT / Codex connected-plugin runtime | current supported surface | install/runtime not executed from an authenticated account yet | pending |
 | additional Agent Plugins client | TBD | not executed yet | pending |
 
 ## Copilot CLI evidence
@@ -52,7 +55,7 @@ The current test executes:
 
 ```bash
 copilot plugin marketplace add .
-copilot plugin marketplace browse svg153-skills --json
+copilot plugin marketplace browse svg153-skills
 copilot plugin install planning@svg153-skills
 copilot plugin list
 copilot mcp list --json
@@ -68,6 +71,44 @@ The observed Copilot CLI MCP representation normalizes the Agent Plugins `stream
 - `enabled: true`.
 
 This proves the package is accepted by a real Copilot CLI plugin loader **and** that its two MCP configurations are loaded from the plugin. It does **not** prove provider authentication because the workflow intentionally has only `contents: read` permission and no user/provider credentials.
+
+## Codex CLI evidence
+
+The same workflow pins:
+
+- Node 22;
+- `@openai/codex@0.153.4`;
+- an isolated empty `CODEX_HOME`;
+- the repository-local Codex marketplace at `.agents/plugins/marketplace.json`.
+
+It executes:
+
+```bash
+codex plugin marketplace add .
+codex plugin list --available --json
+codex plugin add planning@svg153-skills --json
+codex plugin list --json
+codex mcp list --json
+```
+
+Observed installation state:
+
+- `pluginId: planning@svg153-skills`;
+- `version: 0.1.0`;
+- `installed: true`;
+- `enabled: true`;
+- installed from `plugins/planning` into the isolated Codex plugin cache.
+
+Most importantly, `plugins/planning` contains **no Codex-specific runtime manifest**. Codex 0.153.4 installs its root Agent Plugins 1.0 `plugin.json`, discovers the shared `skills/` tree, and translates the same portable `mcp.json` used by Copilot.
+
+For both MCP entries Codex reports:
+
+- `enabled: true`;
+- transport `type: streamable_http`;
+- the original portable URL;
+- `auth_status: not_logged_in`.
+
+This is evidence of actual Agent Plugins portability rather than an adapter-equivalence test. Authentication remains a separate gate.
 
 ## Remaining runtime gates
 

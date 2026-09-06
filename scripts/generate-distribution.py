@@ -167,7 +167,7 @@ def discover_skills() -> tuple[list[str], list[str]]:
         previous_runtime = seen_runtime.get(runtime_identity)
         if previous_runtime is not None:
             fail(
-                f"case-insensitive runtime skill collision: {previous_runtime.relative_to(ROOT)} "
+                f"case-insensitive runtime collision: {previous_runtime.relative_to(ROOT)} "
                 f"and {skill_file.relative_to(ROOT)}"
             )
         seen_runtime[runtime_identity] = skill_file
@@ -181,7 +181,7 @@ def discover_skills() -> tuple[list[str], list[str]]:
 
 
 def discover_capability_plugins(root_bundle: str) -> list[dict[str, str]]:
-    """Discover independently installable capability packages for the repository marketplace."""
+    """Discover independently installable capability packages for generated marketplaces."""
     if not PLUGINS.exists():
         return []
     if not PLUGINS.is_dir() or PLUGINS.is_symlink():
@@ -208,6 +208,7 @@ def discover_capability_plugins(root_bundle: str) -> list[dict[str, str]]:
         name = config.get("name")
         version = config.get("version")
         description = config.get("description")
+        category = config.get("category", "Developer Tools")
         if not isinstance(name, str) or not NAME_RE.fullmatch(name):
             fail(f"{config_path.relative_to(ROOT)}: invalid plugin name")
         if plugin_dir.name != name:
@@ -219,6 +220,8 @@ def discover_capability_plugins(root_bundle: str) -> list[dict[str, str]]:
             fail(f"{config_path.relative_to(ROOT)}: invalid semantic version")
         if not isinstance(description, str) or not description.strip():
             fail(f"{config_path.relative_to(ROOT)}: description is required")
+        if not isinstance(category, str) or not category.strip():
+            fail(f"{config_path.relative_to(ROOT)}: category must be a non-empty string when present")
         identity = name.casefold()
         if identity in seen:
             fail(f"{config_path.relative_to(ROOT)}: duplicate marketplace plugin name {name!r}")
@@ -234,6 +237,7 @@ def discover_capability_plugins(root_bundle: str) -> list[dict[str, str]]:
                 "source": f"./{plugin_dir.relative_to(ROOT).as_posix()}",
                 "description": description,
                 "version": version,
+                "category": category,
             }
         )
     return entries
@@ -275,6 +279,7 @@ def render(config: dict, catalog_names: list[str], runtime_names: list[str]) -> 
         "keywords": keywords,
     }
 
+    capability_plugins = discover_capability_plugins(bundle)
     marketplace_plugins = [
         {
             "name": bundle,
@@ -282,7 +287,15 @@ def render(config: dict, catalog_names: list[str], runtime_names: list[str]) -> 
             "description": description,
             "version": version,
         },
-        *discover_capability_plugins(bundle),
+        *[
+            {
+                "name": entry["name"],
+                "source": entry["source"],
+                "description": entry["description"],
+                "version": entry["version"],
+            }
+            for entry in capability_plugins
+        ],
     ]
     root_marketplace = {
         "name": bundle,
@@ -290,6 +303,30 @@ def render(config: dict, catalog_names: list[str], runtime_names: list[str]) -> 
         "metadata": {"description": description},
         "plugins": marketplace_plugins,
     }
+
+    codex_marketplace_plugins = [
+        {
+            "name": bundle,
+            "source": {"source": "local", "path": "./"},
+            "policy": {
+                "installation": "AVAILABLE",
+                "authentication": "ON_INSTALL",
+            },
+            "category": config["category"],
+        },
+        *[
+            {
+                "name": entry["name"],
+                "source": {"source": "local", "path": entry["source"]},
+                "policy": {
+                    "installation": "AVAILABLE",
+                    "authentication": "ON_INSTALL",
+                },
+                "category": entry["category"],
+            }
+            for entry in capability_plugins
+        ],
+    ]
 
     host_plugin = {
         "name": bundle,
@@ -307,17 +344,7 @@ def render(config: dict, catalog_names: list[str], runtime_names: list[str]) -> 
             {
                 "name": bundle,
                 "interface": {"displayName": config["displayName"]},
-                "plugins": [
-                    {
-                        "name": bundle,
-                        "source": {"source": "local", "path": "./"},
-                        "policy": {
-                            "installation": "AVAILABLE",
-                            "authentication": "ON_INSTALL",
-                        },
-                        "category": config["category"],
-                    }
-                ],
+                "plugins": codex_marketplace_plugins,
             }
         ),
         Path(".codex-plugin/plugin.json"): dump(host_plugin),
