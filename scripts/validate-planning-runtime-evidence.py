@@ -67,7 +67,7 @@ def validate_status_record(record: Any, path: str) -> str:
     return status
 
 
-def validate_provider(name: str, provider: Any, mode: str) -> None:
+def validate_provider(name: str, provider: Any) -> None:
     path = f"$.providers.{name}"
     require(isinstance(provider, dict), f"{path} must be an object")
 
@@ -92,11 +92,18 @@ def validate_provider(name: str, provider: Any, mode: str) -> None:
         for field in ("operation", "returnedId", "resultSummary"):
             require_non_empty_string(mutation.get(field), f"{path}.mutation.{field}")
 
-    if mode == "evidence":
-        require(
-            auth_status != "pending" or read_status != "pending" or mutation_status != "pending",
-            f"{path}: evidence files must record progress or an explicit blocker",
+
+def has_recorded_progress(providers: dict[str, Any], end_to_end: dict[str, Any]) -> bool:
+    statuses = [end_to_end.get("status")]
+    for provider in providers.values():
+        statuses.extend(
+            [
+                provider.get("authentication", {}).get("status"),
+                provider.get("readToolCall", {}).get("status"),
+                provider.get("mutation", {}).get("status"),
+            ]
         )
+    return any(status in {"verified", "blocked", "not-applicable"} for status in statuses)
 
 
 def validate_document(document: Any, source: str = "<memory>") -> None:
@@ -130,11 +137,17 @@ def validate_document(document: Any, source: str = "<memory>") -> None:
     providers = document.get("providers")
     require(isinstance(providers, dict), f"{source}: providers must be an object")
     require(set(providers) == {"github", "atlassian"}, f"{source}: providers must contain exactly github and atlassian")
-    validate_provider("github", providers["github"], mode)
-    validate_provider("atlassian", providers["atlassian"], mode)
+    validate_provider("github", providers["github"])
+    validate_provider("atlassian", providers["atlassian"])
 
     end_to_end = document.get("endToEnd")
     end_status = validate_status_record(end_to_end, f"{source}: endToEnd")
+    if mode == "evidence":
+        require(
+            has_recorded_progress(providers, end_to_end),
+            f"{source}: evidence files must record at least one verified/blocked/not-applicable stage",
+        )
+
     if end_status == "verified":
         github = providers["github"]
         atlassian = providers["atlassian"]
