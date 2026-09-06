@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "plugin": "planning",
+  "pluginVersion": "0.1.0",
+  "mode": "template",
+  "client": {
+    "name": "codex-cli",
+    "version": "0.153.4"
+  },
+  "capturedAt": "2026-09-07T00:00:00Z",
+  "environment": {
+    "platform": "replace-with-os-and-client-context",
+    "containsSensitiveData": false
+  },
+  "providers": {
+    "github": {
+      "authentication": {
+        "status": "pending",
+        "method": "client-managed OAuth",
+        "credentialStoredInPlugin": false,
+        "evidence": ""
+      },
+      "readToolCall": {
+        "status": "pending",
+        "operation": "",
+        "resourceType": "",
+        "resourceRef": "",
+        "resultSummary": "",
+        "evidence": ""
+      },
+      "mutation": {
+        "status": "pending",
+        "explicitUserIntent": false,
+        "operation": "",
+        "returnedId": "",
+        "resultSummary": "",
+        "evidence": ""
+      }
+    },
+    "atlassian": {
+      "authentication": {
+        "status": "pending",
+        "method": "client-managed OAuth 2.1",
+        "credentialStoredInPlugin": false,
+        "evidence": ""
+      },
+      "readToolCall": {
+        "status": "pending",
+        "operation": "",
+        "resourceType": "",
+        "resourceRef": "",
+        "resultSummary": "",
+        "evidence": ""
+      },
+      "mutation": {
+        "status": "pending",
+        "explicitUserIntent": false,
+        "operation": "",
+        "returnedId": "",
+        "resultSummary": "",
+        "evidence": ""
+      }
+    }
+  },
+  "endToEnd": {
+    "status": "pending",
+    "singleSourceOfTruthVerified": false,
+    "crossProviderLinkVerified": false,
+    "resultSummary": "",
+    "evidence": ""
+  }
+}
