@@ -5,6 +5,7 @@ on:
     paths:
       - 'plugins/**'
       - 'marketplace.json'
+      - '.agents/plugins/marketplace.json'
       - 'scripts/generate-capability-plugin.py'
       - 'scripts/generate-distribution.py'
       - 'scripts/agent_plugin_mcp.py'
@@ -14,6 +15,7 @@ on:
     paths:
       - 'plugins/**'
       - 'marketplace.json'
+      - '.agents/plugins/marketplace.json'
       - 'scripts/generate-capability-plugin.py'
       - 'scripts/generate-distribution.py'
       - 'scripts/agent_plugin_mcp.py'
@@ -76,7 +78,7 @@ jobs:
           grep -q 'backlog-management' /tmp/planning-skills.txt
           echo 'OK: planning plugin exposes both portable skills'
 
-      - name: Set up Node.js for Copilot CLI
+      - name: Set up Node.js for plugin CLIs
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: '22'
@@ -105,3 +107,31 @@ jobs:
           grep -q '"sourcePlugin": "planning"' /tmp/copilot-mcps.json
 
           echo 'OK: Copilot CLI marketplace installed planning and discovered both plugin-provided MCP servers'
+
+      - name: Validate Codex CLI portable Agent Plugin and MCP discovery
+        env:
+          CODEX_HOME: ${{ runner.temp }}/codex-home
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$CODEX_HOME"
+          npm install --global '@openai/codex@0.153.4'
+          codex --version
+
+          codex plugin marketplace add .
+          codex plugin list --available --json > /tmp/codex-marketplace.json
+          cat /tmp/codex-marketplace.json
+          grep -q 'planning' /tmp/codex-marketplace.json
+
+          codex plugin add planning@svg153-skills --json > /tmp/codex-install.json
+          cat /tmp/codex-install.json
+          codex plugin list --json > /tmp/codex-plugins.json
+          cat /tmp/codex-plugins.json
+          grep -q 'planning' /tmp/codex-plugins.json
+
+          codex mcp list --json > /tmp/codex-mcps.json
+          cat /tmp/codex-mcps.json
+          grep -q 'github' /tmp/codex-mcps.json
+          grep -q 'atlassian' /tmp/codex-mcps.json
+
+          echo 'OK: Codex CLI installed the portable planning Agent Plugin and discovered both MCP servers'
