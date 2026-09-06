@@ -9,7 +9,11 @@ plugins/planning/
 ├── plugin.json
 ├── mcp.json
 ├── distribution.config.json
-├── docs/compatibility.md
+├── docs/
+│   ├── compatibility.md
+│   └── runtime-evidence.md
+├── evidence/
+│   └── TEMPLATE.json
 └── skills/
     ├── planning/
     │   ├── SKILL.md
@@ -73,9 +77,25 @@ copilot mcp list --json
 
 The root `marketplace.json` is generated from repository/package state and publishes `plugins/planning` as the `planning` entry. This keeps the install path compatible with Copilot's marketplace-first direction while retaining the plugin as a monorepo subdirectory.
 
-Authentication is completed through the client/provider flow. Installing the plugin does not grant GitHub or Atlassian access by itself.
+## Install with OpenAI Codex CLI
 
-CI verifies the marketplace path with a pinned Copilot CLI, requires `planning` to appear in `copilot plugin list`, and requires both `github` and `atlassian` to appear as plugin-provided servers in `copilot mcp list --json`. See [`docs/compatibility.md`](docs/compatibility.md) for the client/version/evidence matrix.
+Codex CLI 0.153.4 is verified in CI against the **same portable Agent Plugin package**; `plugins/planning` does not need a Codex-specific runtime manifest.
+
+From a checkout:
+
+```bash
+codex plugin marketplace add .
+codex plugin list --available --json
+codex plugin add planning@svg153-skills --json
+codex plugin list --json
+codex mcp list --json
+```
+
+Codex loads the root Agent Plugins `plugin.json`, the shared `skills/` tree, and the same portable `mcp.json`. CI verifies both `github` and `atlassian` MCP entries are discovered with `streamable_http` transport.
+
+Authentication is completed through each client/provider flow. Installing the plugin does not grant GitHub or Atlassian access by itself.
+
+See [`docs/compatibility.md`](docs/compatibility.md) for the client/version/evidence matrix.
 
 ## Degraded operation
 
@@ -113,7 +133,7 @@ Cross-links are traceability, not implicit synchronization.
 
 ## Generate and validate
 
-The package manifests are derived from `distribution.config.json` and the local `skills/` tree, while the repository marketplace is derived from root catalog state plus discovered capability packages:
+The package manifests are derived from `distribution.config.json` and the local `skills/` tree, while the repository marketplaces are derived from root catalog state plus discovered capability packages:
 
 ```bash
 python scripts/generate-capability-plugin.py \
@@ -121,9 +141,22 @@ python scripts/generate-capability-plugin.py \
   --check
 
 python scripts/generate-distribution.py --check
+python scripts/validate-planning-runtime-evidence.py
 ```
 
-Repository CI also validates skill frontmatter, MCP security/provenance policy, generated-manifest drift, cross-agent skill discovery, marketplace installation, and Copilot CLI MCP discovery.
+Repository CI validates skill frontmatter, MCP security/provenance policy, generated-manifest drift, cross-agent skill discovery, Copilot/Codex marketplace installation, MCP discovery, and the structure/security of any committed authenticated-runtime evidence.
+
+## Authenticated runtime evidence
+
+Package and MCP discovery are already automated. Provider OAuth and real tool calls belong in a trusted interactive session rather than CI secrets.
+
+Use [`docs/runtime-evidence.md`](docs/runtime-evidence.md) for the Codex/Copilot OAuth, read, mutation, and cross-provider test procedure. Copy [`evidence/TEMPLATE.json`](evidence/TEMPLATE.json), sanitize the results, and validate them before committing:
+
+```bash
+python scripts/validate-planning-runtime-evidence.py
+```
+
+The validator rejects common credential/token shapes and prevents stronger claims from being recorded without their prerequisites. A verified mutation, for example, requires verified provider authentication, explicit user intent, a provider-returned ID, and a sanitized result summary.
 
 ## Status
 
@@ -132,13 +165,14 @@ This is an **experimental pilot** for `svg153/skills#36`.
 - Agent Plugins/Agent Skills conformance: verified.
 - `npx skills` discovery: verified.
 - GitHub Copilot CLI 1.0.83 marketplace install/discovery: verified in CI.
-- GitHub MCP discovery from plugin: verified in CI.
-- Atlassian MCP discovery from plugin: verified in CI.
+- OpenAI Codex CLI 0.153.4 marketplace install/discovery: verified in CI.
+- GitHub MCP discovery from plugin in Copilot and Codex: verified in CI.
+- Atlassian MCP discovery from plugin in Copilot and Codex: verified in CI.
 - GitHub MCP authenticated tool call: pending.
 - Atlassian MCP authenticated tool call: pending.
 - end-to-end cross-provider mutation scenario: pending.
 
-Do not treat MCP discovery evidence as proof that every client can authenticate to both remote MCP servers. Runtime evidence is recorded separately per client and version in [`docs/compatibility.md`](docs/compatibility.md).
+Do not treat MCP discovery evidence as proof that every client can authenticate to both remote MCP servers. Runtime evidence is recorded separately per client and version in [`docs/compatibility.md`](docs/compatibility.md), with the stronger authenticated evidence procedure in [`docs/runtime-evidence.md`](docs/runtime-evidence.md).
 
 ## References
 
