@@ -1,0 +1,9 @@
+name: svg153-external-skills
+version: 1.0.0
+description: Locked external Agent Skill dependencies consumed or mirrored by the svg153 skills catalog.
+author: svg153
+dependencies:
+  apm:
+    - ghspain/github-build-or-reuse/skills/github-build-or-reuse#v1.2.3
+  mcp: []
+scripts: {}
