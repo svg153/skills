@@ -77,9 +77,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          apm audit --ci --policy ./apm-policy.yml --no-fail-fast --format json --output /tmp/apm-audit.json
+          # This catalog intentionally uses APM as a resolver/lock, not as the runtime
+          # deployment owner. Keep APM's CI consistency/policy checks, but delegate
+          # canonical mirror drift to materialize-apm-mirror.py below.
+          apm audit --ci --no-drift --policy ./apm-policy.yml --no-fail-fast --format json --output /tmp/apm-audit.json
           test -s /tmp/apm-audit.json
-          echo 'OK: APM dependency policy and integrity audit passed'
+          echo 'OK: APM dependency policy and lock integrity audit passed'
 
       - name: Verify canonical mirror matches locked commit
         shell: bash
