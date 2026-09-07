@@ -1,0 +1,22 @@
+name: svg153-external-skills-policy
+version: '1.0.0'
+enforcement: block
+
+dependencies:
+  allow:
+    - ghspain/github-build-or-reuse
+  require_pinned_constraint: true
+  max_depth: 3
+
+mcp:
+  self_defined: deny
+  trust_transitive: false
+
+manifest:
+  scripts: deny
+
+security:
+  integrity:
+    require_hashes: true
+  audit:
+    fail_on_drift: true
