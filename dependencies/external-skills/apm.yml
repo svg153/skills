@@ -4,6 +4,6 @@ description: Locked external Agent Skill dependencies consumed or mirrored by th
 author: svg153
 dependencies:
   apm:
-    - ghspain/github-build-or-reuse/skills/github-build-or-reuse#v1.2.3
+    - ghspain/github-build-or-reuse/skills/github-build-or-reuse#24af1931681bb03b0282472c4d4b6900359418c7 # v1.2.3
   mcp: []
 scripts: {}

@@ -5,6 +5,7 @@ on:
     paths:
       - 'dependencies/external-skills/**'
       - 'renovate.json'
+      - 'scripts/install-apm-ci.sh'
       - 'scripts/materialize-apm-mirror.py'
       - 'skills/github-build-or-reuse/**'
       - '.github/workflows/apm-external-skills.yml'
@@ -25,33 +26,7 @@ jobs:
 
       - name: Install pinned APM CLI
         shell: bash
-        env:
-          APM_VERSION: '0.29.1'
-          APM_ARCHIVE_SHA256: 'a8530bc9d15a7b4a7a8334e4a8b4ac27b3652bcbd8ccbfc58571903b43686644'
-        run: |
-          set -euo pipefail
-          archive="$RUNNER_TEMP/apm-linux-x86_64.tar.gz"
-          extracted="$RUNNER_TEMP/apm-extracted"
-          mkdir -p "$extracted"
-
-          curl --fail --silent --show-error --location \
-            "https://github.com/microsoft/apm/releases/download/v${APM_VERSION}/apm-linux-x86_64.tar.gz" \
-            --output "$archive"
-          echo "${APM_ARCHIVE_SHA256}  ${archive}" | sha256sum --check --strict
-          tar -xzf "$archive" -C "$extracted"
-
-          apm_binary=$(find "$extracted" -type f -name apm -print -quit)
-          test -n "$apm_binary"
-          apm_dir=$(dirname "$apm_binary")
-          test -d "$apm_dir/_internal"
-          echo "$apm_dir" >> "$GITHUB_PATH"
-
-      - name: Verify APM version
-        shell: bash
-        run: |
-          set -euo pipefail
-          apm --version | tee /tmp/apm-version.txt
-          grep -q '0.29.1' /tmp/apm-version.txt
+        run: bash scripts/install-apm-ci.sh
 
       - name: Verify external dependency lock and SBOM
         working-directory: dependencies/external-skills
