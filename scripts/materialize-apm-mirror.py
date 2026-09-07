@@ -47,6 +47,10 @@ def github_repo_slug(origin: str) -> str:
     return slug
 
 
+def is_commit_sha(value: str) -> bool:
+    return len(value) == 40 and all(c in "0123456789abcdef" for c in value)
+
+
 def resolve_dependency(skill: str, metadata: dict, lock: dict) -> dict:
     origin = str(metadata.get("origin", ""))
     origin_path = str(metadata.get("origin_path", "")).strip("/")
@@ -87,7 +91,7 @@ def resolve_dependency(skill: str, metadata: dict, lock: dict) -> dict:
     resolved_commit = str(dependency.get("resolved_commit", ""))
     resolved_ref = str(dependency.get("resolved_ref", ""))
     content_hash = str(dependency.get("content_hash", ""))
-    if len(resolved_commit) != 40 or not all(c in "0123456789abcdef" for c in resolved_commit):
+    if not is_commit_sha(resolved_commit):
         fail(f"APM lock dependency has invalid resolved_commit: {resolved_commit!r}")
     if not resolved_ref:
         fail("APM lock dependency is missing resolved_ref")
@@ -133,12 +137,50 @@ def compare_payloads(upstream: Path, target: Path) -> list[str]:
     return messages
 
 
-def clone_locked_source(origin: str, origin_path: str, resolved_ref: str, resolved_commit: str, temp: Path) -> Path:
+def clone_locked_source(
+    origin: str,
+    origin_path: str,
+    resolved_ref: str,
+    resolved_commit: str,
+    temp: Path,
+) -> Path:
     checkout = temp / "upstream"
-    subprocess.run(
-        ["git", "clone", "--depth", "1", "--branch", resolved_ref, origin, str(checkout)],
-        check=True,
-    )
+
+    if resolved_ref == resolved_commit and is_commit_sha(resolved_ref):
+        # Digest-pinned APM dependencies intentionally use an immutable commit as
+        # resolved_ref. `git clone --branch <sha>` is invalid because a commit is
+        # not a branch/tag name, so fetch exactly that object and detach at it.
+        subprocess.run(["git", "init", str(checkout)], check=True)
+        subprocess.run(
+            ["git", "-C", str(checkout), "remote", "add", "origin", origin],
+            check=True,
+        )
+        subprocess.run(
+            [
+                "git",
+                "-C",
+                str(checkout),
+                "fetch",
+                "--depth",
+                "1",
+                "origin",
+                resolved_commit,
+            ],
+            check=True,
+        )
+        subprocess.run(
+            ["git", "-C", str(checkout), "checkout", "--detach", "FETCH_HEAD"],
+            check=True,
+        )
+    else:
+        # Human-readable refs remain useful during migration. Clone the ref and
+        # verify it still points at the exact commit pinned by APM, failing closed
+        # if a release tag was moved after lock generation.
+        subprocess.run(
+            ["git", "clone", "--depth", "1", "--branch", resolved_ref, origin, str(checkout)],
+            check=True,
+        )
+
     actual_commit = subprocess.run(
         ["git", "-C", str(checkout), "rev-parse", "HEAD"],
         check=True,
@@ -148,7 +190,7 @@ def clone_locked_source(origin: str, origin_path: str, resolved_ref: str, resolv
     if actual_commit != resolved_commit:
         fail(
             f"upstream ref {resolved_ref} now resolves to {actual_commit}, but APM lock pins "
-            f"{resolved_commit}; refuse moved-tag materialization"
+            f"{resolved_commit}; refuse materialization"
         )
 
     source = checkout / origin_path.strip("/") if origin_path.strip("/") else checkout
