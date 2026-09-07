@@ -4,7 +4,7 @@ enforcement: block
 
 dependencies:
   allow:
-    - ghspain/github-build-or-reuse
+    - ghspain/github-build-or-reuse/skills/github-build-or-reuse
   require_pinned_constraint: true
   max_depth: 3
 
