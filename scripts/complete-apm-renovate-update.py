@@ -14,9 +14,14 @@ from pathlib import Path
 import shutil
 import subprocess
 import sys
+import tempfile
+
+import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 APM_PROJECT = ROOT / "dependencies" / "external-skills"
+APM_LOCK = APM_PROJECT / "apm.lock.yaml"
+APM_POLICY = APM_PROJECT / "apm-policy.yml"
 
 DISTRIBUTION_EXACT = {
     "plugin.json",
@@ -38,6 +43,76 @@ def fail(message: str) -> "NoReturn":
 def run(command: list[str], *, cwd: Path = ROOT, env: dict[str, str] | None = None) -> None:
     print(f"+ {' '.join(command)}")
     subprocess.run(command, cwd=cwd, env=env, check=True)
+
+
+def validate_resolver_only_lock(lock_path: Path = APM_LOCK) -> None:
+    try:
+        data = yaml.safe_load(lock_path.read_text(encoding="utf-8"))
+    except (OSError, yaml.YAMLError) as exc:
+        fail(f"invalid APM lock: {exc}")
+    if not isinstance(data, dict):
+        fail("APM lock must be a YAML mapping")
+    dependencies = data.get("dependencies")
+    if not isinstance(dependencies, list) or not dependencies:
+        fail("APM resolver lock must contain at least one dependency")
+    if data.get("deployments") != []:
+        fail(
+            "resolver-only APM project must keep deployments: []; refusing to let "
+            "dependency completion introduce a second runtime source of truth"
+        )
+
+
+def collect_apm_supply_chain_evidence() -> None:
+    """Run the same lock/policy/integrity evidence used by APM CI.
+
+    A GITHUB_TOKEN-authored completion push may not trigger a fresh pull_request
+    workflow run, so the trusted completion gate must carry the full evidence itself
+    before it records success on the new commit.
+    """
+
+    validate_resolver_only_lock()
+    with tempfile.TemporaryDirectory(prefix="apm-completion-evidence-") as temporary:
+        evidence = Path(temporary)
+        sbom = evidence / "external-skills.cdx.json"
+        audit = evidence / "apm-audit.json"
+
+        run(
+            ["apm", "lock", "export", "--format", "cyclonedx", "--output", str(sbom)],
+            cwd=APM_PROJECT,
+        )
+        if not sbom.is_file() or sbom.stat().st_size == 0:
+            fail("APM CycloneDX export did not produce evidence")
+
+        run(
+            [
+                "apm",
+                "policy",
+                "status",
+                "--policy-source",
+                str(APM_POLICY),
+                "--check",
+                "--json",
+            ],
+            cwd=APM_PROJECT,
+        )
+        run(
+            [
+                "apm",
+                "audit",
+                "--ci",
+                "--no-drift",
+                "--policy",
+                str(APM_POLICY),
+                "--no-fail-fast",
+                "--format",
+                "json",
+                "--output",
+                str(audit),
+            ],
+            cwd=APM_PROJECT,
+        )
+        if not audit.is_file() or audit.stat().st_size == 0:
+            fail("APM audit did not produce evidence")
 
 
 def changed_worktree_paths() -> set[str]:
@@ -94,6 +169,7 @@ def complete(skill: str) -> list[str]:
     # Dependency resolution is owned by APM. Never independently resolve
     # latest-release here; the materializer consumes only the resulting lock.
     run(["apm", "lock"], cwd=APM_PROJECT)
+    collect_apm_supply_chain_evidence()
     run([sys.executable, "scripts/materialize-apm-mirror.py", skill, "--apply"])
     run([sys.executable, "scripts/generate-distribution.py"])
 
