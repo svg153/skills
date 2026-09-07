@@ -1,0 +1,157 @@
+name: Complete Renovate APM update
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: Open same-repository Renovate PR to complete
+        required: true
+        type: number
+
+permissions:
+  contents: write
+  pull-requests: read
+  statuses: write
+
+jobs:
+  complete:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Validate trusted invocation and Renovate PR boundary
+        id: pr
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+        run: |
+          set -euo pipefail
+
+          repo="$GITHUB_REPOSITORY"
+          default_branch=$(gh api "repos/$repo" --jq '.default_branch')
+          if [ "$GITHUB_REF_NAME" != "$default_branch" ]; then
+            echo "ERROR: dispatch this workflow from the default branch ($default_branch), not $GITHUB_REF_NAME" >&2
+            exit 1
+          fi
+
+          pr_json=$(gh api "repos/$repo/pulls/$PR_NUMBER")
+          state=$(jq -r '.state' <<<"$pr_json")
+          author=$(jq -r '.user.login' <<<"$pr_json")
+          base_ref=$(jq -r '.base.ref' <<<"$pr_json")
+          head_ref=$(jq -r '.head.ref' <<<"$pr_json")
+          head_sha=$(jq -r '.head.sha' <<<"$pr_json")
+          head_repo=$(jq -r '.head.repo.full_name' <<<"$pr_json")
+
+          test "$state" = "open" || { echo "ERROR: PR #$PR_NUMBER is not open" >&2; exit 1; }
+          test "$author" = "renovate[bot]" || { echo "ERROR: PR #$PR_NUMBER author is $author, expected renovate[bot]" >&2; exit 1; }
+          test "$base_ref" = "$default_branch" || { echo "ERROR: PR targets $base_ref, expected $default_branch" >&2; exit 1; }
+          test "$head_repo" = "$repo" || { echo "ERROR: PR head repository is $head_repo, expected same repository $repo" >&2; exit 1; }
+          case "$head_ref" in
+            renovate/*) ;;
+            *) echo "ERROR: PR head '$head_ref' is not a Renovate branch" >&2; exit 1 ;;
+          esac
+          case "$head_sha" in
+            [0-9a-f][0-9a-f][0-9a-f][0-9a-f]*) ;;
+            *) echo "ERROR: invalid PR head SHA" >&2; exit 1 ;;
+          esac
+          [ "${#head_sha}" -eq 40 ] || { echo "ERROR: invalid PR head SHA length" >&2; exit 1; }
+
+          mapfile -t changed_files < <(gh api --paginate "repos/$repo/pulls/$PR_NUMBER/files?per_page=100" --jq '.[].filename')
+          [ "${#changed_files[@]}" -gt 0 ] || { echo "ERROR: PR has no changed files" >&2; exit 1; }
+          for path in "${changed_files[@]}"; do
+            case "$path" in
+              dependencies/external-skills/apm.yml|dependencies/external-skills/apm.lock.yaml) ;;
+              *)
+                echo "ERROR: refusing Renovate PR with pre-completion path outside the APM dependency boundary: $path" >&2
+                exit 1
+                ;;
+            esac
+          done
+
+          echo "Validated Renovate PR #$PR_NUMBER at $head_sha"
+          printf 'head_ref=%s\n' "$head_ref" >> "$GITHUB_OUTPUT"
+          printf 'head_sha=%s\n' "$head_sha" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout exact Renovate PR head
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ steps.pr.outputs.head_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Install validation dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install 'PyYAML>=6,<7'
+
+      - name: Install checksum-pinned APM CLI
+        shell: bash
+        run: bash scripts/install-apm-ci.sh
+
+      - name: Complete and validate locked mirror update
+        shell: bash
+        run: python scripts/complete-apm-renovate-update.py github-build-or-reuse
+
+      - name: Commit and push generated completion to Renovate branch
+        id: push
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_REF: ${{ steps.pr.outputs.head_ref }}
+          ORIGINAL_HEAD_SHA: ${{ steps.pr.outputs.head_sha }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "No completion changes to push"
+            printf 'head_sha=%s\n' "$ORIGINAL_HEAD_SHA" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          git add -- dependencies/external-skills/apm.lock.yaml \
+            skills/github-build-or-reuse/ \
+            plugin.json marketplace.json gemini-extension.json \
+            .agents/ .codex-plugin/ .claude-plugin/ .cursor-plugin/
+
+          # Defense in depth: the orchestrator already enforces this scope, but
+          # verify the exact staged paths again immediately before the write.
+          while IFS= read -r path; do
+            [ -n "$path" ] || continue
+            case "$path" in
+              dependencies/external-skills/apm.lock.yaml|plugin.json|marketplace.json|gemini-extension.json|.agents/*|.codex-plugin/*|.claude-plugin/*|.cursor-plugin/*) ;;
+              skills/github-build-or-reuse/metadata.yaml)
+                echo "ERROR: metadata.yaml must never be changed by dependency completion" >&2
+                exit 1
+                ;;
+              skills/github-build-or-reuse/*) ;;
+              *) echo "ERROR: unexpected staged completion path: $path" >&2; exit 1 ;;
+            esac
+          done < <(git diff --cached --name-only)
+
+          git diff --cached --check
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore(skills): complete Renovate APM mirror update"
+
+          gh auth setup-git
+          git push origin "HEAD:$HEAD_REF"
+          new_sha=$(git rev-parse HEAD)
+          printf 'head_sha=%s\n' "$new_sha" >> "$GITHUB_OUTPUT"
+          echo "Pushed validated completion $new_sha to $HEAD_REF"
+
+      - name: Record trusted completion status
+        if: always() && steps.push.outcome == 'success'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          COMPLETED_SHA: ${{ steps.push.outputs.head_sha }}
+        run: |
+          set -euo pipefail
+          test -n "$COMPLETED_SHA"
+          gh api --method POST "repos/$GITHUB_REPOSITORY/statuses/$COMPLETED_SHA" \
+            -f state=success \
+            -f context='trusted-apm-completion' \
+            -f description='APM lock, mirror, distribution and deterministic validation passed' \
+            -f target_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" >/dev/null
+          echo "Recorded trusted-apm-completion on $COMPLETED_SHA"
