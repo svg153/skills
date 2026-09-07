@@ -37,7 +37,7 @@ def load_yaml(path: Path) -> dict:
 
 def github_repo_slug(origin: str) -> str:
     parsed = urlparse(origin)
-    if parsed.scheme not in {"https", "http"} or parsed.netloc != "github.com":
+    if parsed.scheme != "https" or parsed.netloc != "github.com":
         fail(f"only github.com HTTPS origins are supported by this pilot: {origin}")
     slug = parsed.path.strip("/")
     if slug.endswith(".git"):
