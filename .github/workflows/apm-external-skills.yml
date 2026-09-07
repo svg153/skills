@@ -26,8 +26,8 @@ jobs:
       - name: Install pinned APM CLI
         shell: bash
         env:
-          APM_VERSION: '0.29.1'
-          APM_ARCHIVE_SHA256: 'a8530bc9d15a7b4a7a8334e4a8b4ac27b3652bcbd8ccbfc58571903b43686644'
+          APM_VERSION: '0.30.0'
+          APM_ARCHIVE_SHA256: '8b84bebf19c350faf36d21aebb350dc656d04c0b7a1c2bf8ea35c0caa0e44bb9'
         run: |
           set -euo pipefail
           archive="$RUNNER_TEMP/apm-linux-x86_64.tar.gz"
@@ -51,7 +51,7 @@ jobs:
         run: |
           set -euo pipefail
           apm --version | tee /tmp/apm-version.txt
-          grep -q '0.29.1' /tmp/apm-version.txt
+          grep -q '0.30.0' /tmp/apm-version.txt
 
       - name: Verify external dependency lock and SBOM
         working-directory: dependencies/external-skills
