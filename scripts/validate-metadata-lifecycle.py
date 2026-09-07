@@ -10,6 +10,7 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 SKILLS = ROOT / "skills"
 CATALOG_ORIGIN = "https://github.com/svg153/skills"
+DOWNLOAD_MANAGERS = {"legacy-sync", "apm"}
 
 
 def error(message: str) -> None:
@@ -39,9 +40,12 @@ def main() -> None:
         interval = sync.get("interval")
         authority = sync.get("authoritative")
         channel = sync.get("channel")
+        managed_by = sync.get("managed_by")
         origin = str(data["origin"]).rstrip("/")
 
         if strategy == "local":
+            if managed_by is not None:
+                error(f"{path.relative_to(ROOT)}: local lifecycle must not declare sync.managed_by")
             if origin != CATALOG_ORIGIN:
                 error(f"{path.relative_to(ROOT)}: local strategy must use catalog origin")
             expected_path = f"skills/{skill_dir.name}"
@@ -50,11 +54,23 @@ def main() -> None:
             if enabled is not False or interval != "manual" or authority != "local" or channel is not None:
                 error(f"{path.relative_to(ROOT)}: local lifecycle must be disabled/manual/authoritative: local with no channel")
         elif strategy == "manual":
+            if managed_by is not None:
+                error(f"{path.relative_to(ROOT)}: curated lifecycle must not declare sync.managed_by")
             if origin == CATALOG_ORIGIN:
                 error(f"{path.relative_to(ROOT)}: catalog-authored skill must use strategy: local")
             if enabled is not False or interval != "manual" or authority != "local" or channel is not None:
                 error(f"{path.relative_to(ROOT)}: curated lifecycle must be disabled/manual/authoritative: local with no channel")
         elif strategy == "download":
+            # Absence means the existing repository synchronizer for backwards
+            # compatibility. `managed_by: apm` is an explicit cutover marker: it
+            # keeps upstream authority while preventing the legacy scheduler from
+            # racing Renovate/APM for the same mirror.
+            effective_manager = managed_by or "legacy-sync"
+            if effective_manager not in DOWNLOAD_MANAGERS:
+                error(
+                    f"{path.relative_to(ROOT)}: download sync.managed_by must be one of "
+                    f"{sorted(DOWNLOAD_MANAGERS)}, got {managed_by!r}"
+                )
             if enabled is not True or authority != "upstream":
                 error(f"{path.relative_to(ROOT)}: download lifecycle must be enabled and authoritative: upstream")
             if interval not in {"daily", "weekly", "monthly"}:

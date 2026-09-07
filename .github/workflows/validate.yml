@@ -16,6 +16,7 @@ on:
       - '.cursor-plugin/**'
       - 'gemini-extension.json'
       - 'scripts/**'
+      - 'tests/**'
       - 'integrations/**'
       - '.github/workflows/**'
       - '.github/dependabot.yml'
@@ -36,6 +37,7 @@ on:
       - '.cursor-plugin/**'
       - 'gemini-extension.json'
       - 'scripts/**'
+      - 'tests/**'
       - 'integrations/**'
       - '.github/workflows/**'
       - '.github/dependabot.yml'
@@ -71,6 +73,13 @@ jobs:
         run: |
           python scripts/validate-metadata-lifecycle.py
           python skills/skill-publish/scripts/metadata_repair.py check
+
+      - name: Validate upstream update ownership boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash tests/test_upstream_sync_routing.sh
+          python tests/test_apm_renovate_completion.py
 
       - name: Validate generated cross-agent manifests
         run: python scripts/generate-distribution.py --check
