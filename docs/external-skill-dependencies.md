@@ -8,7 +8,7 @@ This catalog separates **dependency consumption** from **catalog mirroring**. AP
 | --- | --- | --- |
 | `LOCAL` | `svg153/skills` | normal repository development |
 | `CURATED_UPSTREAM` | local adaptation | human-reviewed upstream comparison; never automatically overwritten |
-| `MIRRORED_UPSTREAM` | upstream payload | APM lock + Renovate PR + catalog materialization + validators/evals |
+| `MIRRORED_UPSTREAM` | upstream payload | Renovate version PR + APM lock + catalog materialization + validators/evals |
 | external dependency that is not republished | external package | consume through APM without copying into `skills/` |
 
 `metadata.yaml` remains authoritative for provenance, ownership and synchronization semantics. `apm.yml` declares dependency coordinates; `apm.lock.yaml` records immutable resolution and integrity state.
@@ -32,8 +32,9 @@ The APM project is intentionally isolated from the repository root. The catalog 
 
 ```text
 upstream stable release
-  -> Renovate native APM manager updates apm.yml
-  -> APM refreshes apm.lock.yaml
+  -> Renovate native APM manager updates the version in apm.yml
+  -> reviewed PR is opened; no automerge
+  -> repository-owned `apm lock` refreshes apm.lock.yaml
   -> PR records exact resolved commit/content hash
   -> catalog materializer checks or applies that exact locked commit
   -> metadata.yaml is preserved
@@ -42,6 +43,21 @@ upstream stable release
 ```
 
 Renovate is intentionally configured with `automerge: false`. An Agent Skill patch release can change agent instructions materially, so SemVer alone is not sufficient evidence for automatic merge.
+
+### Why Renovate lockfile maintenance is disabled
+
+Renovate's native APM manager delegates lockfile refresh to `apm install`. That behavior is correct for normal APM consumers, where APM also owns deployment into a target runtime. This catalog deliberately uses APM only as a **dependency resolver and integrity lock**: the canonical runtime mirror remains `skills/<name>/` and the lock records `deployments: []`.
+
+For that reason `renovate.json` has `lockFileMaintenance.enabled: false`. We do not add an artificial APM target merely to make Renovate's install-based lock maintenance succeed, because doing so would reintroduce a host-specific runtime copy and weaken the single-source-of-truth model.
+
+During the pilot the safe split is:
+
+1. Renovate discovers a newer stable APM dependency and proposes the `apm.yml` version change.
+2. A repository-owned/trusted step refreshes `apm.lock.yaml` using `apm lock`.
+3. The catalog materializer updates or checks the canonical mirror from that lock.
+4. The resulting PR must pass all normal validation and relevant evals before merge.
+
+A later iteration may automate steps 2–3 with a tightly scoped trusted workflow or self-hosted Renovate post-upgrade command, but only if it preserves the same approval and no-duplicate-runtime guarantees.
 
 ## Lock and mirror verification
 
@@ -56,6 +72,9 @@ python scripts/materialize-apm-mirror.py github-build-or-reuse --check
 To update the canonical mirror after reviewing a Renovate dependency PR:
 
 ```bash
+cd dependencies/external-skills
+apm lock
+cd ../..
 python scripts/materialize-apm-mirror.py github-build-or-reuse --apply
 python scripts/generate-distribution.py
 ```
@@ -85,7 +104,7 @@ For repositories that actually install APM dependencies into runtime targets, th
 
 ## Supply-chain policy
 
-`dependencies/external-skills/apm-policy.yml` is fail-closed for the pilot. It allowlists the upstream package, requires pinned constraints and integrity hashes, denies package scripts, and does not implicitly trust self-defined/transitive MCPs.
+`dependencies/external-skills/apm-policy.yml` is fail-closed for the pilot. It allowlists the exact upstream package locator, requires pinned constraints and integrity hashes, denies package scripts, and does not implicitly trust self-defined/transitive MCPs.
 
 The policy is deliberately scoped to the external-skill resolver. A future organization-wide APM policy should be evaluated separately rather than assuming this pilot policy is sufficient for every repository.
 
@@ -94,7 +113,7 @@ The policy is deliberately scoped to the external-skill resolver. A future organ
 The existing scheduled `sync-upstream-skills.yml` remains active during the pilot. It should only be retired for an APM-managed mirror after all of the following are demonstrated:
 
 1. Renovate detects a real newer stable release and opens a dependency PR.
-2. The PR refreshes the APM lock to the intended immutable commit.
+2. The trusted lock-refresh path updates APM state to the intended immutable commit without deploying duplicate runtime copies.
 3. Materialization from that lock reproduces the expected mirror exactly.
 4. Existing skills validation, provenance checks, distribution generation and relevant behavioral/routing evals pass.
 5. Rollback is proven by reverting the dependency/lock PR and rematerializing the previous lock.
