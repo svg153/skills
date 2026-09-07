@@ -1,0 +1,14 @@
+lockfile_version: '1'
+apm_version: 0.29.1
+dependencies:
+- repo_url: ghspain/github-build-or-reuse
+  name: github-build-or-reuse
+  host: github.com
+  resolved_commit: 24af1931681bb03b0282472c4d4b6900359418c7
+  resolved_ref: v1.2.3
+  version: unknown
+  virtual_path: skills/github-build-or-reuse
+  is_virtual: true
+  package_type: claude_skill
+  content_hash: sha256:8dc26707612dcc8ab9cd34bae63bd662d05bfaeab764492ab8d79ef50137257d
+deployments: []
