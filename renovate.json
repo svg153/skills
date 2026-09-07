@@ -8,10 +8,7 @@
   ],
   "dependencyDashboard": true,
   "lockFileMaintenance": {
-    "enabled": true,
-    "schedule": [
-      "before 8am on Monday"
-    ]
+    "enabled": false
   },
   "packageRules": [
     {
