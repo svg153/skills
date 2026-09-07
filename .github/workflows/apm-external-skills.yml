@@ -30,8 +30,7 @@ jobs:
           set -euo pipefail
           archive="$RUNNER_TEMP/apm-linux-x86_64.tar.gz"
           extracted="$RUNNER_TEMP/apm-extracted"
-          bindir="$RUNNER_TEMP/apm-bin"
-          mkdir -p "$extracted" "$bindir"
+          mkdir -p "$extracted"
 
           curl --fail --silent --show-error --location \
             "https://github.com/microsoft/apm/releases/download/v${APM_VERSION}/apm-linux-x86_64.tar.gz" \
@@ -41,8 +40,9 @@ jobs:
 
           apm_binary=$(find "$extracted" -type f -name apm -print -quit)
           test -n "$apm_binary"
-          install -m 0755 "$apm_binary" "$bindir/apm"
-          echo "$bindir" >> "$GITHUB_PATH"
+          apm_dir=$(dirname "$apm_binary")
+          test -d "$apm_dir/_internal"
+          echo "$apm_dir" >> "$GITHUB_PATH"
 
       - name: Verify APM version
         shell: bash
