@@ -6,6 +6,9 @@ on:
       - 'evals/**'
       - 'skills/**/SKILL.md'
       - 'skills/**/metadata.yaml'
+      - 'plugins/**/skills/**/SKILL.md'
+      - 'plugins/**/plugin.json'
+      - 'plugins/**/distribution.config.json'
       - 'scripts/validate-evals.py'
       - 'scripts/install-waza-ci.sh'
       - 'docs/evals.md'
@@ -16,6 +19,9 @@ on:
       - 'evals/**'
       - 'skills/**/SKILL.md'
       - 'skills/**/metadata.yaml'
+      - 'plugins/**/skills/**/SKILL.md'
+      - 'plugins/**/plugin.json'
+      - 'plugins/**/distribution.config.json'
       - 'scripts/validate-evals.py'
       - 'scripts/install-waza-ci.sh'
       - 'docs/evals.md'
@@ -56,9 +62,10 @@ jobs:
           set -euo pipefail
           while IFS= read -r eval_file; do
             skill="$(basename "$(dirname "$eval_file")")"
-            echo "Verifying ${skill}"
+            skill_dir="$(python scripts/validate-evals.py --resolve-skill-dir "$skill")"
+            echo "Verifying ${skill} from ${skill_dir}"
             waza spec verify \
-              --skill "skills/${skill}" \
+              --skill "$skill_dir" \
               --eval "$eval_file" \
               --format github-actions
           done < <(find evals -mindepth 2 -maxdepth 2 -name eval.yaml -print | sort)
