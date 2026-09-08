@@ -1,0 +1,23 @@
+id: backlog-degraded-github-readonly
+name: Backlog review degrades without inventing unavailable GitHub state
+inputs:
+  prompt: >-
+    Review the current backlog and tell me what is stale or blocked. Jira is available but GitHub
+    access is failing right now. This is read-only: do not update anything.
+expected:
+  should_trigger: true
+  graders:
+    - type: trigger
+      name: activation
+      config:
+        skill_path: plugins/planning/skills/backlog-management/SKILL.md
+        mode: positive
+        threshold: 0.6
+    - type: prompt
+      name: degraded_read_boundary
+      config:
+        prompt: >-
+          Pass only if the response continues with verifiable Jira backlog state, explicitly marks
+          GitHub-owned items or delivery evidence as unavailable/unverified, does not infer GitHub
+          state from Jira or recreate GitHub-owned work in Jira, and performs no writes because the
+          request is read-only.
