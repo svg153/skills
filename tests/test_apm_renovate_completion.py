@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import importlib.util
 from pathlib import Path
+import tempfile
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -46,6 +47,29 @@ class CompletionScopeTests(unittest.TestCase):
         for path in denied:
             with self.subTest(path=path):
                 self.assertFalse(module.allowed_generated_path(path, skill))
+
+
+class ResolverOnlyLockTests(unittest.TestCase):
+    def write_lock(self, text: str) -> Path:
+        temporary = tempfile.NamedTemporaryFile("w", suffix=".yaml", delete=False)
+        with temporary:
+            temporary.write(text)
+        self.addCleanup(Path(temporary.name).unlink, missing_ok=True)
+        return Path(temporary.name)
+
+    def test_accepts_dependency_lock_without_runtime_deployments(self) -> None:
+        path = self.write_lock(
+            """lockfile_version: '1'\ndependencies:\n  - repo_url: example/repo\n    resolved_commit: 0123456789012345678901234567890123456789\ndeployments: []\n"""
+        )
+        module.validate_resolver_only_lock(path)
+
+    def test_rejects_runtime_deployment_ownership(self) -> None:
+        path = self.write_lock(
+            """lockfile_version: '1'\ndependencies:\n  - repo_url: example/repo\ndeployments:\n  - kind: project-relative\n    target: claude\n    value: .claude/skills/example\n"""
+        )
+        with self.assertRaises(SystemExit) as raised:
+            module.validate_resolver_only_lock(path)
+        self.assertIn("second runtime source of truth", str(raised.exception))
 
 
 if __name__ == "__main__":

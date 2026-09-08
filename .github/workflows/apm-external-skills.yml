@@ -7,6 +7,7 @@ on:
       - 'renovate.json'
       - 'scripts/install-apm-ci.sh'
       - 'scripts/materialize-apm-mirror.py'
+      - 'scripts/complete-apm-renovate-update.py'
       - 'skills/github-build-or-reuse/**'
       - 'tests/test_apm_mirror_rollback.sh'
       - '.github/workflows/apm-external-skills.yml'
@@ -18,7 +19,7 @@ permissions:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -77,6 +78,19 @@ jobs:
           set -euo pipefail
           python -m pip install 'PyYAML>=6,<7'
           python scripts/materialize-apm-mirror.py github-build-or-reuse --check
+
+      - name: Exercise trusted completion on converged state
+        shell: bash
+        run: |
+          set -euo pipefail
+          python scripts/complete-apm-renovate-update.py github-build-or-reuse
+          if [ -n "$(git status --porcelain)" ]; then
+            echo 'ERROR: trusted completion changed an already-converged checkout' >&2
+            git status --short
+            git diff
+            exit 1
+          fi
+          echo 'OK: trusted completion carries full APM/catalog evidence and converges to zero diff'
 
       - name: Rehearse immutable mirror rollback and restore
         shell: bash
