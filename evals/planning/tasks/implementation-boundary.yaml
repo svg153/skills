@@ -1,0 +1,15 @@
+id: planning-implementation-boundary
+name: Approved implementation delivery is outside planning
+inputs:
+  prompt: >-
+    The backlog and dependencies are already approved. Implement GitHub issue #123, create the pull
+    request, fix CI if needed, and merge it when the repository checks are green.
+expected:
+  should_trigger: false
+  graders:
+    - type: trigger
+      name: boundary
+      config:
+        skill_path: plugins/planning/skills/planning/SKILL.md
+        mode: negative
+        threshold: 0.6
