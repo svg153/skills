@@ -22,6 +22,7 @@ ROOT = Path(__file__).resolve().parents[1]
 APM_PROJECT = ROOT / "dependencies" / "external-skills"
 APM_LOCK = APM_PROJECT / "apm.lock.yaml"
 APM_POLICY = APM_PROJECT / "apm-policy.yml"
+APM_MODULES = APM_PROJECT / "apm_modules"
 
 DISTRIBUTION_EXACT = {
     "plugin.json",
@@ -115,6 +116,20 @@ def collect_apm_supply_chain_evidence() -> None:
             fail("APM audit did not produce evidence")
 
 
+def clean_apm_dependency_cache() -> None:
+    """Remove APM's transient resolver cache without changing manifest or lock state.
+
+    APM resolution materializes package payloads below ``apm_modules/``. In this
+    catalog that tree is evidence-time cache only: APM is intentionally not the
+    runtime deployment owner. Use APM's own cleanup command rather than ignoring the
+    directory so a cleanup regression remains visible to the trusted gate.
+    """
+
+    run(["apm", "deps", "clean", "--yes"], cwd=APM_PROJECT)
+    if APM_MODULES.exists():
+        fail("APM dependency cache still exists after `apm deps clean --yes`")
+
+
 def changed_worktree_paths() -> set[str]:
     changed: set[str] = set()
     for command in (
@@ -170,6 +185,12 @@ def complete(skill: str) -> list[str]:
     # latest-release here; the materializer consumes only the resulting lock.
     run(["apm", "lock"], cwd=APM_PROJECT)
     collect_apm_supply_chain_evidence()
+
+    # APM 0.30 resolution may populate apm_modules/ even with deployments: [].
+    # It is a dependency cache, not a catalog runtime surface. Remove it with the
+    # native cleanup primitive before any generated state can be committed/pushed.
+    clean_apm_dependency_cache()
+
     run([sys.executable, "scripts/materialize-apm-mirror.py", skill, "--apply"])
     run([sys.executable, "scripts/generate-distribution.py"])
 
