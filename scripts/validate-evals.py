@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import argparse
 from pathlib import Path
 import sys
 
@@ -11,6 +12,7 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 EVALS = ROOT / "evals"
 SKILLS = ROOT / "skills"
+PLUGINS = ROOT / "plugins"
 EXPECTED_SCHEMA = "1.2"
 
 
@@ -35,7 +37,75 @@ def sync_strategy(metadata: dict) -> tuple[str, str]:
     return str(sync.get("strategy", "manual")), str(sync.get("authoritative", ""))
 
 
-def main() -> None:
+def resolve_skill_dir(skill_name: str) -> Path:
+    """Resolve one canonical skill source without creating an eval-only copy.
+
+    A behavioral suite may target either a root catalog skill or a skill embedded
+    in a capability Agent Plugin. The name must resolve uniquely across both
+    namespaces so a new duplicate cannot silently redirect behavioral evidence.
+    """
+
+    candidates: list[Path] = []
+    catalog = SKILLS / skill_name
+    if (catalog / "SKILL.md").is_file():
+        candidates.append(catalog)
+
+    if PLUGINS.is_dir():
+        for candidate in sorted(PLUGINS.glob(f"*/skills/{skill_name}")):
+            if (candidate / "SKILL.md").is_file():
+                candidates.append(candidate)
+
+    if not candidates:
+        raise ValueError(f"no canonical SKILL.md found for eval skill {skill_name!r}")
+    if len(candidates) != 1:
+        paths = ", ".join(path.relative_to(ROOT).as_posix() for path in candidates)
+        raise ValueError(
+            f"eval skill {skill_name!r} is ambiguous across canonical sources: {paths}"
+        )
+    return candidates[0]
+
+
+def validate_plugin_skill(skill_dir: Path) -> None:
+    """Require embedded eval targets to belong to a real capability package."""
+
+    try:
+        relative = skill_dir.relative_to(PLUGINS)
+    except ValueError as exc:
+        raise ValueError(f"{skill_dir.relative_to(ROOT)}: invalid capability skill path") from exc
+    if len(relative.parts) != 3 or relative.parts[1] != "skills":
+        raise ValueError(
+            f"{skill_dir.relative_to(ROOT)}: capability skill must live at "
+            "plugins/<plugin>/skills/<skill>"
+        )
+    plugin_root = PLUGINS / relative.parts[0]
+    for required in ("plugin.json", "distribution.config.json"):
+        if not (plugin_root / required).is_file():
+            raise ValueError(
+                f"{skill_dir.relative_to(ROOT)}: owning capability plugin is missing {required}"
+            )
+
+
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--resolve-skill-dir",
+        metavar="NAME",
+        help="Print the unique canonical skill directory for a suite name and exit.",
+    )
+    return parser.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> None:
+    args = parse_args(argv)
+    if args.resolve_skill_dir:
+        try:
+            resolved = resolve_skill_dir(args.resolve_skill_dir)
+        except ValueError as exc:
+            print(f"ERROR: {exc}", file=sys.stderr)
+            raise SystemExit(1)
+        print(resolved.relative_to(ROOT).as_posix())
+        return
+
     errors: list[str] = []
     if not EVALS.is_dir():
         errors.append("evals/: directory is missing")
@@ -51,20 +121,33 @@ def main() -> None:
     covered: list[str] = []
     for eval_path in suites:
         suite_dir = eval_path.parent
-        catalog_name = suite_dir.name
-        skill_dir = SKILLS / catalog_name
-        skill_path = skill_dir / "SKILL.md"
-        metadata_path = skill_dir / "metadata.yaml"
+        skill_name = suite_dir.name
 
         try:
             spec = load_yaml(eval_path)
-            metadata = load_yaml(metadata_path)
+            skill_dir = resolve_skill_dir(skill_name)
         except ValueError as exc:
             errors.append(str(exc))
             continue
 
-        if spec.get("skill") != catalog_name:
-            errors.append(f"{eval_path.relative_to(ROOT)}: skill must equal {catalog_name!r}")
+        skill_path = skill_dir / "SKILL.md"
+        metadata: dict | None = None
+        metadata_path = skill_dir / "metadata.yaml"
+        if skill_dir.parent == SKILLS:
+            try:
+                metadata = load_yaml(metadata_path)
+            except ValueError as exc:
+                errors.append(str(exc))
+                continue
+        else:
+            try:
+                validate_plugin_skill(skill_dir)
+            except ValueError as exc:
+                errors.append(str(exc))
+                continue
+
+        if spec.get("skill") != skill_name:
+            errors.append(f"{eval_path.relative_to(ROOT)}: skill must equal {skill_name!r}")
         if spec.get("schemaVersion") != EXPECTED_SCHEMA:
             errors.append(f"{eval_path.relative_to(ROOT)}: schemaVersion must be {EXPECTED_SCHEMA!r}")
         if not isinstance(spec.get("name"), str) or not spec["name"].strip():
@@ -78,20 +161,23 @@ def main() -> None:
             errors.append(f"{eval_path.relative_to(ROOT)}: config.executor must be 'copilot-sdk'")
         if not skill_path.is_file():
             errors.append(f"{skill_path.relative_to(ROOT)}: covered skill is missing")
-        if metadata.get("name") != catalog_name:
-            errors.append(f"{metadata_path.relative_to(ROOT)}: metadata name must match {catalog_name!r}")
 
-        strategy, authority = sync_strategy(metadata)
-        if strategy == "download" and authority == "upstream":
-            try:
-                suite_dir.relative_to(skill_dir)
-            except ValueError:
-                pass
-            else:
+        if metadata is not None:
+            if metadata.get("name") != skill_name:
                 errors.append(
-                    f"{suite_dir.relative_to(ROOT)}: upstream-authoritative evals must live "
-                    "outside the mirrored skill payload"
+                    f"{metadata_path.relative_to(ROOT)}: metadata name must match {skill_name!r}"
                 )
+            strategy, authority = sync_strategy(metadata)
+            if strategy == "download" and authority == "upstream":
+                try:
+                    suite_dir.relative_to(skill_dir)
+                except ValueError:
+                    pass
+                else:
+                    errors.append(
+                        f"{suite_dir.relative_to(ROOT)}: upstream-authoritative evals must live "
+                        "outside the mirrored skill payload"
+                    )
 
         task_paths = sorted((suite_dir / "tasks").glob("*.yaml"))
         if len(task_paths) < 2:
@@ -102,7 +188,7 @@ def main() -> None:
         positives = 0
         negatives = 0
         behavior_graders = 0
-        expected_skill_path = f"skills/{catalog_name}/SKILL.md"
+        expected_skill_path = skill_path.relative_to(ROOT).as_posix()
 
         for task_path in task_paths:
             try:
@@ -153,7 +239,9 @@ def main() -> None:
                 else:
                     expected_mode = "positive" if should_trigger else "negative"
                     if trigger_config.get("mode") != expected_mode:
-                        errors.append(f"{task_path.relative_to(ROOT)}: trigger mode must be {expected_mode!r}")
+                        errors.append(
+                            f"{task_path.relative_to(ROOT)}: trigger mode must be {expected_mode!r}"
+                        )
                     if trigger_config.get("skill_path") != expected_skill_path:
                         errors.append(
                             f"{task_path.relative_to(ROOT)}: trigger skill_path must be "
@@ -177,7 +265,7 @@ def main() -> None:
             errors.append(f"{suite_dir.relative_to(ROOT)}: needs at least one negative/boundary case")
         if behavior_graders == 0:
             errors.append(f"{suite_dir.relative_to(ROOT)}: needs at least one behavioral grader")
-        covered.append(catalog_name)
+        covered.append(skill_name)
 
     if errors:
         for message in errors:
