@@ -5,8 +5,12 @@ on:
   schedule:
     - cron: '17 4 * * 1'
 
+# GitHub Copilot SDK supports the built-in Actions token for organization-owned
+# repositories when the organization enables Copilot CLI billing/policy. Personal
+# repositories fall back to an optional user token exposed as COPILOT_GITHUB_TOKEN.
 permissions:
   contents: read
+  copilot-requests: write
 
 jobs:
   evaluate:
@@ -14,23 +18,32 @@ jobs:
     timeout-minutes: 90
     env:
       WAZA_NO_UPDATE_CHECK: '1'
-      COPILOT_SDK_TOKEN: ${{ secrets.COPILOT_SDK_TOKEN }}
+      COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
+      GITHUB_TOKEN: ${{ github.token }}
+      REPOSITORY_OWNER_TYPE: ${{ github.event.repository.owner.type }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
 
-      - name: Detect trusted model credential
+      - name: Detect supported Copilot authentication
         id: credentials
         shell: bash
         run: |
           set -euo pipefail
-          if [[ -n "${COPILOT_SDK_TOKEN:-}" ]]; then
+          if [[ -n "${COPILOT_GITHUB_TOKEN:-}" ]]; then
             echo "available=true" >> "$GITHUB_OUTPUT"
+            echo "mode=user-token" >> "$GITHUB_OUTPUT"
+            echo "OK: using explicit COPILOT_GITHUB_TOKEN for trusted Waza execution"
+          elif [[ "${REPOSITORY_OWNER_TYPE:-}" == "Organization" ]]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+            echo "mode=actions-token" >> "$GITHUB_OUTPUT"
+            echo "OK: using built-in GITHUB_TOKEN with copilot-requests: write"
           else
             echo "available=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::COPILOT_SDK_TOKEN is not configured; model-backed evals were skipped."
+            echo "mode=none" >> "$GITHUB_OUTPUT"
+            echo "::notice::This user-owned repository has no COPILOT_GITHUB_TOKEN; model-backed evals were skipped. Configure a Copilot-compatible user token, or move the workflow to an organization-owned repository with Copilot Actions billing/policy enabled."
           fi
 
       - name: Install pinned Waza
@@ -47,6 +60,7 @@ jobs:
         run: |
           set -uo pipefail
           status=0
+          echo "Copilot auth mode: ${{ steps.credentials.outputs.mode }}"
           while IFS= read -r eval_file; do
             skill="$(basename "$(dirname "$eval_file")")"
             output_dir="eval-results/${skill}"
