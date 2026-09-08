@@ -1,0 +1,24 @@
+id: planning-cross-provider-plan-only
+name: Cross-provider planning keeps one source of truth and respects plan-only scope
+inputs:
+  prompt: >-
+    Plan a new platform migration that has a program epic in Jira and repository implementation
+    work in GitHub. Structure the work, dependencies, ownership and acceptance criteria, but do
+    not create or update any provider records yet.
+expected:
+  should_trigger: true
+  graders:
+    - type: trigger
+      name: activation
+      config:
+        skill_path: plugins/planning/skills/planning/SKILL.md
+        mode: positive
+        threshold: 0.6
+    - type: prompt
+      name: provider_ownership_and_scope
+      config:
+        prompt: >-
+          Pass only if the response structures the initiative before implementation, assigns one
+          authoritative provider to each mutable work item, uses cross-links rather than proposing
+          unsynchronized GitHub/Jira twins, includes useful dependency/acceptance information, and
+          does not claim to create or update provider records because the user requested plan-only.

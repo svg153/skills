@@ -1,0 +1,16 @@
+id: backlog-new-initiative-boundary
+name: A new initiative from scratch belongs to planning, not backlog maintenance
+inputs:
+  prompt: >-
+    We have no tickets yet. Design a new company-wide GitHub Actions migration from scratch, decide
+    the phases and dependencies, and propose how the future work should be split between Jira and
+    GitHub before anything is implemented.
+expected:
+  should_trigger: false
+  graders:
+    - type: trigger
+      name: boundary
+      config:
+        skill_path: plugins/planning/skills/backlog-management/SKILL.md
+        mode: negative
+        threshold: 0.6

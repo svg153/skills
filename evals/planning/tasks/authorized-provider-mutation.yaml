@@ -1,0 +1,25 @@
+id: planning-authorized-provider-mutation
+name: Explicitly authorized planning writes do not require redundant confirmation
+inputs:
+  prompt: >-
+    We have approved the split: Jira owns the program epic and GitHub owns the two implementation
+    issues. Create those planning records, link the GitHub issues back to the Jira epic, and preserve
+    the provider-returned identifiers so the dependency links use real IDs.
+expected:
+  should_trigger: true
+  graders:
+    - type: trigger
+      name: activation
+      config:
+        skill_path: plugins/planning/skills/planning/SKILL.md
+        mode: positive
+        threshold: 0.6
+    - type: prompt
+      name: mutation_boundary
+      config:
+        prompt: >-
+          Pass only if the response treats the user's request as explicit scoped authorization to
+          create the planning records, does not insert a redundant confirmation step, preserves one
+          authoritative provider per work item, and requires provider-returned IDs/keys/URLs before
+          claiming success or creating dependent links. Provider/tool unavailability must be
+          reported rather than replaced with invented identifiers.
