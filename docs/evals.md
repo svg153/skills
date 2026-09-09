@@ -65,11 +65,24 @@ The static workflow watches both root catalog skills and `plugins/**/skills/**/S
 
 ## Trusted model-backed runs
 
-`.github/workflows/eval-behavioral.yml` runs only from `workflow_dispatch` or the repository schedule. It is deliberately absent from `pull_request`, so untrusted fork code cannot receive model credentials.
+`.github/workflows/eval-behavioral.yml` runs only from `workflow_dispatch` or the repository schedule. It is deliberately absent from `pull_request`, so untrusted fork code cannot receive model-backed execution credentials.
 
-Waza's GitHub Actions credential is the repository secret `COPILOT_SDK_TOKEN`. If that secret is absent, the trusted workflow emits a notice and exits successfully without calling a model. Once configured, it runs every suite under `evals/` using the `copilot-sdk` executor, including capability-plugin skill suites.
+The `copilot-sdk` executor uses the GitHub Copilot SDK's **documented authentication variables** rather than a repository-specific variable name:
 
-Each run retains for 14 days Waza JSON, JUnit XML and per-task transcripts where available. Treat those artifacts as diagnostic evidence, not as a one-dimensional public quality score.
+1. `COPILOT_GITHUB_TOKEN` — preferred explicit user/service token;
+2. `GH_TOKEN` — GitHub CLI-compatible fallback supported by the SDK;
+3. `GITHUB_TOKEN` — GitHub Actions built-in token.
+
+The repository workflow supports two trusted modes:
+
+- **organization-owned repository:** use the built-in `GITHUB_TOKEN` with `copilot-requests: write`; no stored Copilot secret is required, but the organization must enable the GitHub policy that allows Copilot CLI/requests billed to the organization;
+- **user-owned repository:** configure the repository secret `COPILOT_GITHUB_TOKEN` with a Copilot-compatible user token. The SDK supports OAuth/GitHub App user tokens and fine-grained PATs; do not use a deprecated classic `ghp_` PAT.
+
+`svg153/skills` is currently user-owned. If `COPILOT_GITHUB_TOKEN` is absent, the trusted workflow reports that model-backed suites were skipped instead of implying that a successful workflow run contains behavioral model evidence. The previous `COPILOT_SDK_TOKEN` name was removed because it is not an authentication variable consumed by Waza/Copilot SDK.
+
+Once a supported credential path is available, the workflow runs every suite under `evals/` using the `copilot-sdk` executor, including capability-plugin skill suites.
+
+Each model-backed run retains for 14 days Waza JSON, JUnit XML and per-task transcripts where available. Treat those artifacts as diagnostic evidence, not as a one-dimensional public quality score.
 
 ## Local execution
 
