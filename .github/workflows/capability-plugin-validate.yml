@@ -6,11 +6,13 @@ on:
       - 'plugins/**'
       - 'marketplace.json'
       - '.agents/plugins/marketplace.json'
+      - 'skills/skill-publish/**'
       - 'scripts/generate-capability-plugin.py'
       - 'scripts/generate-distribution.py'
       - 'scripts/agent_plugin_mcp.py'
       - 'scripts/validate-planning-runtime-evidence.py'
       - 'tests/test_capability_plugins.py'
+      - 'tests/test_skill_publish_capability.py'
       - 'tests/test_planning_runtime_evidence.py'
       - '.github/workflows/capability-plugin-validate.yml'
   pull_request:
@@ -18,11 +20,13 @@ on:
       - 'plugins/**'
       - 'marketplace.json'
       - '.agents/plugins/marketplace.json'
+      - 'skills/skill-publish/**'
       - 'scripts/generate-capability-plugin.py'
       - 'scripts/generate-distribution.py'
       - 'scripts/agent_plugin_mcp.py'
       - 'scripts/validate-planning-runtime-evidence.py'
       - 'tests/test_capability_plugins.py'
+      - 'tests/test_skill_publish_capability.py'
       - 'tests/test_planning_runtime_evidence.py'
       - '.github/workflows/capability-plugin-validate.yml'
 
@@ -51,21 +55,26 @@ jobs:
       - name: Validate root marketplace generation
         run: python scripts/generate-distribution.py --check
 
-      - name: Validate planning package generation
+      - name: Validate every capability package generation
+        run: python scripts/generate-capability-plugin.py --all --check
+
+      - name: Validate existing planning package through skill-publish capability contract
         run: |
-          python scripts/generate-capability-plugin.py \
-            --config plugins/planning/distribution.config.json \
-            --check
+          python skills/skill-publish/scripts/catalog_capability.py \
+            check --name planning
 
       - name: Run capability plugin unit tests
         run: python -m unittest discover -s tests -p 'test_capability_plugins.py' -v
+
+      - name: Run capability publish transaction tests
+        run: python -m unittest discover -s tests -p 'test_skill_publish_capability.py' -v
 
       - name: Run planning runtime evidence tests
         run: |
           python -m unittest discover -s tests -p 'test_planning_runtime_evidence.py' -v
           python scripts/validate-planning-runtime-evidence.py
 
-      - name: Validate Agent Skills reference specification
+      - name: Validate Agent Skills reference specification for every capability
         shell: bash
         run: |
           set -euo pipefail
@@ -73,19 +82,37 @@ jobs:
           git -C /tmp/agentskills fetch --depth 1 origin 69ef37e9424c0a7ea9dd2293b559e43ec8176379
           git -C /tmp/agentskills checkout 69ef37e9424c0a7ea9dd2293b559e43ec8176379
           python -m pip install /tmp/agentskills/skills-ref
-          skills-ref validate plugins/planning/skills/planning
-          skills-ref validate plugins/planning/skills/backlog-management
 
-      - name: Validate cross-agent skill discovery
+          mapfile -t skill_files < <(
+            find plugins -mindepth 4 -maxdepth 4 -type f -name SKILL.md | sort
+          )
+          test "${#skill_files[@]}" -gt 0
+          for skill_file in "${skill_files[@]}"; do
+            skills-ref validate "$(dirname "$skill_file")"
+          done
+
+      - name: Validate cross-agent skill discovery for every capability
         env:
           DISABLE_TELEMETRY: '1'
         shell: bash
         run: |
           set -euo pipefail
-          npx -y skills@latest add ./plugins/planning --list 2>&1 | tee /tmp/planning-skills.txt
-          grep -q 'planning' /tmp/planning-skills.txt
-          grep -q 'backlog-management' /tmp/planning-skills.txt
-          echo 'OK: planning plugin exposes both portable skills'
+          for config in plugins/*/distribution.config.json; do
+            package_dir="${config%/distribution.config.json}"
+            package_name="${package_dir##*/}"
+            output="/tmp/${package_name}-skills.txt"
+            npx -y skills@latest add "./${package_dir}" --list 2>&1 | tee "$output"
+
+            found=0
+            for skill_dir in "$package_dir"/skills/*; do
+              test -d "$skill_dir" || continue
+              skill_name="${skill_dir##*/}"
+              grep -q "$skill_name" "$output"
+              found=$((found + 1))
+            done
+            test "$found" -gt 0
+            echo "OK: ${package_name} exposes ${found} portable skill(s)"
+          done
 
       - name: Set up Node.js for plugin CLIs
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
