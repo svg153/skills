@@ -170,6 +170,18 @@ license: MIT
         ):
             catalog_capability.plan_from_spec(self.write_spec(value), repo_root=self.root)
 
+    def test_symlinked_skill_source_path_fails_closed(self) -> None:
+        target = self.skill_source("symlink-target")
+        link = self.spec_dir / "symlink-source"
+        try:
+            link.symlink_to(target, target_is_directory=True)
+        except (OSError, NotImplementedError):
+            self.skipTest("symlinks unavailable")
+        value = self.capability_spec()
+        value["skill_sources"] = [str(link)]
+        with self.assertRaisesRegex(catalog_capability.CapabilityPlanError, "symlink"):
+            catalog_capability.plan_from_spec(self.write_spec(value), repo_root=self.root)
+
     def test_credential_bearing_mcp_header_fails_during_plan(self) -> None:
         value = self.capability_spec()
         value["mcpServers"]["github"]["config"]["headers"] = {
