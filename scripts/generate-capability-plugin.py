@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate a portable Agent Plugins capability package from package-local config."""
+"""Generate portable Agent Plugins capability packages from package-local config."""
 
 from __future__ import annotations
 
@@ -60,18 +60,31 @@ def normalize_config(config: dict, config_path: Path) -> dict:
         fail(f"{config_path}: missing fields: {', '.join(missing)}")
     if not isinstance(config["name"], str) or not NAME_RE.fullmatch(config["name"]):
         fail(f"{config_path}: name must be lowercase kebab-case")
+    if config["name"] != config_path.parent.name:
+        fail(
+            f"{config_path}: package name {config['name']!r} must match directory "
+            f"{config_path.parent.name!r}"
+        )
     if not isinstance(config["version"], str) or not SEMVER_RE.fullmatch(config["version"]):
         fail(f"{config_path}: version must be semantic X.Y.Z")
     for field in ("description", "repository", "homepage", "license"):
         if not isinstance(config[field], str) or not config[field].strip():
             fail(f"{config_path}: {field} must be a non-empty string")
     author = config["author"]
-    if not isinstance(author, dict) or not isinstance(author.get("name"), str) or not author["name"].strip():
+    if (
+        not isinstance(author, dict)
+        or not isinstance(author.get("name"), str)
+        or not author["name"].strip()
+    ):
         fail(f"{config_path}: author.name is required")
-    if "url" in author and (not isinstance(author["url"], str) or not author["url"].strip()):
+    if "url" in author and (
+        not isinstance(author["url"], str) or not author["url"].strip()
+    ):
         fail(f"{config_path}: author.url must be a non-empty string when present")
     keywords = config.get("keywords", [])
-    if not isinstance(keywords, list) or not all(isinstance(item, str) and item.strip() for item in keywords):
+    if not isinstance(keywords, list) or not all(
+        isinstance(item, str) and item.strip() for item in keywords
+    ):
         fail(f"{config_path}: keywords must be a string array")
     return config
 
@@ -107,7 +120,9 @@ def discover_skills(package_root: Path) -> list[str]:
 
 
 def render(config: dict, skill_names: list[str]) -> dict[Path, str]:
-    keywords = sorted({"agent-plugins", "agent-skills", *config.get("keywords", []), *skill_names})
+    keywords = sorted(
+        {"agent-plugins", "agent-skills", *config.get("keywords", []), *skill_names}
+    )
     plugin = {
         "$schema": PLUGIN_SCHEMA,
         "name": config["name"],
@@ -119,7 +134,9 @@ def render(config: dict, skill_names: list[str]) -> dict[Path, str]:
         "license": config["license"],
         "keywords": keywords,
     }
-    outputs = {Path("plugin.json"): json.dumps(plugin, indent=2, ensure_ascii=False) + "\n"}
+    outputs = {
+        Path("plugin.json"): json.dumps(plugin, indent=2, ensure_ascii=False) + "\n"
+    }
     try:
         mcp = mcp_manifest_from_distribution_config(config)
     except MCPConfigError as exc:
@@ -142,7 +159,7 @@ def check(package_root: Path, outputs: dict[Path, str]) -> int:
         drift.append("mcp.json: stale; package config declares no MCP servers")
     if drift:
         for item in drift:
-            print(f"DRIFT: {item}", file=sys.stderr)
+            print(f"DRIFT: {package_root.name}/{item}", file=sys.stderr)
         return 1
     print(f"OK: {package_root} portable capability package is clean")
     return 0
@@ -162,23 +179,53 @@ def write(package_root: Path, outputs: dict[Path, str]) -> int:
         mcp_path.unlink()
         print(f"REMOVED: {mcp_path}")
         changed += 1
-    print(f"OK: {changed} file(s) updated")
+    print(f"OK: {changed} file(s) updated for {package_root.name}")
     return 0
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--config", required=True, type=Path)
-    parser.add_argument("--check", action="store_true")
-    args = parser.parse_args()
-    config_path = args.config.resolve()
+def process_config(config_path: Path, *, check_only: bool) -> int:
+    config_path = config_path.resolve()
     if config_path.name != "distribution.config.json":
         fail("capability config must be named distribution.config.json")
     package_root = config_path.parent
     config = normalize_config(load_json(config_path), config_path)
     skill_names = discover_skills(package_root)
     outputs = render(config, skill_names)
-    return check(package_root, outputs) if args.check else write(package_root, outputs)
+    return check(package_root, outputs) if check_only else write(package_root, outputs)
+
+
+def discover_all_configs(script_path: Path) -> list[Path]:
+    root = script_path.resolve().parent.parent
+    plugins = root / "plugins"
+    if not plugins.is_dir():
+        fail(f"{plugins}: missing capability plugin root")
+    configs = sorted(
+        (
+            path
+            for path in plugins.glob("*/distribution.config.json")
+            if path.is_file() and not path.is_symlink()
+        ),
+        key=lambda item: item.parent.name.casefold(),
+    )
+    if not configs:
+        fail(f"{plugins}: no capability distribution.config.json files discovered")
+    return configs
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser()
+    select = parser.add_mutually_exclusive_group(required=True)
+    select.add_argument("--config", type=Path)
+    select.add_argument(
+        "--all",
+        action="store_true",
+        help="Process every plugins/*/distribution.config.json in this repository",
+    )
+    parser.add_argument("--check", action="store_true")
+    args = parser.parse_args(argv)
+
+    configs = discover_all_configs(Path(__file__)) if args.all else [args.config]
+    return max(process_config(path, check_only=args.check) for path in configs)
 
 
 if __name__ == "__main__":
