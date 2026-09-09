@@ -225,7 +225,10 @@ def existing_runtime_identities(root: Path) -> dict[str, str]:
 
 def resolve_source(spec_path: Path, raw_path: str) -> Path:
     source = Path(raw_path)
-    return (spec_path.parent / source).resolve() if not source.is_absolute() else source.resolve()
+    candidate = spec_path.parent / source if not source.is_absolute() else source
+    if candidate.is_symlink():
+        fail(f"skill source must not be a symlink: {candidate}")
+    return candidate.resolve()
 
 
 def ensure_staging_source(root: Path, source: Path) -> None:
