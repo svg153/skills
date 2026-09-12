@@ -1,0 +1,45 @@
+name: Phase 07 DESIGN.md Validate
+
+on:
+  push:
+    branches:
+      - gsd/phase-07-design-md
+    paths:
+      - '.github/workflows/phase-07-design-md-validate.yml'
+      - 'plugins/design-engineering/skills/design-engineering/references/design-md.md'
+      - 'plugins/design-engineering/skills/design-engineering/references/DESIGN.md.template'
+      - 'plugins/design-engineering/skills/design-engineering/references/workflow.md'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Validate template with official DESIGN.md CLI
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp plugins/design-engineering/skills/design-engineering/references/DESIGN.md.template /tmp/DESIGN.md
+          npx -y -p @google/design.md@0.4.0 designmd lint /tmp/DESIGN.md
+
+      - name: Validate contract invariants
+        shell: bash
+        run: |
+          set -euo pipefail
+          contract=plugins/design-engineering/skills/design-engineering/references/design-md.md
+          workflow=plugins/design-engineering/skills/design-engineering/references/workflow.md
+          grep -q 'Tokens are normative' "$contract"
+          grep -q 'nearest-app precedence' "$contract"
+          grep -q 'Inferred from current UI' "$contract"
+          grep -q 'references/DESIGN.md.template' "$workflow"
+          grep -q 'app-local.*cannot be silently overridden' "$workflow"
+          grep -q 'Do not update.*one-off CSS fixes' "$contract"
+          git diff --check HEAD^
