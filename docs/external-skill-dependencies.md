@@ -125,6 +125,29 @@ For repositories that actually install APM dependencies into runtime targets, th
 
 The policy is deliberately scoped to the external-skill resolver. A future organization-wide APM policy should be evaluated separately rather than assuming this pilot policy is sufficient for every repository.
 
+## Capability-scoped external components
+
+Agent Plugin capabilities may also **embed** a selected APM dependency as a portable
+skill while keeping APM as the only resolution/integrity authority. This is distinct
+from a root-catalog `MIRRORED_UPSTREAM` entry.
+
+The package declaration uses `externalSkillComponents` with an APM locator, runtime
+target, license and attribution. It deliberately carries no independent version/ref/
+digest. `scripts/apm_external_components.py` resolves the locator only through the
+committed resolver policy + lock, checks the exact immutable commit, and materializes
+the upstream skill subtree into the capability package.
+
+Generated `external-components.json` records the resolved commit/content hash and
+attribution for review/distribution, but is derived evidence rather than a lock.
+`generate-capability-plugin.py --check` also compares the packaged payload to the
+locked source so local edits cannot silently fork upstream instructions.
+
+The generic mechanism is landed before enrolling design dependencies. In particular,
+Phase 3 does **not** add Emil Kowalski or web-quality skills to the allowlist while
+the first genuine hosted Renovate update proof in #46 is still pending.
+
+
+
 ## Migration from scheduled direct sync
 
 The existing scheduled `sync-upstream-skills.yml` remains active during the pilot. It should only be retired for an APM-managed mirror after all of the following are demonstrated:

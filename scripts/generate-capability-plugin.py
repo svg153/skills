@@ -12,6 +12,12 @@ from pathlib import Path
 import yaml
 
 from agent_plugin_mcp import MCPConfigError, PLUGIN_SCHEMA, mcp_manifest_from_distribution_config
+from apm_external_components import (
+    ExternalComponentError,
+    normalize_external_components,
+    resolve_external_components,
+    sync_external_components,
+)
 
 NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 SEMVER_RE = re.compile(r"^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$")
@@ -86,6 +92,12 @@ def normalize_config(config: dict, config_path: Path) -> dict:
         isinstance(item, str) and item.strip() for item in keywords
     ):
         fail(f"{config_path}: keywords must be a string array")
+    try:
+        config["externalSkillComponents"] = normalize_external_components(
+            config.get("externalSkillComponents", [])
+        )
+    except ExternalComponentError as exc:
+        fail(f"{config_path}: externalSkillComponents: {exc}")
     return config
 
 
@@ -189,6 +201,22 @@ def process_config(config_path: Path, *, check_only: bool) -> int:
         fail("capability config must be named distribution.config.json")
     package_root = config_path.parent
     config = normalize_config(load_json(config_path), config_path)
+    repo_root = package_root.parent.parent
+    try:
+        resolved = resolve_external_components(
+            repo_root, config.get("externalSkillComponents", [])
+        )
+        component_drift = sync_external_components(
+            repo_root, package_root, resolved, check_only=check_only
+        )
+    except ExternalComponentError as exc:
+        fail(f"external skill components: {exc}")
+
+    if check_only and component_drift:
+        for item in component_drift:
+            print(f"DRIFT: {package_root.name}/{item}", file=sys.stderr)
+        return 1
+
     skill_names = discover_skills(package_root)
     outputs = render(config, skill_names)
     return check(package_root, outputs) if check_only else write(package_root, outputs)

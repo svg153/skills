@@ -18,5 +18,6 @@
     "agent-skills",
     "accessibility",
     "browser-testing"
-  ]
+  ],
+  "externalSkillComponents": []
 }
