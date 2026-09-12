@@ -1,4 +1,4 @@
-name: Phase 02 Capability Plan
+name: Phase 02 Capability Apply
 
 on:
   push:
@@ -12,7 +12,7 @@ permissions:
   contents: read
 
 jobs:
-  plan:
+  apply:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -24,12 +24,25 @@ jobs:
       - name: Install planning dependency
         run: python -m pip install 'PyYAML>=6,<7'
 
-      - name: Generate zero-write capability plan
+      - name: Apply exact approved capability plan
         shell: bash
         run: |
           set -euo pipefail
           python skills/skill-publish/scripts/catalog_capability.py \
-            plan --spec .planning/workbench/phase-02/capability.json \
-            | tee /tmp/phase-02-capability-plan.json
-          echo '--- capability plan ---'
-          cat /tmp/phase-02-capability-plan.json
+            apply \
+            --spec .planning/workbench/phase-02/capability.json \
+            --approve 20211512207f8eb5f6981394270ae59489707848317337b88f5d0925449bcede \
+            | tee /tmp/phase-02-capability-apply.json
+
+          echo '--- generated status ---'
+          git status --short
+          echo '--- distribution.config.json ---'
+          cat plugins/design-engineering/distribution.config.json
+          echo '--- SKILL.md ---'
+          cat plugins/design-engineering/skills/design-engineering/SKILL.md
+          echo '--- plugin.json ---'
+          cat plugins/design-engineering/plugin.json
+          echo '--- marketplace.json ---'
+          cat marketplace.json
+          echo '--- .agents/plugins/marketplace.json ---'
+          cat .agents/plugins/marketplace.json
