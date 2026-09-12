@@ -15,7 +15,7 @@ The roadmap deliberately proves governance before adding dependencies, then buil
 - [ ] **Phase 1: Prove APM/Renovate Update Gate** — BLOCKED externally until a genuine stable release newer than `github-build-or-reuse v1.2.3` is processed by hosted Renovate.
 - [x] **Phase 2: Establish Design Engineering Capability** — registered and cross-agent validated the package using the generic capability contract landed in #55.
 - [ ] **Phase 3: External Skill Components** — teach capability publishing to materialize APM-locked specialist skills without a second authority.
-- [ ] **Phase 4: Design Engineering Orchestrator** — implement the local workflow and routing boundaries.
+- [x] **Phase 4: Design Engineering Orchestrator** — broad UI requests now route through recon/reuse, polish/prototype/audit selection, bounded verification and human review boundaries.
 - [ ] **Phase 5: Emil Specialist Skills** — govern and package only the narrow high-value design/motion/reuse skills.
 - [ ] **Phase 6: Web Quality Skills** — integrate evidence-led accessibility/performance/SEO/best-practice auditing.
 - [ ] **Phase 7: DESIGN.md Contract** — define project visual memory and generation/update behavior.
@@ -68,7 +68,7 @@ The roadmap deliberately proves governance before adding dependencies, then buil
 1. A generic “improve this interface” request triggers recon -> reuse -> design context -> mode -> implement -> render -> quality -> iterate.
 2. `polish`, `prototype`, and `audit` behavior differ appropriately and avoid needless prototype work for small changes.
 3. The orchestrator fails/degrades clearly when optional specialist/browser capabilities are absent.
-**Plans**: 1 plan — `04-01-PLAN.md`
+**Plans**: 1 plan — `04-01-PLAN.md` — COMPLETE 2026-09-12
 
 ### Phase 5: Emil Specialist Skills
 **Goal**: Integrate selected narrow specialist skills without installing another competing broad router.
@@ -187,7 +187,7 @@ The roadmap deliberately proves governance before adding dependencies, then buil
 | 1. Prove APM/Renovate Update Gate | v1.0 | 0/1 | Blocked — external release/Renovate condition | - |
 | 2. Establish Design Engineering Capability | v1.0 | 1/1 | Complete | 2026-09-12 |
 | 3. External Skill Components | v1.0 | 0/1 | Ready | - |
-| 4. Design Engineering Orchestrator | v1.0 | 0/1 | Not started | - |
+| 4. Design Engineering Orchestrator | v1.0 | 1/1 | Complete | 2026-09-12 |
 | 5. Emil Specialist Skills | v1.0 | 0/1 | Not started | - |
 | 6. Web Quality Skills | v1.0 | 0/1 | Not started | - |
 | 7. DESIGN.md Contract | v1.0 | 0/1 | Not started | - |
