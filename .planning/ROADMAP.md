@@ -19,7 +19,7 @@ The roadmap deliberately proves governance before adding dependencies, then buil
 - [ ] **Phase 5: Emil Specialist Skills** — govern and package only the narrow high-value design/motion/reuse skills.
 - [ ] **Phase 6: Web Quality Skills** — integrate evidence-led accessibility/performance/SEO/best-practice auditing.
 - [x] **Phase 7: DESIGN.md Contract** — adopted the open DESIGN.md format with evidence precedence, monorepo scope and reviewable create/update behavior.
-- [ ] **Phase 8: Playwright Visual Loop** — require rendered responsive/interactivity evidence with bounded iteration.
+- [x] **Phase 8: Playwright Visual Loop** — rendered UI evidence now has a portable browser protocol, responsive/state matrix, interaction/console/focus checks and bounded repair cycles.
 - [ ] **Phase 9: Behavioral Evals and Fixtures** — prove routing, reuse, degradation and safety behavior.
 - [ ] **Phase 10: Real Application Pilot** — validate the baseline on one production-shaped app before expanding scope.
 - [ ] **Phase 11: Optional Figma MCP** — compose official Figma access and capture authenticated/degraded evidence.
@@ -72,7 +72,7 @@ The roadmap deliberately proves governance before adding dependencies, then buil
 
 ### Phase 5: Emil Specialist Skills
 **Goal**: Integrate selected narrow specialist skills without installing another competing broad router.
-**Depends on**: Phases 3 and 4
+**Depends on**: Phases 3 and 4; enrollment additionally waits for the Phase 1 hosted Renovate/APM proof.
 **Requirements**: EMIL-01
 **Success Criteria**:
 1. `prototype`, `pick-ui-library`, `animate`, and `review-animations` are pinned, provenance-governed and packaged.
@@ -82,7 +82,7 @@ The roadmap deliberately proves governance before adding dependencies, then buil
 
 ### Phase 6: Web Quality Skills
 **Goal**: Add evidence-led quality auditing as a normal post-implementation capability.
-**Depends on**: Phases 3 and 4
+**Depends on**: Phases 3 and 4; enrollment additionally waits for the Phase 1 hosted Renovate/APM proof.
 **Requirements**: QUAL-01
 **Success Criteria**:
 1. The required Addy Osmani skill set is packaged with relative references intact.
@@ -105,10 +105,10 @@ The roadmap deliberately proves governance before adding dependencies, then buil
 **Depends on**: Phase 4
 **Requirements**: BROW-01
 **Success Criteria**:
-1. Representative 390/768/1440 viewports plus relevant loading/empty/error/interaction states are exercised when applicable.
-2. Console errors, overflow, focus/keyboard behavior and key flows are checked, with before/after screenshots where useful.
-3. Automatic polish iteration is capped (initially 2-3 cycles) and unresolved subjective trade-offs are surfaced rather than endlessly tuned.
-**Plans**: 1 plan — `08-01-PLAN.md`
+1. Representative 390/768/1440 viewport classes plus relevant loading/empty/error/interaction states are exercised when applicable, with project-defined breakpoints taking precedence.
+2. Console errors, overflow, focus/keyboard behavior and key flows are checked, with before/after screenshots where useful but never as the sole accessibility/interaction evidence.
+3. Automatic polish repair iteration is capped at three cycles after the initial implementation/render and unresolved subjective trade-offs are surfaced rather than endlessly tuned.
+**Plans**: 1 plan — `08-01-PLAN.md` — COMPLETE 2026-09-12
 
 ### Phase 9: Behavioral Evals and Fixtures
 **Goal**: Make the capability's routing and safety properties regression-testable before the first real pilot.
@@ -191,11 +191,11 @@ The roadmap deliberately proves governance before adding dependencies, then buil
 | 5. Emil Specialist Skills | v1.0 | 0/1 | Blocked by Phase 1 external release/Renovate proof | - |
 | 6. Web Quality Skills | v1.0 | 0/1 | Blocked by Phase 1 external release/Renovate proof | - |
 | 7. DESIGN.md Contract | v1.0 | 1/1 | Complete | 2026-09-12 |
-| 8. Playwright Visual Loop | v1.0 | 0/1 | Ready | - |
-| 9. Behavioral Evals and Fixtures | v1.0 | 0/1 | Not started | - |
-| 10. Real Application Pilot | v1.0 | 0/1 | Not started | - |
-| 11. Optional Figma MCP | v1.1 | 0/1 | Not started | - |
-| 12. Impeccable Benchmark | v1.1 | 0/1 | Not started | - |
-| 13. Advanced Browser and Component Integrations | v1.1 | 0/1 | Not started | - |
-| 14. Creative Media Capability | v1.2 | 0/1 | Not started | - |
-| 15. GitHub UI Improvement Automation | v1.2 | 0/1 | Not started | - |
+| 8. Playwright Visual Loop | v1.0 | 1/1 | Complete | 2026-09-12 |
+| 9. Behavioral Evals and Fixtures | v1.0 | 0/1 | Blocked by Phases 5/6 | - |
+| 10. Real Application Pilot | v1.0 | 0/1 | Blocked by Phase 9 | - |
+| 11. Optional Figma MCP | v1.1 | 0/1 | Blocked by Phase 10 | - |
+| 12. Impeccable Benchmark | v1.1 | 0/1 | Blocked by Phase 10 | - |
+| 13. Advanced Browser and Component Integrations | v1.1 | 0/1 | Blocked by Phase 10 | - |
+| 14. Creative Media Capability | v1.2 | 0/1 | Blocked by Phase 10 | - |
+| 15. GitHub UI Improvement Automation | v1.2 | 0/1 | Blocked by Phase 10+ | - |
