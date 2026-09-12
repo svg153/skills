@@ -10,7 +10,7 @@
 - [ ] **SUPPLY-01**: A genuine upstream release can flow through Renovate -> reviewed APM manifest update -> immutable lock/integrity -> materialization -> repository validation without direct-to-main synchronization.
 - [x] **PKG-01**: `plugins/design-engineering/` exists as a governed capability package created/checked by the generic #55 publishing contract.
 - [ ] **EXT-01**: Capability publishing can consume explicitly declared external skill components through APM-locked provenance without creating a second behavior or lock authority.
-- [ ] **ORCH-01**: The local `design-engineering` skill routes a simple UI-improvement request through recon, reuse, design context, mode selection, implementation, rendered verification, quality checks and bounded iteration.
+- [x] **ORCH-01**: The local `design-engineering` skill routes a simple UI-improvement request through recon, reuse, design context, mode selection, implementation, rendered verification, quality checks and bounded iteration.
 - [ ] **EMIL-01**: Selected Emil Kowalski specialist skills are governed external components and can be invoked beneath the orchestrator without competing as the default top-level router.
 - [ ] **QUAL-01**: Web-quality auditing covers accessibility, performance/Core Web Vitals, SEO/best practices where relevant and distinguishes runtime evidence from source hypotheses.
 - [ ] **DSYS-01**: Projects can create or consume a concise project-level `DESIGN.md` that records visual/product constraints without duplicating the PRD.
@@ -57,7 +57,7 @@ These are invariants, not separately completable requirements:
 | SUPPLY-01 | Phase 1 | Blocked — waiting for genuine upstream release newer than v1.2.3 and Renovate evidence |
 | PKG-01 | Phase 2 | Complete |
 | EXT-01 | Phase 3 | Pending |
-| ORCH-01 | Phase 4 | Pending |
+| ORCH-01 | Phase 4 | Complete |
 | EMIL-01 | Phase 5 | Pending |
 | QUAL-01 | Phase 6 | Pending |
 | DSYS-01 | Phase 7 | Pending |
@@ -77,4 +77,4 @@ These are invariants, not separately completable requirements:
 
 ---
 *Requirements defined: 2026-09-11*
-*Last updated: 2026-09-12 after Phase 2 completion; Phase 1 remains externally blocked by #46*
+*Last updated: 2026-09-12 after Phases 2 and 4; Phase 1 remains externally blocked by #46*
