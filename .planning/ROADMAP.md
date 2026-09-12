@@ -14,7 +14,7 @@ The roadmap deliberately proves governance before adding dependencies, then buil
 
 - [ ] **Phase 1: Prove APM/Renovate Update Gate** — BLOCKED externally until a genuine stable release newer than `github-build-or-reuse v1.2.3` is processed by hosted Renovate.
 - [x] **Phase 2: Establish Design Engineering Capability** — registered and cross-agent validated the package using the generic capability contract landed in #55.
-- [ ] **Phase 3: External Skill Components** — teach capability publishing to materialize APM-locked specialist skills without a second authority.
+- [x] **Phase 3: External Skill Components** — capability publishing now materializes reviewed APM-lock-backed specialist skills without introducing a second lock or dependency authority.
 - [x] **Phase 4: Design Engineering Orchestrator** — broad UI requests now route through recon/reuse, polish/prototype/audit selection, bounded verification and human review boundaries.
 - [ ] **Phase 5: Emil Specialist Skills** — govern and package only the narrow high-value design/motion/reuse skills.
 - [ ] **Phase 6: Web Quality Skills** — integrate evidence-led accessibility/performance/SEO/best-practice auditing.
@@ -58,7 +58,7 @@ The roadmap deliberately proves governance before adding dependencies, then buil
 1. Capability config can explicitly reference allowed APM-locked skill components and materialize exact payloads deterministically.
 2. Drift, missing locks, path escapes, provenance ambiguity and unauthorized dependencies fail closed.
 3. Generated package copies are derived artifacts; APM lock/policy and upstream provenance remain authoritative.
-**Plans**: 1 plan — `03-01-PLAN.md`
+**Plans**: 1 plan — `03-01-PLAN.md` — COMPLETE 2026-09-12
 
 ### Phase 4: Design Engineering Orchestrator
 **Goal**: Implement the small local skill that selects the right workflow instead of embedding every design rule itself.
@@ -186,12 +186,12 @@ The roadmap deliberately proves governance before adding dependencies, then buil
 |-------|-----------|----------------|--------|-----------|
 | 1. Prove APM/Renovate Update Gate | v1.0 | 0/1 | Blocked — external release/Renovate condition | - |
 | 2. Establish Design Engineering Capability | v1.0 | 1/1 | Complete | 2026-09-12 |
-| 3. External Skill Components | v1.0 | 0/1 | Ready | - |
+| 3. External Skill Components | v1.0 | 1/1 | Complete | 2026-09-12 |
 | 4. Design Engineering Orchestrator | v1.0 | 1/1 | Complete | 2026-09-12 |
-| 5. Emil Specialist Skills | v1.0 | 0/1 | Not started | - |
-| 6. Web Quality Skills | v1.0 | 0/1 | Not started | - |
-| 7. DESIGN.md Contract | v1.0 | 0/1 | Not started | - |
-| 8. Playwright Visual Loop | v1.0 | 0/1 | Not started | - |
+| 5. Emil Specialist Skills | v1.0 | 0/1 | Blocked by Phase 1 external release/Renovate proof | - |
+| 6. Web Quality Skills | v1.0 | 0/1 | Blocked by Phase 1 external release/Renovate proof | - |
+| 7. DESIGN.md Contract | v1.0 | 0/1 | Ready | - |
+| 8. Playwright Visual Loop | v1.0 | 0/1 | Ready | - |
 | 9. Behavioral Evals and Fixtures | v1.0 | 0/1 | Not started | - |
 | 10. Real Application Pilot | v1.0 | 0/1 | Not started | - |
 | 11. Optional Figma MCP | v1.1 | 0/1 | Not started | - |
