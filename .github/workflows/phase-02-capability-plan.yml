@@ -1,0 +1,35 @@
+name: Phase 02 Capability Plan
+
+on:
+  push:
+    branches:
+      - gsd/phase-02-design-capability
+    paths:
+      - '.github/workflows/phase-02-capability-plan.yml'
+      - '.planning/workbench/phase-02/**'
+
+permissions:
+  contents: read
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install planning dependency
+        run: python -m pip install 'PyYAML>=6,<7'
+
+      - name: Generate zero-write capability plan
+        shell: bash
+        run: |
+          set -euo pipefail
+          python skills/skill-publish/scripts/catalog_capability.py \
+            plan --spec .planning/workbench/phase-02/capability.json \
+            | tee /tmp/phase-02-capability-plan.json
+          echo '--- capability plan ---'
+          cat /tmp/phase-02-capability-plan.json
