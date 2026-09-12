@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "name": "design-engineering",
+  "version": "0.1.0",
+  "description": "Improve existing application interfaces through reusable design-engineering skills, browser evidence, and governed optional integrations.",
+  "author": {
+    "name": "svg153",
+    "url": "https://github.com/svg153"
+  },
+  "license": "MIT",
+  "keywords": [
+    "design-engineering",
+    "frontend",
+    "ui",
+    "ux",
+    "agent-skills",
+    "accessibility",
+    "browser-testing"
+  ],
+  "skill_sources": [
+    "staging/design-engineering"
+  ]
+}
