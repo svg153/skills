@@ -43,4 +43,4 @@ jobs:
           grep -q 'A more-specific app design source cannot be silently overridden' "$workflow"
           grep -q 'one-off bug fix' "$contract"
           grep -q 'Do not update `DESIGN.md` merely because a UI task touched CSS' "$contract"
-          git diff --check HEAD^
+          git diff --check
