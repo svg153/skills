@@ -40,6 +40,7 @@ jobs:
           grep -q 'nearest-app precedence' "$contract"
           grep -q 'Inferred from current UI' "$contract"
           grep -q 'references/DESIGN.md.template' "$workflow"
-          grep -q 'app-local.*cannot be silently overridden' "$workflow"
-          grep -q 'Do not update.*one-off CSS fixes' "$contract"
+          grep -q 'A more-specific app design source cannot be silently overridden' "$workflow"
+          grep -q 'one-off bug fix' "$contract"
+          grep -q 'Do not update `DESIGN.md` merely because a UI task touched CSS' "$contract"
           git diff --check HEAD^
