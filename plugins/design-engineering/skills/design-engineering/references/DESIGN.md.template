@@ -1,0 +1,115 @@
+---
+version: alpha
+name: Project Design System
+description: Replace with one sentence describing the durable visual system and scope.
+# Keep only tokens that are real and reviewed for this project.
+# Tokens are normative; do not put inferred exact values here as confirmed truth.
+# colors:
+#   primary: "#000000"
+# typography:
+#   body:
+#     fontFamily: "system-ui, sans-serif"
+#     fontSize: "1rem"
+#     fontWeight: 400
+#     lineHeight: 1.5
+# rounded:
+#   md: "8px"
+# spacing:
+#   md: "16px"
+# components:
+#   button-primary:
+#     backgroundColor: "{colors.primary}"
+#     rounded: "{rounded.md}"
+---
+
+# Design System: Project Name
+
+## Overview
+
+[2–4 sentences describing the durable visual personality, density, formality, and design philosophy. Do not duplicate product requirements or roadmap context.]
+
+### Scope
+
+[State what this file governs: repository-wide, one application/workspace, or a shared design-system package. Note inheritance/overrides when relevant.]
+
+### Evidence
+
+- Normative: [token/theme/component/design-system sources that actually own values]
+- Observed: [representative existing/rendered surfaces and date/context]
+- Inferred: [restrained conclusions that are not established brand truth; remove if none]
+
+## Colors
+
+[Describe palette roles and usage. Include exact values only when supported by authoritative project evidence. Delete this section if there is no durable color guidance yet.]
+
+- **Primary / accent:** [role, source/token reference, usage constraint]
+- **Background / surface:** [role and layering]
+- **Text / border:** [hierarchy and contrast behavior]
+- **Functional states:** [success/error/warning/info if established]
+
+## Typography
+
+[Record the actual font families, hierarchy, weights, line-height/letter-spacing and usage constraints. Do not manufacture a type scale for completeness.]
+
+- **Display / heading:** [family, scale/token, purpose]
+- **Body:** [family, scale/token, readable width if established]
+- **Label / mono:** [only when present]
+
+## Layout
+
+[Describe spacing rhythm, containers/grid, density, responsive behavior and breakpoints that are real for this scope. Mark observations/inferences explicitly.]
+
+- **Spacing:** [canonical tokens or recurring rhythm]
+- **Container/grid:** [width/alignment/columns]
+- **Responsive:** [durable composition changes and breakpoints]
+- **Density:** [compact/comfortable/etc., with scope]
+
+## Elevation & Depth
+
+[Describe shadows, tonal layering, borders, backdrop/overlay behavior, or explicitly state that the system is flat.]
+
+## Shapes
+
+[Describe radii, borders, clipping and recurring geometry. Use exact values when backed by real tokens.]
+
+## Components
+
+[Document only shared/repeated component behavior. Route-specific one-offs do not become global design rules automatically.]
+
+### Buttons
+
+- [shape / hierarchy / state behavior]
+- [focus / disabled / destructive behavior when durable]
+- [motion/feedback when component-specific]
+
+### Inputs and forms
+
+- [shape / labels / validation / focus behavior]
+
+### Surfaces / cards / dialogs
+
+- [layering / borders / padding / composition]
+
+### Navigation / data display
+
+- [only when established]
+
+## Do's and Don'ts
+
+### Do
+
+- [high-signal project-specific visual or accessibility rule]
+- [reuse established tokens/components before inventing variants]
+
+### Don't
+
+- [actual anti-pattern or visual direction the project rejects]
+- [cross-cutting accessibility/design boundary]
+
+<!--
+Maintenance notes for agents (delete if the project does not want them in the final file):
+- Prefer explicit current decision > authoritative tokens/components/design source > app-local DESIGN.md > rendered implementation > inherited/root DESIGN.md > clearly labelled inference.
+- Keep inferred values out of normative frontmatter until reviewed/adopted.
+- Update this file only for durable reusable visual rules, not every CSS change.
+- Keep canonical DESIGN.md sections in this order; omit irrelevant sections rather than invent content.
+-->
