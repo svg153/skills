@@ -46,7 +46,25 @@ When the app can run, collect representative current-state evidence before a mat
 
 If the app cannot run, distinguish that limitation from a successful runtime check.
 
-## 3. Reuse gate
+## 3. Resolve durable design context
+
+Before making visual-system decisions, discover the applicable `DESIGN.md` and its stronger underlying sources. Read `references/design-md.md` for the complete contract.
+
+Use these rules:
+
+1. Determine repository/app/workspace scope before choosing a design file.
+2. Prefer the nearest applicable app-local `DESIGN.md` over generic root guidance.
+3. Treat authoritative tokens/themes/components/approved structured design sources as stronger evidence than generated prose when they conflict.
+4. Treat machine-readable `DESIGN.md` tokens as normative only when they reflect the project's real authoritative values.
+5. Mark observed/inferred rules as such; unknowns stay unknown rather than becoming invented brand truth.
+6. If `DESIGN.md` is missing, do not block normal work. Use project evidence and create/propose one only when durable design memory would materially help.
+7. Do not update `DESIGN.md` for one-off CSS fixes, unselected prototypes, temporary campaign styling, or unrelated refactors.
+
+When creating or refreshing it, start from `references/DESIGN.md.template`, keep the official canonical section order, and prefer deleting unsupported sections over filling them with fiction.
+
+A more-specific app design source cannot be silently overridden by a root file. If two authoritative-looking sources disagree, surface the conflict and proceed only with unaffected evidence or the explicitly chosen authority.
+
+## 4. Reuse gate
 
 Before creating a component or adding a library, ask:
 
@@ -59,7 +77,7 @@ Prefer extension/composition over near-duplicate components. Do not replace an e
 
 A new dependency needs a concrete reason: capability gap, accessibility/interaction complexity, maintenance advantage, or meaningful reduction in custom code. Novelty alone is not a reason.
 
-## 4. Select the mode
+## 5. Select the mode
 
 Choose exactly one primary mode for a work item. A mode may hand off to specialists, but it stays responsible for completion.
 
@@ -123,7 +141,7 @@ Prioritize by user impact and confidence, not by how easy a CSS edit is.
 
 Exit: findings are actionable, evidence-labelled, prioritized, and either fixed under existing authorization or handed back for selection.
 
-## 5. Specialist routing
+## 6. Specialist routing
 
 Use specialists opportunistically; never require the user to manually orchestrate them.
 
@@ -135,12 +153,12 @@ Use specialists opportunistically; never require the user to manually orchestrat
 | Motion critique | `review-animations` | Check purpose, interruption, reduced motion, duration and layout/perf risk |
 | Web quality | `web-quality-audit` | Relevant project tests/static checks + explicit evidence limits |
 | Browser interaction/rendering | browser/Playwright capability | Existing e2e tools/manual run if available; otherwise state runtime evidence unavailable |
-| Structured design source | optional Figma MCP | Repository `DESIGN.md`, tokens, components and rendered baseline |
+| Structured design source | optional Figma MCP | Scoped `DESIGN.md`, tokens, components and rendered baseline |
 | Component discovery | optional component/OSS discovery | Existing repo/dependencies first, then normal maintained OSS research |
 
 A missing specialist is not permission to fabricate its evidence or silently skip a critical check.
 
-## 6. Implement with minimum necessary change
+## 7. Implement with minimum necessary change
 
 During mutation:
 
@@ -152,7 +170,9 @@ During mutation:
 - keep content density appropriate to the product rather than defaulting every interface to spacious marketing UI;
 - use motion only when it communicates state/spatial relationship/feedback or adds deliberate delight at a frequency that tolerates it.
 
-## 7. Render/inspect/fix loop
+When implementation establishes a new durable cross-surface visual rule, update the applicable `DESIGN.md` in the same reviewable change. Do not make the document the only place a runtime-required token exists.
+
+## 8. Render/inspect/fix loop
 
 When runnable, the loop is:
 
@@ -175,7 +195,7 @@ Inspect relevant:
 - accessible names/semantics/contrast signals available to the current tooling;
 - unintended behavior changes.
 
-## 8. Quality handoff
+## 9. Quality handoff
 
 Run project-native lint/type/test/e2e checks relevant to changed files. When installed, route through the dedicated web-quality specialist for evidence-led accessibility/performance/SEO/best-practice review.
 
@@ -183,11 +203,15 @@ A visually attractive result is not complete if the change creates a material ac
 
 Do not make SEO/performance claims from source inspection alone when runtime evidence is required to substantiate them.
 
-## 9. Degraded operation
+When `DESIGN.md` changed, validate its structure with the current official DESIGN.md tooling when practical and review token/prose diffs as source changes rather than treating generated documentation as automatically correct.
+
+## 10. Degraded operation
 
 Optional services are enhancements, not prerequisites.
 
-- No Figma: use repository design docs/tokens/components/rendered UI.
+- No Figma: use scoped repository `DESIGN.md`, tokens/components and rendered UI.
+- No `DESIGN.md`: use stronger project evidence and continue; create/propose one only when durable design memory is useful.
+- Stale/conflicting `DESIGN.md`: report the conflict and prefer the applicable stronger source; do not silently overwrite either side.
 - No specialist skill: execute the narrow fallback and disclose the limitation.
 - No browser runtime: do source/test validation, explain why rendered verification was unavailable, and do not label it visually verified.
 - No external network/component discovery: reuse local components/dependencies and avoid speculative package recommendations.
@@ -195,18 +219,22 @@ Optional services are enhancements, not prerequisites.
 
 If missing evidence makes the requested change unsafe to judge (for example a major visual redesign cannot be rendered at all), leave a reviewable partial result rather than asserting completion.
 
-## 10. Completion contract
+## 11. Completion contract
 
 Before declaring implementation complete, confirm as applicable:
 
 - [ ] requested user outcome is satisfied;
+- [ ] target scope and applicable design-context scope were resolved;
 - [ ] recon/design constraints were read and preserved or intentionally changed;
+- [ ] existing `DESIGN.md`/tokens/components were reconciled by evidence precedence rather than assumed equal;
+- [ ] inferred design rules remain labelled and unknowns were not invented as brand truth;
 - [ ] existing components/dependencies were checked before new primitives;
 - [ ] chosen mode matched scope/uncertainty;
 - [ ] relevant project checks passed;
 - [ ] rendered evidence was obtained when the app could run, or its absence is explicit;
 - [ ] changed interactions/states/responsive behavior were inspected at an evidence level supported by current tooling;
 - [ ] critical accessibility/runtime/quality regressions are not knowingly left behind;
+- [ ] any `DESIGN.md` update represents a durable reviewed rule rather than task-local noise;
 - [ ] automatic iteration stayed bounded;
 - [ ] subjective product/taste choices remain human-reviewable;
 - [ ] final report distinguishes verified facts from remaining hypotheses/trade-offs.
@@ -217,25 +245,37 @@ Before declaring implementation complete, confirm as applicable:
 
 > Improve the onboarding screen; it feels generic and confusing.
 
-Route: `design-engineering` -> recon. If hierarchy/content direction is clear, polish. If onboarding structure/personality is uncertain and high-impact, prototype distinct directions before integration.
+Route: `design-engineering` -> recon -> resolve scoped design context. If hierarchy/content direction is clear, polish. If onboarding structure/personality is uncertain and high-impact, prototype distinct directions before integration.
+
+### Monorepo app-local context
+
+> Improve the admin dashboard tables.
+
+If `apps/admin/DESIGN.md` exists, it wins over a generic repository `DESIGN.md` for admin-specific density/layout rules. Shared package tokens/components may still be stronger evidence for primitives. Do not flatten both scopes into one document.
+
+### Brownfield project without DESIGN.md
+
+> Polish this settings page.
+
+Continue from existing tokens/components/rendered behavior. Do not block on documentation. If the work reveals stable reusable design rules worth preserving, propose/create a scoped `DESIGN.md` from evidence and label inferences.
 
 ### Small visual defect
 
 > The mobile actions overflow the card and focus is clipped.
 
-Route: `design-engineering` polish (or normal frontend fix if no design judgment is needed). No three-variant prototype.
+Route: `design-engineering` polish (or normal frontend fix if no design judgment is needed). No three-variant prototype and normally no `DESIGN.md` update.
 
 ### Audit-only
 
 > Audit the dashboard UX and tell me what you would change.
 
-Route: audit. Gather evidence and findings; no mutation by default.
+Route: audit. Gather evidence and findings; no mutation by default. A stale `DESIGN.md` is a finding, not permission to rewrite it unless authorized.
 
 ### Mechanical frontend change
 
 > Rename `UserCard` to `MemberCard` everywhere without changing UI.
 
-Do not route here. This is a mechanical refactor.
+Do not route here. This is a mechanical refactor and must not churn `DESIGN.md`.
 
 ### Backend-only
 
