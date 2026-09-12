@@ -7,6 +7,7 @@ on:
     paths:
       - '.github/workflows/phase-03-apply.yml'
       - 'scripts/phase03_apply.py'
+      - 'scripts/phase03_fix.py'
 
 permissions:
   contents: write
@@ -23,6 +24,9 @@ jobs:
 
       - name: Install test dependency
         run: python -m pip install 'PyYAML>=6,<7'
+
+      - name: Fix temporary patch anchors
+        run: python scripts/phase03_fix.py
 
       - name: Apply Phase 03 patch
         run: python scripts/phase03_apply.py
