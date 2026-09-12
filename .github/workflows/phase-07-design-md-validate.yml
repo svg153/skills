@@ -31,16 +31,23 @@ jobs:
           npx -y -p @google/design.md@0.4.0 designmd lint /tmp/DESIGN.md
 
       - name: Validate contract invariants
-        shell: bash
         run: |
-          set -euo pipefail
-          contract=plugins/design-engineering/skills/design-engineering/references/design-md.md
-          workflow=plugins/design-engineering/skills/design-engineering/references/workflow.md
-          grep -q 'Tokens are normative' "$contract"
-          grep -q 'nearest-app precedence' "$contract"
-          grep -q 'Inferred from current UI' "$contract"
-          grep -q 'references/DESIGN.md.template' "$workflow"
-          grep -q 'A more-specific app design source cannot be silently overridden' "$workflow"
-          grep -q 'one-off bug fix' "$contract"
-          grep -q 'Do not update `DESIGN.md` merely because a UI task touched CSS' "$contract"
-          git diff --check
+          python - <<'PY'
+          from pathlib import Path
+          base = Path('plugins/design-engineering/skills/design-engineering/references')
+          contract = (base / 'design-md.md').read_text(encoding='utf-8')
+          workflow = (base / 'workflow.md').read_text(encoding='utf-8')
+          required = {
+              'contract: normative tokens': ('Tokens are normative', contract),
+              'contract: monorepo precedence': ('nearest-app precedence', contract),
+              'contract: inference label': ('Inferred from current UI', contract),
+              'contract: one-off exclusion': ('one-off bug fix', contract),
+              'contract: no CSS churn': ('Do not rewrite `DESIGN.md` merely because a UI task touched CSS', contract),
+              'workflow: template handoff': ('references/DESIGN.md.template', workflow),
+              'workflow: app scope precedence': ('A more-specific app design source cannot be silently overridden', workflow),
+          }
+          missing = [name for name, (needle, haystack) in required.items() if needle not in haystack]
+          if missing:
+              raise SystemExit('missing invariants: ' + ', '.join(missing))
+          print('OK: DESIGN.md contract invariants present')
+          PY
