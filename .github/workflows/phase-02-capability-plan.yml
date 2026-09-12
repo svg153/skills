@@ -1,4 +1,4 @@
-name: Phase 02 Capability Apply
+name: Phase 02 Capability Verify
 
 on:
   push:
@@ -6,43 +6,68 @@ on:
       - gsd/phase-02-design-capability
     paths:
       - '.github/workflows/phase-02-capability-plan.yml'
-      - '.planning/workbench/phase-02/**'
 
 permissions:
   contents: read
 
 jobs:
-  apply:
+  verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
-      - name: Install planning dependency
+      - name: Install validation dependency
         run: python -m pip install 'PyYAML>=6,<7'
 
-      - name: Apply exact approved capability plan
+      - name: Validate governed capability state
         shell: bash
         run: |
           set -euo pipefail
-          python skills/skill-publish/scripts/catalog_capability.py \
-            apply \
-            --spec .planning/workbench/phase-02/capability.json \
-            --approve 20211512207f8eb5f6981394270ae59489707848317337b88f5d0925449bcede \
-            | tee /tmp/phase-02-capability-apply.json
+          python skills/skill-publish/scripts/catalog_capability.py check --name design-engineering
+          python scripts/generate-capability-plugin.py --all --check
+          python scripts/generate-distribution.py --check
+          python -m unittest discover -s tests -p 'test_capability_plugins.py' -v
+          python -m unittest discover -s tests -p 'test_skill_publish_capability.py' -v
 
-          echo '--- generated status ---'
-          git status --short
-          echo '--- distribution.config.json ---'
-          cat plugins/design-engineering/distribution.config.json
-          echo '--- SKILL.md ---'
-          cat plugins/design-engineering/skills/design-engineering/SKILL.md
-          echo '--- plugin.json ---'
-          cat plugins/design-engineering/plugin.json
-          echo '--- marketplace.json ---'
-          cat marketplace.json
-          echo '--- .agents/plugins/marketplace.json ---'
-          cat .agents/plugins/marketplace.json
+      - name: Validate Agent Skills reference specification
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 https://github.com/agentskills/agentskills.git /tmp/agentskills
+          git -C /tmp/agentskills fetch --depth 1 origin 69ef37e9424c0a7ea9dd2293b559e43ec8176379
+          git -C /tmp/agentskills checkout 69ef37e9424c0a7ea9dd2293b559e43ec8176379
+          python -m pip install /tmp/agentskills/skills-ref
+          skills-ref validate plugins/design-engineering/skills/design-engineering
+
+      - name: Validate npx skills discovery
+        env:
+          DISABLE_TELEMETRY: '1'
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx -y skills@latest add ./plugins/design-engineering --list 2>&1 | tee /tmp/design-skills.txt
+          grep -q 'design-engineering' /tmp/design-skills.txt
+
+      - name: Validate Copilot and Codex plugin install
+        env:
+          COPILOT_HOME: ${{ runner.temp }}/copilot-home
+          CODEX_HOME: ${{ runner.temp }}/codex-home
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --global '@github/copilot@1.0.83' '@openai/codex@0.153.4'
+
+          copilot plugin marketplace add .
+          copilot plugin install design-engineering@svg153-skills
+          copilot plugin list 2>&1 | tee /tmp/copilot-plugins.txt
+          grep -q 'design-engineering' /tmp/copilot-plugins.txt
+
+          mkdir -p "$CODEX_HOME"
+          codex plugin marketplace add .
+          codex plugin add design-engineering@svg153-skills --json | tee /tmp/codex-install.json
+          codex plugin list --json | tee /tmp/codex-plugins.json
+          grep -q 'design-engineering' /tmp/codex-plugins.json
