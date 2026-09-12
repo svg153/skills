@@ -1,0 +1,23 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "design-engineering",
+  "version": "0.1.0",
+  "description": "Improve existing application interfaces through reusable design-engineering skills, browser evidence, and governed optional integrations.",
+  "author": {
+    "name": "svg153",
+    "url": "https://github.com/svg153"
+  },
+  "homepage": "https://github.com/svg153/skills/tree/main/plugins/design-engineering",
+  "repository": "https://github.com/svg153/skills",
+  "license": "MIT",
+  "keywords": [
+    "accessibility",
+    "agent-plugins",
+    "agent-skills",
+    "browser-testing",
+    "design-engineering",
+    "frontend",
+    "ui",
+    "ux"
+  ]
+}

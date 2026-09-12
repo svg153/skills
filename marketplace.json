@@ -15,6 +15,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "design-engineering",
+      "source": "./plugins/design-engineering",
+      "description": "Improve existing application interfaces through reusable design-engineering skills, browser evidence, and governed optional integrations.",
+      "version": "0.1.0"
+    },
+    {
       "name": "planning",
       "source": "./plugins/planning",
       "description": "Plan and manage delivery work across GitHub and Jira without introducing a third project-management source of truth.",
