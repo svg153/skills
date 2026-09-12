@@ -18,7 +18,7 @@ The roadmap deliberately proves governance before adding dependencies, then buil
 - [x] **Phase 4: Design Engineering Orchestrator** — broad UI requests now route through recon/reuse, polish/prototype/audit selection, bounded verification and human review boundaries.
 - [ ] **Phase 5: Emil Specialist Skills** — govern and package only the narrow high-value design/motion/reuse skills.
 - [ ] **Phase 6: Web Quality Skills** — integrate evidence-led accessibility/performance/SEO/best-practice auditing.
-- [ ] **Phase 7: DESIGN.md Contract** — define project visual memory and generation/update behavior.
+- [x] **Phase 7: DESIGN.md Contract** — adopted the open DESIGN.md format with evidence precedence, monorepo scope and reviewable create/update behavior.
 - [ ] **Phase 8: Playwright Visual Loop** — require rendered responsive/interactivity evidence with bounded iteration.
 - [ ] **Phase 9: Behavioral Evals and Fixtures** — prove routing, reuse, degradation and safety behavior.
 - [ ] **Phase 10: Real Application Pilot** — validate the baseline on one production-shaped app before expanding scope.
@@ -98,7 +98,7 @@ The roadmap deliberately proves governance before adding dependencies, then buil
 1. The contract covers personality, typography, color, spacing, radii/elevation, components, motion, responsive rules, accessibility and do/don't guidance.
 2. Existing design systems/tokens/Figma context win over invented defaults.
 3. Monorepo/project-local scope is explicit and changes are reviewable.
-**Plans**: 1 plan — `07-01-PLAN.md`
+**Plans**: 1 plan — `07-01-PLAN.md` — COMPLETE 2026-09-12
 
 ### Phase 8: Playwright Visual Loop
 **Goal**: Make rendered UI evidence mandatory for normal UI-changing work while keeping the loop bounded.
@@ -190,7 +190,7 @@ The roadmap deliberately proves governance before adding dependencies, then buil
 | 4. Design Engineering Orchestrator | v1.0 | 1/1 | Complete | 2026-09-12 |
 | 5. Emil Specialist Skills | v1.0 | 0/1 | Blocked by Phase 1 external release/Renovate proof | - |
 | 6. Web Quality Skills | v1.0 | 0/1 | Blocked by Phase 1 external release/Renovate proof | - |
-| 7. DESIGN.md Contract | v1.0 | 0/1 | Ready | - |
+| 7. DESIGN.md Contract | v1.0 | 1/1 | Complete | 2026-09-12 |
 | 8. Playwright Visual Loop | v1.0 | 0/1 | Ready | - |
 | 9. Behavioral Evals and Fixtures | v1.0 | 0/1 | Not started | - |
 | 10. Real Application Pilot | v1.0 | 0/1 | Not started | - |
