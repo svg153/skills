@@ -6,14 +6,14 @@ The roadmap deliberately proves governance before adding dependencies, then buil
 
 ## Milestones
 
-- 📋 **v1.0 Design Engineering Baseline** — Phases 1-10
+- 🚧 **v1.0 Design Engineering Baseline** — Phases 1-10
 - 📋 **v1.1 Evidence-driven Integrations** — Phases 11-13
 - 📋 **v1.2 Creative + GitHub Automation** — Phases 14-15
 
 ## Phases
 
-- [ ] **Phase 1: Prove APM/Renovate Update Gate** — finish the real-release proof in #46 before multiplying external design dependencies.
-- [ ] **Phase 2: Establish Design Engineering Capability** — register the package using the generic capability contract landed in #55.
+- [ ] **Phase 1: Prove APM/Renovate Update Gate** — BLOCKED externally until a genuine stable release newer than `github-build-or-reuse v1.2.3` is processed by hosted Renovate.
+- [x] **Phase 2: Establish Design Engineering Capability** — registered and cross-agent validated the package using the generic capability contract landed in #55.
 - [ ] **Phase 3: External Skill Components** — teach capability publishing to materialize APM-locked specialist skills without a second authority.
 - [ ] **Phase 4: Design Engineering Orchestrator** — implement the local workflow and routing boundaries.
 - [ ] **Phase 5: Emil Specialist Skills** — govern and package only the narrow high-value design/motion/reuse skills.
@@ -42,13 +42,13 @@ The roadmap deliberately proves governance before adding dependencies, then buil
 
 ### Phase 2: Establish Design Engineering Capability
 **Goal**: Create a minimal governed `plugins/design-engineering` package with a local orchestrator placeholder and deterministic generated manifests.
-**Depends on**: Phase 1
+**Depends on**: Phase 1 supply-chain gate for external dependency enrollment; package shell itself is safe to establish independently because it consumes no external design skill.
 **Requirements**: PKG-01
 **Success Criteria**:
 1. `skill-publish` can plan/apply/check the capability without a parallel generator.
 2. Generic capability validation and cross-agent discovery pass.
 3. Package metadata clearly states purpose, ownership and optional integration boundaries.
-**Plans**: 1 plan — `02-01-PLAN.md`
+**Plans**: 1 plan — `02-01-PLAN.md` — COMPLETE 2026-09-12
 
 ### Phase 3: External Skill Components
 **Goal**: Add a reusable declaration/materialization model for APM-locked skills embedded in a capability package.
@@ -184,9 +184,9 @@ The roadmap deliberately proves governance before adding dependencies, then buil
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 1. Prove APM/Renovate Update Gate | v1.0 | 0/1 | Not started | - |
-| 2. Establish Design Engineering Capability | v1.0 | 0/1 | Not started | - |
-| 3. External Skill Components | v1.0 | 0/1 | Not started | - |
+| 1. Prove APM/Renovate Update Gate | v1.0 | 0/1 | Blocked — external release/Renovate condition | - |
+| 2. Establish Design Engineering Capability | v1.0 | 1/1 | Complete | 2026-09-12 |
+| 3. External Skill Components | v1.0 | 0/1 | Ready | - |
 | 4. Design Engineering Orchestrator | v1.0 | 0/1 | Not started | - |
 | 5. Emil Specialist Skills | v1.0 | 0/1 | Not started | - |
 | 6. Web Quality Skills | v1.0 | 0/1 | Not started | - |
