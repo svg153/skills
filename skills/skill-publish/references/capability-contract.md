@@ -111,6 +111,44 @@ Authentication remains client-managed. Do not put PATs, OAuth tokens, API keys, 
 
 No custom MCP is required merely because a capability uses tools. Prefer official/community MCPs when they already provide the needed capability.
 
+## APM-locked external skill components
+
+A capability may declare reviewed external skill payloads with `externalSkillComponents`.
+The declaration contains **no version, ref, commit, or digest**: those values come only
+from `dependencies/external-skills/apm.lock.yaml`.
+
+```json
+{
+  "externalSkillComponents": [
+    {
+      "dependency": "owner/repo/skills/example",
+      "target": "example",
+      "license": "MIT",
+      "attribution": "Upstream project / author"
+    }
+  ]
+}
+```
+
+Rules:
+
+- `dependency` must be exactly allowlisted by `apm-policy.yml` and resolve to exactly
+  one committed APM lock entry.
+- `target` is a runtime skill identity, not an arbitrary filesystem path.
+- materialized `plugins/<capability>/skills/<target>/` payloads are derived artifacts;
+  the declaration plus APM policy/lock remain the authority.
+- `external-components.json` is generated provenance evidence recording the exact
+  lock commit/content hash, license and attribution; it is not another lock.
+- path traversal, symlink payloads, local/root/plugin identity collisions, missing
+  locks, malformed hashes and unallowlisted dependencies fail closed.
+- `--check` compares the materialized payload against the exact locked commit and
+  detects manifest drift. Removing a declaration removes only a target previously
+  recorded as externally managed.
+- capability planning resolves lock evidence into the approval hash before mutation;
+  lock or policy drift therefore invalidates the reviewed plan.
+
+
+
 ## Planning and approval
 
 Create a zero-write plan:

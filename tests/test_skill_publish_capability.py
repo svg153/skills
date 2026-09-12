@@ -240,6 +240,51 @@ license: MIT
         self.assertFalse((self.root / "plugins/delivery-triage").exists())
         self.assertEqual(marketplace.read_bytes(), original)
 
+    def test_external_components_are_resolved_into_approved_plan(self) -> None:
+        dependencies = self.root / "dependencies" / "external-skills"
+        dependencies.mkdir(parents=True)
+        (dependencies / "apm-policy.yml").write_text(
+            "dependencies:\n  allow:\n    - acme/repo/skills/external-status\n",
+            encoding="utf-8",
+        )
+        (dependencies / "apm.lock.yaml").write_text(
+            "dependencies:\n"
+            "- repo_url: acme/repo\n"
+            "  virtual_path: skills/external-status\n"
+            "  resolved_ref: v1.0.0\n"
+            "  resolved_commit: 0123456789012345678901234567890123456789\n"
+            "  content_hash: sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n",
+            encoding="utf-8",
+        )
+        value = self.capability_spec()
+        value["externalSkillComponents"] = [
+            {
+                "dependency": "acme/repo/skills/external-status",
+                "target": "external-status",
+                "license": "MIT",
+                "attribution": "Acme external status skill",
+            }
+        ]
+        plan = catalog_capability.plan_from_spec(self.write_spec(value), repo_root=self.root)
+        item = next(
+            entry for entry in plan.files if entry.path.endswith("/distribution.config.json")
+        )
+        config = json.loads(item.content)
+        self.assertEqual(
+            config["externalSkillComponents"][0]["dependency"],
+            "acme/repo/skills/external-status",
+        )
+        self.assertEqual(
+            plan.public["external_skill_components"][0]["resolved_commit"],
+            "0123456789012345678901234567890123456789",
+        )
+        self.assertIn(
+            "plugins/delivery-triage/external-components.json",
+            plan.public["generated_package_files"],
+        )
+
+
+
 
 if __name__ == "__main__":
     unittest.main()

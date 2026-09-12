@@ -24,6 +24,11 @@ if str(SCRIPTS_ROOT) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_ROOT))
 
 from agent_plugin_mcp import MCPConfigError, normalize_mcp_servers  # noqa: E402
+from apm_external_components import (  # noqa: E402
+    ExternalComponentError,
+    normalize_external_components,
+    resolve_external_components,
+)
 
 NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 SEMVER_RE = re.compile(r"^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$")
@@ -171,6 +176,13 @@ def normalize_spec(raw: dict[str, Any]) -> dict[str, Any]:
         "keywords": _string_list(raw.get("keywords"), "keywords"),
         "skill_sources": _string_list(raw.get("skill_sources"), "skill_sources", required=True),
     }
+    try:
+        spec["externalSkillComponents"] = normalize_external_components(
+            raw.get("externalSkillComponents", [])
+        )
+    except ExternalComponentError as exc:
+        fail(f"spec.externalSkillComponents: {exc}")
+
     repository = raw.get("repository", "https://github.com/svg153/skills")
     homepage = raw.get("homepage", f"https://github.com/svg153/skills/tree/main/plugins/{name}")
     for field, value in (("repository", repository), ("homepage", homepage)):
@@ -304,6 +316,8 @@ def render_distribution_config(spec: dict[str, Any]) -> bytes:
     }
     if spec["mcpServers"]:
         config["mcpServers"] = spec["mcpServers"]
+    if spec["externalSkillComponents"]:
+        config["externalSkillComponents"] = spec["externalSkillComponents"]
     return (json.dumps(config, indent=2, ensure_ascii=False) + "\n").encode("utf-8")
 
 
@@ -314,6 +328,13 @@ def repo_fingerprint(root: Path) -> str:
         root / "scripts" / "generate-capability-plugin.py",
         root / "scripts" / "agent_plugin_mcp.py",
     ]
+    for optional in (
+        root / "scripts" / "apm_external_components.py",
+        root / "dependencies" / "external-skills" / "apm.lock.yaml",
+        root / "dependencies" / "external-skills" / "apm-policy.yml",
+    ):
+        if optional.is_file():
+            paths.append(optional)
     for base in (root / "skills", root / "plugins"):
         for skill_file in sorted(base.rglob("SKILL.md")):
             if any(part in {".git", "node_modules"} for part in skill_file.parts):
@@ -351,6 +372,28 @@ def build_plan(root: Path, spec: dict[str, Any], spec_path: Path) -> Plan:
         *source_files,
     ]
 
+    try:
+        resolved_components = resolve_external_components(
+            root, spec["externalSkillComponents"]
+        )
+    except ExternalComponentError as exc:
+        fail(f"spec.externalSkillComponents: {exc}")
+
+    staged_identities = {name.casefold() for name in runtime_names}
+    for component in resolved_components:
+        identity = component["target"].casefold()
+        if identity in existing:
+            fail(
+                f"external runtime skill {component['target']!r} already exists at "
+                f"{existing[identity]}"
+            )
+        if identity in staged_identities:
+            fail(
+                f"external runtime skill {component['target']!r} collides with a local "
+                "capability skill"
+            )
+        staged_identities.add(identity)
+
     for item in files:
         relative = Path(item.path)
         if relative.is_absolute() or ".." in relative.parts:
@@ -373,11 +416,25 @@ def build_plan(root: Path, spec: dict[str, Any], spec_path: Path) -> Plan:
         "version": spec["version"],
         "skills": runtime_names,
         "mcp_servers": sorted(spec["mcpServers"]),
+        "external_skill_components": [
+            {
+                "dependency": item["dependency"],
+                "target": item["target"],
+                "resolved_commit": item["resolved_commit"],
+                "content_hash": item["content_hash"],
+            }
+            for item in resolved_components
+        ],
         "repo_fingerprint": repo_fingerprint(root),
         "files": operations,
         "generated_package_files": [
             f"plugins/{spec['name']}/plugin.json",
             *([f"plugins/{spec['name']}/mcp.json"] if spec["mcpServers"] else []),
+            *(
+                [f"plugins/{spec['name']}/external-components.json"]
+                if spec["externalSkillComponents"]
+                else []
+            ),
         ],
         "generated_root_files": ["marketplace.json", ".agents/plugins/marketplace.json"],
         "validations": [
@@ -483,6 +540,7 @@ def apply_plan(plan: Plan, *, run_validations: bool = True) -> dict[str, Any]:
         "name": name,
         "skills": plan.public["skills"],
         "mcp_servers": plan.public["mcp_servers"],
+        "external_skill_components": plan.public["external_skill_components"],
         "approval_hash": plan.approval_hash,
         "files": [item.path for item in sorted(plan.files, key=lambda i: i.path)],
         "validation_results": results,

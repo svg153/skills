@@ -4,7 +4,10 @@ import importlib.util
 import json
 from pathlib import Path
 import sys
+import tempfile
+import shutil
 import unittest
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = ROOT / "scripts"
@@ -23,6 +26,8 @@ generator = importlib.util.module_from_spec(generator_spec)
 sys.modules["generate_capability_plugin"] = generator
 assert generator_spec.loader is not None
 generator_spec.loader.exec_module(generator)
+
+import apm_external_components as external_components
 
 
 class PlanningCapabilityPluginTests(unittest.TestCase):
@@ -87,6 +92,171 @@ class PlanningCapabilityPluginTests(unittest.TestCase):
         self.assertIn("do not take over implementation", planning)
         self.assertIn("github-repo-autopilot", planning)
         self.assertIn("use repository delivery/implementation skills instead", backlog)
+
+class ExternalSkillComponentTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.root = Path(tempfile.mkdtemp())
+        (self.root / "dependencies" / "external-skills").mkdir(parents=True)
+        (self.root / "skills").mkdir()
+        self.package = self.root / "plugins" / "demo"
+        (self.package / "skills" / "local").mkdir(parents=True)
+        (self.package / "skills" / "local" / "SKILL.md").write_text(
+            "---\nname: local\ndescription: local\n---\n# Local\n",
+            encoding="utf-8",
+        )
+        self.source = Path(tempfile.mkdtemp()) / "foo"
+        self.source.mkdir(parents=True)
+        (self.source / "SKILL.md").write_text(
+            "---\nname: foo\ndescription: external\n---\n# Foo\n",
+            encoding="utf-8",
+        )
+        (self.source / "references").mkdir()
+        (self.source / "references" / "guide.md").write_text("guide\n", encoding="utf-8")
+        self.write_lock("sha256:" + "a" * 64)
+        (self.root / "dependencies" / "external-skills" / "apm-policy.yml").write_text(
+            "dependencies:\n  allow:\n    - acme/repo/skills/foo\n",
+            encoding="utf-8",
+        )
+
+    def tearDown(self) -> None:
+        shutil.rmtree(self.root, ignore_errors=True)
+        shutil.rmtree(self.source.parent, ignore_errors=True)
+
+    def write_lock(self, content_hash: str) -> None:
+        (self.root / "dependencies" / "external-skills" / "apm.lock.yaml").write_text(
+            "dependencies:\n"
+            "- repo_url: acme/repo\n"
+            "  virtual_path: skills/foo\n"
+            "  resolved_ref: v1.0.0\n"
+            "  resolved_commit: 0123456789012345678901234567890123456789\n"
+            f"  content_hash: {content_hash}\n",
+            encoding="utf-8",
+        )
+
+    def declarations(self):
+        return external_components.normalize_external_components(
+            [
+                {
+                    "dependency": "acme/repo/skills/foo",
+                    "target": "foo",
+                    "license": "MIT",
+                    "attribution": "Acme upstream skill",
+                }
+            ]
+        )
+
+    def test_resolve_requires_exact_allowlisted_lock_entry(self) -> None:
+        resolved = external_components.resolve_external_components(
+            self.root, self.declarations()
+        )
+        self.assertEqual(resolved[0]["resolved_commit"], "0123456789012345678901234567890123456789")
+        policy = self.root / "dependencies" / "external-skills" / "apm-policy.yml"
+        policy.write_text("dependencies:\n  allow: []\n", encoding="utf-8")
+        with self.assertRaisesRegex(external_components.ExternalComponentError, "not allowlisted"):
+            external_components.resolve_external_components(self.root, self.declarations())
+
+    def test_target_path_and_duplicates_fail_closed(self) -> None:
+        with self.assertRaises(external_components.ExternalComponentError):
+            external_components.normalize_external_components(
+                [{
+                    "dependency": "acme/repo/skills/foo",
+                    "target": "../foo",
+                    "license": "MIT",
+                    "attribution": "Acme",
+                }]
+            )
+        with self.assertRaisesRegex(
+            external_components.ExternalComponentError, "duplicate external component target"
+        ):
+            external_components.normalize_external_components(
+                [
+                    {
+                        "dependency": "acme/repo/skills/foo",
+                        "target": "foo",
+                        "license": "MIT",
+                        "attribution": "Acme",
+                    },
+                    {
+                        "dependency": "other/repo/skills/bar",
+                        "target": "foo",
+                        "license": "MIT",
+                        "attribution": "Other",
+                    },
+                ]
+            )
+
+    def test_materialization_converges_and_detects_payload_drift(self) -> None:
+        resolved = external_components.resolve_external_components(self.root, self.declarations())
+        with mock.patch.object(
+            external_components, "_checkout_locked_source",
+            side_effect=lambda _item, _temp: self.source,
+        ):
+            self.assertEqual(
+                external_components.sync_external_components(
+                    self.root, self.package, resolved, check_only=False
+                ),
+                [],
+            )
+            self.assertEqual(
+                external_components.sync_external_components(
+                    self.root, self.package, resolved, check_only=True
+                ),
+                [],
+            )
+            target = self.package / "skills" / "foo" / "SKILL.md"
+            target.write_text(target.read_text(encoding="utf-8") + "\nDRIFT\n", encoding="utf-8")
+            drift = external_components.sync_external_components(
+                self.root, self.package, resolved, check_only=True
+            )
+            self.assertTrue(any("content differs" in item for item in drift))
+
+    def test_lock_hash_change_is_visible_as_manifest_drift(self) -> None:
+        resolved = external_components.resolve_external_components(self.root, self.declarations())
+        with mock.patch.object(
+            external_components, "_checkout_locked_source",
+            side_effect=lambda _item, _temp: self.source,
+        ):
+            external_components.sync_external_components(
+                self.root, self.package, resolved, check_only=False
+            )
+            self.write_lock("sha256:" + "b" * 64)
+            changed = external_components.resolve_external_components(self.root, self.declarations())
+            drift = external_components.sync_external_components(
+                self.root, self.package, changed, check_only=True
+            )
+            self.assertIn("external-components.json: stale", drift)
+
+    def test_symlink_payload_and_runtime_collision_fail_closed(self) -> None:
+        link = self.source / "unsafe"
+        try:
+            link.symlink_to("SKILL.md")
+        except (OSError, NotImplementedError):
+            self.skipTest("symlinks unavailable")
+        resolved = external_components.resolve_external_components(self.root, self.declarations())
+        with mock.patch.object(
+            external_components, "_checkout_locked_source",
+            side_effect=lambda _item, _temp: self.source,
+        ):
+            with self.assertRaisesRegex(external_components.ExternalComponentError, "symlink"):
+                external_components.sync_external_components(
+                    self.root, self.package, resolved, check_only=False
+                )
+        link.unlink()
+        (self.root / "skills" / "foo").mkdir()
+        (self.root / "skills" / "foo" / "SKILL.md").write_text(
+            "---\nname: foo\ndescription: collision\n---\n# Foo\n",
+            encoding="utf-8",
+        )
+        with mock.patch.object(
+            external_components, "_checkout_locked_source",
+            side_effect=lambda _item, _temp: self.source,
+        ):
+            with self.assertRaisesRegex(external_components.ExternalComponentError, "collides"):
+                external_components.sync_external_components(
+                    self.root, self.package, resolved, check_only=False
+                )
+
+
 
 
 if __name__ == "__main__":
