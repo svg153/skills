@@ -17,6 +17,18 @@
       "category": "Developer Tools"
     },
     {
+      "name": "design-engineering",
+      "source": {
+        "source": "local",
+        "path": "./plugins/design-engineering"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    },
+    {
       "name": "planning",
       "source": {
         "source": "local",
