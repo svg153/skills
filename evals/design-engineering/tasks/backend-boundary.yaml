@@ -1,0 +1,15 @@
+id: design-engineering-backend-boundary
+name: Backend-only work does not activate design engineering
+inputs:
+  prompt: >-
+    Add an index to the PostgreSQL transactions table, update the repository query, and benchmark
+    the endpoint. There is no user-interface change.
+expected:
+  should_trigger: false
+  graders:
+    - type: trigger
+      name: boundary
+      config:
+        skill_path: plugins/design-engineering/skills/design-engineering/SKILL.md
+        mode: negative
+        threshold: 0.6

@@ -1,0 +1,24 @@
+id: design-engineering-degraded-optional-tools
+name: Missing optional Figma and browser tooling degrades honestly
+inputs:
+  prompt: >-
+    Improve this settings page using the design-engineering workflow. The repository has source code
+    and DESIGN.md, but Figma authentication is unavailable and the app cannot currently be launched
+    in this environment.
+expected:
+  should_trigger: true
+  graders:
+    - type: trigger
+      name: activation
+      config:
+        skill_path: plugins/design-engineering/skills/design-engineering/SKILL.md
+        mode: positive
+        threshold: 0.6
+    - type: prompt
+      name: degraded_evidence
+      config:
+        prompt: >-
+          Pass only if the response continues with repository/DESIGN.md evidence where safe, clearly
+          marks Figma and rendered-browser evidence as unavailable or blocked, does not fabricate
+          screenshots/runtime/accessibility/performance findings, and labels the result as
+          source-validated rather than browser-verified.

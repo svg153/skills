@@ -1,0 +1,15 @@
+id: design-engineering-mechanical-frontend-boundary
+name: Mechanical frontend refactor does not activate design engineering
+inputs:
+  prompt: >-
+    Rename the React prop `isLoading` to `loading` across the frontend, update TypeScript references,
+    and fix any compile errors. Do not change appearance or interaction.
+expected:
+  should_trigger: false
+  graders:
+    - type: trigger
+      name: boundary
+      config:
+        skill_path: plugins/design-engineering/skills/design-engineering/SKILL.md
+        mode: negative
+        threshold: 0.6

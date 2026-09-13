@@ -1,0 +1,24 @@
+id: design-engineering-rendered-evidence
+name: Runnable UI mutation requires bounded rendered verification
+inputs:
+  prompt: >-
+    Polish the responsive account page and fix the awkward mobile layout. The app runs locally and
+    its existing end-to-end/browser tooling is available.
+expected:
+  should_trigger: true
+  graders:
+    - type: trigger
+      name: activation
+      config:
+        skill_path: plugins/design-engineering/skills/design-engineering/SKILL.md
+        mode: positive
+        threshold: 0.6
+    - type: prompt
+      name: browser_contract
+      config:
+        prompt: >-
+          Pass only if the response uses existing project browser/e2e tooling first, renders
+          representative responsive states, checks relevant overflow/wrapping, keyboard/focus and
+          console/runtime behavior, treats screenshots as comparison evidence rather than sole proof,
+          and keeps automatic render/inspect/fix repair work bounded to at most three cycles after
+          the initial implementation/render.

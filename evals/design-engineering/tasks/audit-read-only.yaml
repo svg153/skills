@@ -1,0 +1,22 @@
+id: design-engineering-audit-read-only
+name: Explicit interface audit stays evidence-first and read-only
+inputs:
+  prompt: >-
+    Audit the checkout screen for hierarchy, responsive behavior, accessibility and interaction
+    problems. Do not change code yet; I want prioritized findings and the evidence behind them.
+expected:
+  should_trigger: true
+  graders:
+    - type: trigger
+      name: activation
+      config:
+        skill_path: plugins/design-engineering/skills/design-engineering/SKILL.md
+        mode: positive
+        threshold: 0.6
+    - type: prompt
+      name: audit_boundary
+      config:
+        prompt: >-
+          Pass only if the response selects audit mode, remains read-only, prioritizes findings by
+          evidence and user impact, distinguishes observed/runtime evidence from source-only
+          hypotheses, and does not claim fixes were made.

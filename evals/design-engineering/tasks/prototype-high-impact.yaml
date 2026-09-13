@@ -1,0 +1,23 @@
+id: design-engineering-prototype-high-impact
+name: High-impact uncertain redesign uses isolated prototype exploration
+inputs:
+  prompt: >-
+    Redesign the first-run onboarding flow. It is strategically important and we do not yet know
+    whether a guided wizard, progressive disclosure, or a simulation-first experience is best.
+    Explore the strongest directions before changing production code.
+expected:
+  should_trigger: true
+  graders:
+    - type: trigger
+      name: activation
+      config:
+        skill_path: plugins/design-engineering/skills/design-engineering/SKILL.md
+        mode: positive
+        threshold: 0.6
+    - type: prompt
+      name: prototype_boundary
+      config:
+        prompt: >-
+          Pass only if the response selects prototype mode, explores genuinely distinct concepts
+          outside production code, preserves the existing product/design context, and keeps a human
+          choice before promoting a materially different direction into production.
