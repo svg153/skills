@@ -20,8 +20,8 @@ The roadmap deliberately proves governance before adding dependencies, then buil
 - [ ] **Phase 6: Web Quality Skills** — integrate evidence-led accessibility/performance/SEO/best-practice auditing.
 - [x] **Phase 7: DESIGN.md Contract** — adopted the open DESIGN.md format with evidence precedence, monorepo scope and reviewable create/update behavior.
 - [x] **Phase 8: Playwright Visual Loop** — rendered UI evidence now has a portable browser protocol, responsive/state matrix, interaction/console/focus checks and bounded repair cycles.
-- [ ] **Phase 9: Behavioral Evals and Fixtures** — prove routing, reuse, degradation and safety behavior.
-- [ ] **Phase 10: Real Application Pilot** — validate the baseline on one production-shaped app before expanding scope.
+- [x] **Phase 9: Behavioral Evals and Fixtures** — core routing, reuse, degradation, browser-evidence and human-merge boundaries are covered by catalog-owned Waza tasks.
+- [ ] **Phase 10: Real Application Pilot** — validate the complete v1.0 baseline on one production-shaped app before expanding scope.
 - [ ] **Phase 11: Optional Figma MCP** — compose official Figma access and capture authenticated/degraded evidence.
 - [ ] **Phase 12: Impeccable Benchmark** — compare against the proven baseline before adoption.
 - [ ] **Phase 13: Advanced Browser and Component Integrations** — evaluate DevTools MCP and 21st/component discovery independently.
@@ -77,7 +77,7 @@ The roadmap deliberately proves governance before adding dependencies, then buil
 **Success Criteria**:
 1. `prototype`, `pick-ui-library`, `animate`, and `review-animations` are pinned, provenance-governed and packaged.
 2. Their routing is subordinate/specialized; the normal broad design request still lands on the local orchestrator.
-3. Upstream updates produce reviewable dependency diffs and behavioral evidence before merge.
+3. Upstream updates produce reviewable dependency diffs and behavioral evidence before merge, including specialist-specific additions to the Phase 9 design-engineering suite.
 **Plans**: 1 plan — `05-01-PLAN.md`
 
 ### Phase 6: Web Quality Skills
@@ -87,7 +87,7 @@ The roadmap deliberately proves governance before adding dependencies, then buil
 **Success Criteria**:
 1. The required Addy Osmani skill set is packaged with relative references intact.
 2. Runtime evidence is separated from source-only hypotheses and unavailable browser tools have documented fallbacks.
-3. Accessibility/performance regressions relevant to a UI change can block completion even when visual appearance is acceptable.
+3. Accessibility/performance regressions relevant to a UI change can block completion even when visual appearance is acceptable, and specialist-specific behavior is added to the Phase 9 design-engineering suite.
 **Plans**: 1 plan — `06-01-PLAN.md`
 
 ### Phase 7: DESIGN.md Contract
@@ -111,18 +111,18 @@ The roadmap deliberately proves governance before adding dependencies, then buil
 **Plans**: 1 plan — `08-01-PLAN.md` — COMPLETE 2026-09-12
 
 ### Phase 9: Behavioral Evals and Fixtures
-**Goal**: Make the capability's routing and safety properties regression-testable before the first real pilot.
-**Depends on**: Phases 5, 6, 7 and 8
+**Goal**: Make the implemented core capability's routing and safety properties regression-testable before the first real pilot.
+**Depends on**: Phases 4, 7 and 8. Phases 5/6 are separately supply-chain-gated and must extend this suite with specialist-specific cases when their components are enrolled.
 **Requirements**: EVAL-01
 **Success Criteria**:
 1. Positive and negative Waza cases cover broad design requests, small mechanical frontend edits, prototype-worthy changes, audit-only requests and no-visual backend work.
-2. Fixtures prove reuse-first, optional-integration degradation, browser-evidence requirements and human merge boundaries.
-3. Static PR validation is cheap; model-backed evals remain trusted/scheduled/manual as in the existing repository contract.
-**Plans**: 1 plan — `09-01-PLAN.md`
+2. Tasks prove reuse-first, scoped design-context precedence, optional-integration degradation, browser-evidence requirements and human merge boundaries.
+3. Static PR validation is cheap and secret-free; model-backed evals remain trusted/scheduled/manual as in the existing repository contract.
+**Plans**: 1 plan — `09-01-PLAN.md` — COMPLETE 2026-09-13
 
 ### Phase 10: Real Application Pilot
-**Goal**: Prove the baseline against a real application rather than a synthetic landing page.
-**Depends on**: Phase 9
+**Goal**: Prove the complete baseline against a real application rather than a synthetic landing page.
+**Depends on**: Phases 5, 6 and 9. This deliberately keeps the real-app pilot behind the Phase 1 supply-chain gate transitively through Phases 5/6.
 **Requirements**: PILOT-01
 **Success Criteria**:
 1. One real app (prefer Future Family Flow or the price comparator) is onboarded without special-case code in `svg153/skills`.
@@ -192,8 +192,8 @@ The roadmap deliberately proves governance before adding dependencies, then buil
 | 6. Web Quality Skills | v1.0 | 0/1 | Blocked by Phase 1 external release/Renovate proof | - |
 | 7. DESIGN.md Contract | v1.0 | 1/1 | Complete | 2026-09-12 |
 | 8. Playwright Visual Loop | v1.0 | 1/1 | Complete | 2026-09-12 |
-| 9. Behavioral Evals and Fixtures | v1.0 | 0/1 | Blocked by Phases 5/6 | - |
-| 10. Real Application Pilot | v1.0 | 0/1 | Blocked by Phase 9 | - |
+| 9. Behavioral Evals and Fixtures | v1.0 | 1/1 | Complete | 2026-09-13 |
+| 10. Real Application Pilot | v1.0 | 0/1 | Blocked by Phases 5/6 (and transitively Phase 1) | - |
 | 11. Optional Figma MCP | v1.1 | 0/1 | Blocked by Phase 10 | - |
 | 12. Impeccable Benchmark | v1.1 | 0/1 | Blocked by Phase 10 | - |
 | 13. Advanced Browser and Component Integrations | v1.1 | 0/1 | Blocked by Phase 10 | - |
