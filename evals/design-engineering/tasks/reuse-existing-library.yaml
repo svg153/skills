@@ -1,0 +1,23 @@
+id: design-engineering-reuse-existing-library
+name: Existing component library wins before adding another dependency
+inputs:
+  prompt: >-
+    Improve the filters on our results page. The app already uses Radix primitives, a shared Select,
+    Popover and Button, plus project design tokens. Add whatever UI library you think is best if
+    that helps.
+expected:
+  should_trigger: true
+  graders:
+    - type: trigger
+      name: activation
+      config:
+        skill_path: plugins/design-engineering/skills/design-engineering/SKILL.md
+        mode: positive
+        threshold: 0.6
+    - type: prompt
+      name: reuse_first
+      config:
+        prompt: >-
+          Pass only if the response inspects and prefers the existing shared components and installed
+          Radix primitives before considering a new library, and introduces a dependency only when
+          it identifies a concrete unmet need and explains the trade-off.

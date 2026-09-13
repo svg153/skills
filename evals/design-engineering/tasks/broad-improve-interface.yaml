@@ -1,0 +1,23 @@
+id: design-engineering-broad-improve-interface
+name: Broad interface improvement activates recon and reuse-first workflow
+inputs:
+  prompt: >-
+    Improve the main dashboard of this existing React application. It already has a shared Button,
+    Card, typography tokens and spacing variables. Make the screen feel clearer and more polished,
+    but preserve the product's current visual identity.
+expected:
+  should_trigger: true
+  graders:
+    - type: trigger
+      name: activation
+      config:
+        skill_path: plugins/design-engineering/skills/design-engineering/SKILL.md
+        mode: positive
+        threshold: 0.6
+    - type: prompt
+      name: recon_reuse_mode
+      config:
+        prompt: >-
+          Pass only if the response first inspects existing product/design context and reusable
+          components/tokens, prefers those over inventing a new design system or dependency, chooses
+          a proportionate polish/prototype/audit mode, and does not impose an unrelated house style.

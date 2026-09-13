@@ -1,0 +1,22 @@
+id: design-engineering-design-context-precedence
+name: Existing scoped design context outranks inferred defaults
+inputs:
+  prompt: >-
+    Improve a screen inside apps/admin. That app has its own DESIGN.md and token theme that differ
+    intentionally from the repository root guidance. Keep it consistent with the admin product.
+expected:
+  should_trigger: true
+  graders:
+    - type: trigger
+      name: activation
+      config:
+        skill_path: plugins/design-engineering/skills/design-engineering/SKILL.md
+        mode: positive
+        threshold: 0.6
+    - type: prompt
+      name: scoped_design_context
+      config:
+        prompt: >-
+          Pass only if the response treats the app-local DESIGN.md and actual tokens/components as
+          stronger evidence than root or inferred defaults, does not silently promote inference into
+          normative tokens, and avoids unrelated design-memory churn.

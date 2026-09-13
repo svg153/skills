@@ -15,7 +15,7 @@
 - [ ] **QUAL-01**: Web-quality auditing covers accessibility, performance/Core Web Vitals, SEO/best practices where relevant and distinguishes runtime evidence from source hypotheses.
 - [x] **DSYS-01**: Projects can create or consume a concise project-level `DESIGN.md` that records visual/product constraints without duplicating the PRD.
 - [x] **BROW-01**: UI-changing work renders representative desktop/tablet/mobile states, checks interactions/console/overflow/focus, and iterates within a bounded browser loop before completion.
-- [ ] **EVAL-01**: Waza/static fixtures cover orchestrator routing, must-not-trigger boundaries, reuse-first behavior, degraded optional integrations, browser evidence and no-visual-auto-merge policy.
+- [x] **EVAL-01**: Waza/static fixtures cover orchestrator routing, must-not-trigger boundaries, reuse-first behavior, degraded optional integrations, browser evidence and no-visual-auto-merge policy.
 - [ ] **PILOT-01**: One real application pilot demonstrates the full baseline workflow and captures before/after evidence, defects found, trade-offs and lessons before broader rollout.
 
 ### Optional integrations — v1.1
@@ -62,7 +62,7 @@ These are invariants, not separately completable requirements:
 | QUAL-01 | Phase 6 | Pending |
 | DSYS-01 | Phase 7 | Complete |
 | BROW-01 | Phase 8 | Complete |
-| EVAL-01 | Phase 9 | Pending |
+| EVAL-01 | Phase 9 | Complete |
 | PILOT-01 | Phase 10 | Pending |
 | FIGMA-01 | Phase 11 | Pending |
 | IMP-01 | Phase 12 | Pending |
@@ -77,4 +77,4 @@ These are invariants, not separately completable requirements:
 
 ---
 *Requirements defined: 2026-09-11*
-*Last updated: 2026-09-12 after Phases 2, 3, 4, 7 and 8; Phase 1 remains externally blocked by #46*
+*Last updated: 2026-09-13 after Phase 9; Phase 1 remains externally blocked by #46 and Phases 5/6 remain pending that proof*
