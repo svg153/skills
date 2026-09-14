@@ -1,0 +1,17 @@
+name: mcp-skills-provider
+origin: https://github.com/svg153/skills
+origin_path: skills/mcp-skills-provider
+category: software-development
+status: active
+sync:
+  enabled: false
+  interval: manual
+  strategy: local
+  authoritative: local
+tags:
+  - agent-skills
+  - mcp
+  - architecture
+  - security
+  - conformance
+  - software-development
