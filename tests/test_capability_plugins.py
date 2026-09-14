@@ -48,7 +48,7 @@ class PlanningCapabilityPluginTests(unittest.TestCase):
         self.assertEqual(manifest["mcpServers"]["github"]["type"], "streamable-http")
         self.assertEqual(manifest["mcpServers"]["github"]["url"], "https://api.githubcopilot.com/mcp/")
         self.assertEqual(manifest["mcpServers"]["atlassian"]["type"], "streamable-http")
-        self.assertEqual(manifest["mcpServers"]["atlassian"]["url"], "https://mcp.atlassian.com/v1/mcp/authv2")
+        self.assertEqual(manifest["mcpServers"]["atlassian"]["url"], "https://mcp.atlassian.com/v2/mcp")
         for server in manifest["mcpServers"].values():
             self.assertNotIn("headers", server)
             self.assertNotIn("command", server)
@@ -56,12 +56,17 @@ class PlanningCapabilityPluginTests(unittest.TestCase):
 
     def test_both_mcp_dependencies_have_official_provenance(self) -> None:
         servers = self.config()["mcpServers"]
+        expected_reviewed = {"github": "2026-09-05", "atlassian": "2026-09-14"}
         for name in ("github", "atlassian"):
             provenance = servers[name]["provenance"]
             self.assertEqual(provenance["kind"], "official")
             self.assertTrue(provenance["source"].startswith("https://"))
-            self.assertEqual(provenance["reviewed"], "2026-09-05")
+            self.assertEqual(provenance["reviewed"], expected_reviewed[name])
             self.assertTrue(provenance["purpose"])
+        self.assertEqual(
+            servers["atlassian"]["provenance"]["source"],
+            "https://github.com/atlassian/atlassian-mcp-server",
+        )
 
     def test_skills_keep_single_system_of_record_rule(self) -> None:
         planning = (PACKAGE / "skills" / "planning" / "SKILL.md").read_text(encoding="utf-8").casefold()
@@ -92,6 +97,7 @@ class PlanningCapabilityPluginTests(unittest.TestCase):
         self.assertIn("do not take over implementation", planning)
         self.assertIn("github-repo-autopilot", planning)
         self.assertIn("use repository delivery/implementation skills instead", backlog)
+
 
 class ExternalSkillComponentTests(unittest.TestCase):
     def setUp(self) -> None:
@@ -255,8 +261,6 @@ class ExternalSkillComponentTests(unittest.TestCase):
                 external_components.sync_external_components(
                     self.root, self.package, resolved, check_only=False
                 )
-
-
 
 
 if __name__ == "__main__":
