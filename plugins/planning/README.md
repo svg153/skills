@@ -10,6 +10,7 @@ plugins/planning/
 ├── mcp.json
 ├── distribution.config.json
 ├── docs/
+│   ├── atlassian-v2-boundary.md
 │   ├── compatibility.md
 │   └── runtime-evidence.md
 ├── evidence/
@@ -52,9 +53,11 @@ The split is intentional: planning new work and operating an existing backlog ha
 | Server | Transport | Endpoint | Auth |
 | --- | --- | --- | --- |
 | GitHub MCP | Streamable HTTP | `https://api.githubcopilot.com/mcp/` | Client-managed GitHub OAuth/PAT flow |
-| Atlassian Rovo MCP | Streamable HTTP | `https://mcp.atlassian.com/v1/mcp/authv2` | Client-managed OAuth 2.1 |
+| Atlassian Rovo MCP v2 | Streamable HTTP | `https://mcp.atlassian.com/v2/mcp` | Client-managed OAuth 2.1 |
 
 No credentials are committed. `distribution.config.json` records endpoint provenance/purpose/review metadata; generated `mcp.json` contains only the portable Agent Plugins shape.
+
+Rovo MCP v2 exposes a smaller primary tool surface and reaches some provider operations through its `discover` / `execute` convention. That is a provider-specific detail, not a reason to copy Atlassian's own Agent Skills into this plugin. Atlassian now maintains provider-native skills such as `spec-to-backlog`, `triage-issue`, and `jira-sprint-dashboard` in `atlassian/atlassian-mcp-server`; our `planning` and `backlog-management` skills remain cross-provider orchestration. See [`docs/atlassian-v2-boundary.md`](docs/atlassian-v2-boundary.md).
 
 ## Install with GitHub Copilot CLI
 
@@ -167,9 +170,9 @@ This is an **experimental pilot** for `svg153/skills#36`.
 - GitHub Copilot CLI 1.0.83 marketplace install/discovery: verified in CI.
 - OpenAI Codex CLI 0.153.4 marketplace install/discovery: verified in CI.
 - GitHub MCP discovery from plugin in Copilot and Codex: verified in CI.
-- Atlassian MCP discovery from plugin in Copilot and Codex: verified in CI.
+- Atlassian Rovo MCP v2 discovery from plugin: being re-verified by `svg153/skills#65`; do not reuse the historical v1 evidence as a v2 runtime claim.
 - GitHub MCP authenticated tool call: pending.
-- Atlassian MCP authenticated tool call: pending.
+- Atlassian MCP v2 authenticated tool call: pending.
 - end-to-end cross-provider mutation scenario: pending.
 
 Do not treat MCP discovery evidence as proof that every client can authenticate to both remote MCP servers. Runtime evidence is recorded separately per client and version in [`docs/compatibility.md`](docs/compatibility.md), with the stronger authenticated evidence procedure in [`docs/runtime-evidence.md`](docs/runtime-evidence.md).
@@ -181,5 +184,6 @@ Do not treat MCP discovery evidence as proof that every client can authenticate 
 - GitHub Copilot CLI marketplaces: https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/plugins-marketplace
 - GitHub MCP Server: https://github.com/github/github-mcp-server
 - GitHub MCP setup: https://docs.github.com/en/copilot/how-tos/provide-context/use-mcp-in-your-ide/set-up-the-github-mcp-server
-- Atlassian Rovo MCP: https://support.atlassian.com/atlassian-ai-gateway/docs/use-rovo-mcp-with-other-supported-mcp-clients/
+- Atlassian Rovo MCP repository: https://github.com/atlassian/atlassian-mcp-server
+- Atlassian Rovo MCP v2: https://mcp.atlassian.com/v2/mcp
 - Pilot issue: https://github.com/svg153/skills/issues/36
