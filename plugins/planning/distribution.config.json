@@ -37,14 +37,14 @@
     "atlassian": {
       "config": {
         "type": "streamable-http",
-        "url": "https://mcp.atlassian.com/v1/mcp/authv2"
+        "url": "https://mcp.atlassian.com/v2/mcp"
       },
       "provenance": {
         "kind": "official",
         "owner": "Atlassian",
-        "source": "https://support.atlassian.com/atlassian-ai-gateway/docs/use-rovo-mcp-with-other-supported-mcp-clients/",
-        "purpose": "Read and manage Jira projects, backlogs, issues, relationships, and status when Jira is a planning provider.",
-        "reviewed": "2026-09-05"
+        "source": "https://github.com/atlassian/atlassian-mcp-server",
+        "purpose": "Read and manage Jira projects, backlogs, issues, relationships, and status when Jira is a planning provider through the current Rovo MCP v2 contract.",
+        "reviewed": "2026-09-14"
       }
     }
   }
