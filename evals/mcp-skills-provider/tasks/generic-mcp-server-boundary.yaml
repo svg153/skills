@@ -1,0 +1,15 @@
+id: mcp-skills-provider-generic-mcp-boundary
+name: Generic MCP server work does not trigger Skills provider workflow
+inputs:
+  prompt: >-
+    Build a small MCP server with one read-only weather tool. There are no Agent Skills, no SKILL.md
+    files, and I do not want a skills distribution layer. Focus only on the tool schema and transport.
+expected:
+  should_trigger: false
+  graders:
+    - type: trigger
+      name: boundary
+      config:
+        skill_path: skills/mcp-skills-provider/SKILL.md
+        mode: negative
+        threshold: 0.6
