@@ -24,18 +24,18 @@ Do not promote a lower evidence level to a stronger claim.
 | Agent Skills | pinned `agentskills/skills-ref` validation | both `planning` and `backlog-management` validate | `conformance` ✅ |
 | `npx skills` | `skills@latest`, telemetry disabled | both packaged skills discovered from `plugins/planning` | `install/discovery verified` ✅ |
 | GitHub Copilot CLI | `@github/copilot` 1.0.83, Node 22, GitHub Actions Ubuntu runner | repository marketplace exposes `planning`; `planning@svg153-skills` installs and `copilot plugin list` discovers it | `install/discovery verified` ✅ |
-| GitHub MCP through Copilot CLI | remote `https://api.githubcopilot.com/mcp/` | historical/current CI evidence: `copilot mcp list --json` reports `sourcePlugin: planning`, version `0.1.0`, enabled | `MCP discovery verified` ✅ |
-| Atlassian Rovo MCP v2 through Copilot CLI | remote `https://mcp.atlassian.com/v2/mcp` | migration in #65; historical evidence covered the retired v1 plugin config and must not be promoted to v2 | pending re-verification |
+| GitHub MCP through Copilot CLI | remote `https://api.githubcopilot.com/mcp/` | `copilot mcp list --json` reports the plugin-provided GitHub MCP enabled | `MCP discovery verified` ✅ |
+| Atlassian Rovo MCP v2 through Copilot CLI | remote `https://mcp.atlassian.com/v2/mcp` | #65 CI run `34900475614`, step `Validate GitHub Copilot CLI marketplace, plugin and MCP discovery` | `MCP discovery verified` ✅ |
 | OpenAI Codex CLI | `@openai/codex` 0.153.4, Node 22, GitHub Actions Ubuntu runner | repo-local `.agents/plugins/marketplace.json` exposes `planning`; `codex plugin add planning@svg153-skills` installs and enables the **portable root Agent Plugin** | `install/discovery verified` ✅ |
-| GitHub MCP through Codex CLI | same portable `plugins/planning/mcp.json` | historical/current CI evidence: `codex mcp list --json` reports `github`, `streamable_http`, enabled, `auth_status: not_logged_in` | `MCP discovery verified` ✅ |
-| Atlassian Rovo MCP v2 through Codex CLI | same portable `plugins/planning/mcp.json`, now `https://mcp.atlassian.com/v2/mcp` | migration in #65; await fresh CI install/discovery evidence for the changed endpoint | pending re-verification |
+| GitHub MCP through Codex CLI | same portable `plugins/planning/mcp.json` | `codex mcp list --json` reports `github`, `streamable_http`, enabled | `MCP discovery verified` ✅ |
+| Atlassian Rovo MCP v2 through Codex CLI | same portable `plugins/planning/mcp.json`, `https://mcp.atlassian.com/v2/mcp` | #65 CI run `34900475614`, step `Validate Codex CLI portable Agent Plugin and MCP discovery` | `MCP discovery verified` ✅ |
 | VS Code / Copilot | current Agent Plugins-capable release | not executed in this repository yet | pending |
 | ChatGPT / Codex connected-plugin runtime | current supported surface | install/runtime not executed from an authenticated account yet | pending |
 | additional Agent Plugins client | TBD | not executed yet | pending |
 
 ### Historical Atlassian v1 evidence
 
-Before #65, the package used `https://mcp.atlassian.com/v1/mcp/authv2`. Copilot CLI and Codex CLI both loaded that plugin-provided MCP configuration successfully. That evidence remains useful as historical proof of the packaging path, but it does **not** prove Rovo MCP v2 discovery, authentication, tool contracts, or end-to-end behavior.
+Before #65, the package used `https://mcp.atlassian.com/v1/mcp/authv2`. Copilot CLI and Codex CLI both loaded that plugin-provided MCP configuration successfully. That evidence remains useful as historical proof of the packaging path, but it does **not** prove Rovo MCP v2 authentication, tool contracts, or end-to-end behavior.
 
 Rovo MCP v2 changes the provider contract. Atlassian exposes a smaller primary tool set and reaches other operations through its `discover` / `execute` convention; its public v2 Agent Skills encode those provider-native details. See [`atlassian-v2-boundary.md`](atlassian-v2-boundary.md).
 
@@ -76,9 +76,7 @@ The observed Copilot CLI MCP representation normalizes the Agent Plugins `stream
 - `source: plugin`;
 - `enabled: true`.
 
-Once #65 CI runs against the v2 configuration, this section may record v2-specific discovery evidence. Until then, the Atlassian row remains pending.
-
-This evidence level proves the package is accepted by a real Copilot CLI plugin loader and that MCP configurations can be loaded from the plugin. It does **not** prove provider authentication because the workflow intentionally has only `contents: read` permission and no user/provider credentials.
+Fresh #65 CI run `34900475614` completed the marketplace/plugin/MCP discovery step successfully with the v2 endpoint in the generated package. This establishes v2 **MCP discovery** only; it does not establish OAuth or successful provider tool calls.
 
 ## Codex CLI evidence
 
@@ -99,7 +97,7 @@ codex plugin list --json
 codex mcp list --json
 ```
 
-Observed installation state on the previously validated package path:
+Observed installation state on the validated package path:
 
 - `pluginId: planning@svg153-skills`;
 - `version: 0.1.0`;
@@ -109,7 +107,7 @@ Observed installation state on the previously validated package path:
 
 Most importantly, `plugins/planning` contains **no Codex-specific runtime manifest**. Codex 0.153.4 installs its root Agent Plugins 1.0 `plugin.json`, discovers the shared `skills/` tree, and translates the same portable `mcp.json` used by Copilot.
 
-For MCP entries Codex reports the portable URL and transport `streamable_http`; provider authentication is a separate gate. Fresh #65 CI must prove that the v2 Atlassian URL is preserved by the same path before this document marks that row verified.
+Fresh #65 CI run `34900475614` completed the Codex portable-plugin/MCP discovery step successfully with the Rovo v2 URL. Provider authentication remains a separate gate.
 
 ## Remaining runtime gates
 
