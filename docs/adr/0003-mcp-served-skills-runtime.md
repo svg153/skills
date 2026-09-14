@@ -1,6 +1,6 @@
 # ADR 0003: MCP-served Agent Skills as a runtime delivery surface
 
-- Status: Accepted
+- Status: Accepted (validated by Stars reference pilot)
 - Date: 2026-09-14
 - Decision owners: `svg153/skills` maintainers
 - Related: #33, #44, #64, `svg153/github-stars-contrib-mcp-server#48`
@@ -74,8 +74,10 @@ A skill name is not a sufficient global identity. Hosts and catalog integrations
 
 When a host sees both a standalone skill and an MCP-served skill with the same display name:
 
-- do not silently shadow one with the other;
+- do not silently shadow, concatenate, or merge one with the other;
 - retain origin information in diagnostics/UI where available;
+- if content is byte-identical, treat the copies as alternate delivery surfaces and activate only one;
+- if content differs, surface an origin/version conflict instead of pretending equivalence;
 - prefer explicit host/provider resolution rules over catalog-side guessing;
 - do not auto-delete the standalone path until equivalent runtime discovery, activation, update, and governance behavior is proven for the target clients.
 
@@ -120,11 +122,15 @@ Installing a plugin that configures an MCP does not guarantee that every client 
 
 Therefore plugin-packaged fallback behavior must not be removed solely because the server advertises `io.modelcontextprotocol/skills`.
 
+The Stars pilot additionally proved that a provider repository can expose the exact same root `skills/*` tree as a portable Agent Plugin fallback. A second generated or host-specific editable skill tree is unnecessary when the package format already discovers the canonical directory directly.
+
 ## Runtime trust and integrity
 
 MCP Skills manifests can carry hashes and sizes for static resources. Treat these as snapshot/integrity evidence, not independent proof of publisher trust: the server supplies both the bytes and their advertised digest.
 
 A host must continue to apply its own approval, tool-permission, code-execution, and origin policies. Reading a remote `SKILL.md` does not grant the skill authority to bypass the user's or application's existing mutation/safety boundaries.
+
+Likewise, skill frontmatter such as `allowed-tools` remains metadata/instructions. The serving MCP must not reinterpret it as server-side authorization to expose or execute otherwise unauthorized tools.
 
 ## Repository policy
 
@@ -135,17 +141,47 @@ For `svg153/skills`:
 - `metadata.yaml` and APM state continue to govern catalog lifecycle/provenance for file-based catalog entries;
 - provider-native MCP skills should normally remain at the provider and be consumed at runtime when the client supports the extension;
 - a standalone fallback may be mirrored only when it adds real compatibility/discovery value and uses the existing immutable APM/Renovate path;
-- host/runtime support claims require named client/version evidence and must distinguish MCP connection, MCP resource support, Skills discovery, and actual skill activation.
+- host/runtime support claims require named client/version evidence and must distinguish MCP connection, MCP resource support, Skills discovery, lazy resource loading and actual skill activation.
+
+## Stars reference-pilot validation
+
+`svg153/github-stars-contrib-mcp-server#48` implemented the full sequence through child issues #49-#52 and validated the architectural decision with executable evidence.
+
+### What the pilot proved
+
+- The official MCP Python SDK 2.x extension primitives are sufficient for `io.modelcontextprotocol/skills`; no protocol fork or FastMCP wrapper was required.
+- A repository-backed skill catalog can build deterministic static manifests containing exact SHA-256 digests and byte sizes, then serve only those authorized resources lazily through standard MCP Resources.
+- Manifest drift must fail closed. Rebuilding the catalog after canonical bytes change produces new integrity metadata.
+- Traversal, encoded traversal aliases, symlink escape, malformed frontmatter, unknown resource URIs and invalid/duplicate identities can be rejected before content crosses the MCP boundary.
+- Optional `directoryRead` is not required for a complete static manifest model and can remain undeclared until a real need exists.
+- Official SEP-2640 enumeration, manifest and directory-boundary scenarios from `modelcontextprotocol/conformance` pass against the real Stars Streamable HTTP server.
+- Protocol conformance is not host activation. Structural/unit evidence, protocol round-trip, extension discovery, lazy resource loading and actual model-context activation remain separate evidence levels.
+- A portable Agent Plugin can expose the same canonical root `skills/*` tree as the fallback for clients without MCP Skills support.
+- No central mirror is needed merely because an MCP serves a skill. A future `MIRRORED_UPSTREAM` copy in this catalog must still justify discovery/install value and use the immutable #44 APM/Renovate path.
+
+### Default implementation guidance derived from the pilot
+
+For future provider integrations:
+
+1. reuse official SDK extension/resource primitives before introducing adapters;
+2. prefer static manifests and manifest-bound reads for repository/package-backed skills;
+3. leave optional directory reads disabled unless the payload genuinely requires them;
+4. preserve origin independently from name and digest;
+5. keep authorization outside skill text/frontmatter;
+6. maintain layered evidence and never infer host activation from conformance alone;
+7. derive standalone/plugin fallback from the same canonical payload;
+8. use APM only after an explicit build-time consumption/republishing decision;
+9. fail visibly on duplicate-origin content conflicts rather than silently merging instructions.
 
 ## Pilot and migration sequence
 
-1. Document this boundary in the catalog (#64).
-2. Move the planning pilot to Atlassian Rovo MCP v2 and audit provider-native overlap (#65).
-3. Implement the extension in a server we control: `svg153/github-stars-contrib-mcp-server#48`.
-4. Prove discovery, lazy loading, integrity checks, security boundaries, and a compatible client separately.
-5. Prove a standalone compatibility path from the same canonical Stars skill source without manual duplication.
-6. Feed those implementation lessons back into #64 before closing it.
-7. Only then consider upstream proposals or adapter retirement based on evidence.
+1. [x] Document this boundary in the catalog (#64).
+2. [x] Move the planning pilot to Atlassian Rovo MCP v2 and audit provider-native overlap (#65).
+3. [x] Implement the extension in a server we control: `svg153/github-stars-contrib-mcp-server#48`.
+4. [x] Prove discovery, lazy loading, integrity checks, security boundaries, and an official compatible inspection/conformance path separately.
+5. [x] Prove a standalone compatibility path from the same canonical Stars skill source without manual duplication.
+6. [x] Feed those implementation lessons back into #64 before closing it.
+7. [ ] Consider upstream examples/proposals or adapter retirement only as separate evidence-driven follow-up work.
 
 ## Consequences
 
@@ -156,17 +192,22 @@ For `svg153/skills`:
 - Avoids forcing APM into runtime MCP delivery.
 - Avoids manually duplicated standalone and MCP copies.
 - Gives Agent Plugins a cleaner orchestration role instead of making them own every provider-specific instruction.
+- Provides a repeatable conformance/security pattern for future MCP-served skill providers.
 
 ### Costs
 
 - Mixed client support requires dual delivery paths for some skills during the transition.
 - Collision/origin handling becomes a host/runtime concern that must be observed rather than guessed away.
 - Runtime MCP content can change independently from a plugin release, so compatibility evidence must state the server/client version/date.
+- Passing protocol conformance still does not prove that a specific host injects and activates the skill in model context.
 
 ## References
 
 - MCP Skills overview: https://modelcontextprotocol.io/extensions/skills/overview
 - MCP Skills Working Group: https://github.com/modelcontextprotocol/ext-skills
+- MCP conformance suite: https://github.com/modelcontextprotocol/conformance
 - Agent Skills specification: https://agentskills.io/specification
 - Agent Plugins 1.0 specification: https://agent-plugins.org/specification
 - ADR 0002: `docs/adr/0002-plugin-first-distribution.md`
+- Stars pilot evidence: https://github.com/svg153/github-stars-contrib-mcp-server/blob/main/docs/mcp-skills-evidence.md
+- Stars standalone distribution: https://github.com/svg153/github-stars-contrib-mcp-server/blob/main/docs/skills-distribution.md
