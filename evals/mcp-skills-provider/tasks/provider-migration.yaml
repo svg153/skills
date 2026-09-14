@@ -1,0 +1,28 @@
+id: mcp-skills-provider-migration
+name: Existing MCP server exposes canonical skills through the official extension
+inputs:
+  prompt: >-
+    This Python MCP server already has three canonical Agent Skills under skills/. Add Skills over MCP
+    so compatible clients can discover and read them. Keep existing auth/tool policy unchanged, avoid
+    duplicate skill copies, add security tests and prove standards conformance. Tell me what evidence
+    would still be missing before claiming that GitHub Copilot automatically activates the skills.
+expected:
+  should_trigger: true
+  graders:
+    - type: trigger
+      name: activation
+      config:
+        skill_path: skills/mcp-skills-provider/SKILL.md
+        mode: positive
+        threshold: 0.6
+    - type: prompt
+      name: provider_contract
+      config:
+        prompt: >-
+          Pass only if the response preserves one canonical skill source, researches/reuses the current
+          official SDK before building adapters, plans the official Skills extension plus lazy standard
+          Resources, includes manifest-bound traversal/symlink/drift/integrity tests, keeps skill metadata
+          separate from tool authorization, runs official MCP conformance in addition to SDK/unit tests,
+          and explicitly says protocol/conformance evidence does not prove automatic host/model activation.
+          Fail if it creates a second editable skill tree, invents a parallel skills protocol, treats
+          allowed-tools as server authorization, or claims Copilot activation without a named real test.
