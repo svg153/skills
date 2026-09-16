@@ -22,7 +22,7 @@ See: `.planning/PROJECT.md` (updated 2026-09-11)
 Phase: 9 of 15 (Behavioral Evals and Fixtures)
 Plan: 1 of 1
 Status: Complete; no further v1.0 implementation can truthfully complete until the Phase 1 external condition unlocks Phases 5/6.
-Last activity: 2026-09-13 — Phase 9 added and statically verified catalog-owned Waza coverage for routing, reuse-first, DESIGN.md precedence, optional-tool degradation, rendered evidence and human visual merge boundaries.
+Last activity: 2026-09-16 — external gate rechecked without changing phase progress: `ghspain/github-build-or-reuse` still publishes v1.2.3 as latest stable, no Renovate-authored update PR / Dependency Dashboard evidence is visible in `svg153/skills`, and the resolver-only proposal on `renovatebot/renovate#45683` still has no maintainer response.
 
 Progress: [████░░░░░░] 40%
 
@@ -45,7 +45,8 @@ Progress: [████░░░░░░] 40%
 - If the app cannot render, the result is explicitly source-validated only rather than falsely reported as browser-verified.
 - Phase 9 uses the repository-native `eval.yaml` + `tasks/*.yaml` Waza convention; no second fixture/eval format was introduced.
 - Phase 9 tests the already-implemented core independently of Phases 5/6. Those phases must extend the suite with specialist-specific cases when enrolled; Phase 10 still waits for 5/6 so this does not bypass the supply-chain gate.
-- Model-backed behavioral evals remain trusted workflow_dispatch/scheduled only; PRs receive deterministic static Waza verification without model credentials.
+- Model-backed behavioral evals remain trusted `workflow_dispatch`/scheduled only; PRs receive deterministic static Waza verification without model credentials.
+- Manual trusted Waza runs now fail closed when no supported Copilot credential exists; scheduled runs may skip without noise but must record that no model evidence was produced.
 - Creative media remains a separate capability and subjective visual PRs do not auto-merge initially.
 
 ### Pending Todos
@@ -57,12 +58,14 @@ Progress: [████░░░░░░] 40%
 
 ### Blockers/Concerns
 
-- Phase 1 intentionally cannot claim success until #46 observes a genuine newer upstream release and Renovate PR; latest checked 2026-09-13 remains v1.2.3.
+- Phase 1 intentionally cannot claim success until #46 observes a genuine newer upstream release and Renovate PR; latest checked 2026-09-16 remains v1.2.3.
+- No Renovate processing evidence is currently visible in this repository; absence of a PR/dashboard does not by itself prove the hosted app is uninstalled, so activation must be verified when the genuine-release test becomes possible.
+- The resolver-only upstream proposal remains unanswered; keep the current trusted local completion glue until a maintainer-backed alternative exists.
 - Exact Emil/Addy upstream versions/paths/licenses must be re-verified at enrollment time and pinned through APM.
 - Optional provider integrations require sanitized authenticated evidence before compatibility claims.
 
 ## Session Continuity
 
-Last session: 2026-09-13
-Stopped at: Phases 2, 3, 4, 7, 8 and 9 complete/verified. The remaining v1.0 chain is externally gated at Phase 1/#46 -> Phase 5/6 -> Phase 10.
+Last session: 2026-09-16
+Stopped at: Phases 2, 3, 4, 7, 8 and 9 remain complete/verified. The remaining v1.0 chain is externally gated at Phase 1/#46 -> Phase 5/6 -> Phase 10; no phase was advanced by the status recheck.
 Resume file: `.planning/phases/01-apm-renovate-proof/01-01-PLAN.md`
