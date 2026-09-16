@@ -78,11 +78,25 @@ The repository workflow supports two trusted modes:
 - **organization-owned repository:** use the built-in `GITHUB_TOKEN` with `copilot-requests: write`; no stored Copilot secret is required, but the organization must enable the GitHub policy that allows Copilot CLI/requests billed to the organization;
 - **user-owned repository:** configure the repository secret `COPILOT_GITHUB_TOKEN` with a Copilot-compatible user token. The SDK supports OAuth/GitHub App user tokens and fine-grained PATs; do not use a deprecated classic `ghp_` PAT.
 
-`svg153/skills` is currently user-owned. If `COPILOT_GITHUB_TOKEN` is absent, the trusted workflow reports that model-backed suites were skipped instead of implying that a successful workflow run contains behavioral model evidence. The previous `COPILOT_SDK_TOKEN` name was removed because it is not an authentication variable consumed by Waza/Copilot SDK.
+`svg153/skills` is currently user-owned. If `COPILOT_GITHUB_TOKEN` is absent, behavior now depends on the trigger:
+
+- a **scheduled** run records an explicit `skipped — no supported Copilot credential` job summary and exits without model evidence, avoiding a noisy weekly failure;
+- a **manual `workflow_dispatch`** fails deliberately before model execution. A manually requested evidence run must never appear green when no model actually ran.
+
+The previous `COPILOT_SDK_TOKEN` name was removed because it is not an authentication variable consumed by Waza/Copilot SDK.
 
 Once a supported credential path is available, the workflow runs every suite under `evals/` using the `copilot-sdk` executor, including capability-plugin skill suites.
 
 Each model-backed run retains for 14 days Waza JSON, JUnit XML and per-task transcripts where available. Treat those artifacts as diagnostic evidence, not as a one-dimensional public quality score.
+
+## Interpreting workflow status
+
+Do not infer behavioral evidence from the workflow name alone:
+
+- static Waza verification proves only schema/path/grader contract validity;
+- a scheduled trusted run may be deliberately skipped when no supported credential exists;
+- a successful manual trusted run implies the workflow found a supported credential and reached model-backed execution, but the retained Waza results remain the actual task-level evidence;
+- a failed manual run with no credential is an evidence-integrity guard, not a skill regression.
 
 ## Local execution
 
