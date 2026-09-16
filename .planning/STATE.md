@@ -15,14 +15,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-09-11)
 
 **Core value:** A simple request produces a repeatable, rendered, evidence-backed UI improvement workflow while preserving reuse and human visual judgment.
-**Current focus:** External dependency gate — Phase 1/#46. Phases 5/6 remain blocked by the genuine Renovate/APM update proof, and Phase 10 deliberately waits for those specialists before the real-app baseline pilot.
+**Current focus:** External dependency gate — Phase 1/#46. Hosted Renovate activation is now verified through #75; the remaining gate is a genuine stable `github-build-or-reuse` release newer than v1.2.3 producing the real Renovate update PR. Phases 5/6 remain blocked by that genuine update proof, and Phase 10 deliberately waits for those specialists before the real-app baseline pilot.
 
 ## Current Position
 
 Phase: 9 of 15 (Behavioral Evals and Fixtures)
 Plan: 1 of 1
 Status: Complete; no further v1.0 implementation can truthfully complete until the Phase 1 external condition unlocks Phases 5/6.
-Last activity: 2026-09-16 — external gate rechecked without changing phase progress: `ghspain/github-build-or-reuse` still publishes v1.2.3 as latest stable, no Renovate-authored update PR / Dependency Dashboard evidence is visible in `svg153/skills`, and the resolver-only proposal on `renovatebot/renovate#45683` still has no maintainer response.
+Last activity: 2026-09-16 — hosted Renovate activation verified via #75 (`Dependency Dashboard`): the committed APM-only configuration is being processed, exactly one APM dependency is detected, and there are no open/pending Renovate branches. `ghspain/github-build-or-reuse` still publishes v1.2.3 as the latest genuine stable release, so the required real update PR cannot exist yet. The resolver-only proposal on `renovatebot/renovate#45683` still has no maintainer response.
 
 Progress: [████░░░░░░] 40%
 
@@ -51,7 +51,7 @@ Progress: [████░░░░░░] 40%
 
 ### Pending Todos
 
-- Revisit Phase 1 immediately when `ghspain/github-build-or-reuse` publishes a genuine stable release newer than v1.2.3 / hosted Renovate opens the required update PR.
+- Revisit Phase 1 immediately when `ghspain/github-build-or-reuse` publishes a genuine stable release newer than v1.2.3 and hosted Renovate opens the required update PR.
 - After Phase 1 proof, enroll the selected Emil specialist skills through the Phase 3 contract and execute Phase 5, extending the Phase 9 suite with specialist routing cases.
 - Execute Phase 6 web-quality skills next and extend the same suite with quality-specialist behavior/evidence cases.
 - Execute Phase 10 real-application pilot only after Phases 5 and 6 are complete.
@@ -59,7 +59,7 @@ Progress: [████░░░░░░] 40%
 ### Blockers/Concerns
 
 - Phase 1 intentionally cannot claim success until #46 observes a genuine newer upstream release and Renovate PR; latest checked 2026-09-16 remains v1.2.3.
-- No Renovate processing evidence is currently visible in this repository; absence of a PR/dashboard does not by itself prove the hosted app is uninstalled, so activation must be verified when the genuine-release test becomes possible.
+- Hosted Renovate activation/processing is already evidenced by #75, so installation/configuration is no longer the blocker; the missing external event is the next genuine stable upstream release.
 - The resolver-only upstream proposal remains unanswered; keep the current trusted local completion glue until a maintainer-backed alternative exists.
 - Exact Emil/Addy upstream versions/paths/licenses must be re-verified at enrollment time and pinned through APM.
 - Optional provider integrations require sanitized authenticated evidence before compatibility claims.
@@ -67,5 +67,5 @@ Progress: [████░░░░░░] 40%
 ## Session Continuity
 
 Last session: 2026-09-16
-Stopped at: Phases 2, 3, 4, 7, 8 and 9 remain complete/verified. The remaining v1.0 chain is externally gated at Phase 1/#46 -> Phase 5/6 -> Phase 10; no phase was advanced by the status recheck.
+Stopped at: Phases 2, 3, 4, 7, 8 and 9 remain complete/verified. Hosted Renovate activation is verified; the remaining v1.0 chain is externally gated at the next genuine upstream release: Phase 1/#46 -> Phase 5/6 -> Phase 10. No phase was advanced by the status refresh.
 Resume file: `.planning/phases/01-apm-renovate-proof/01-01-PLAN.md`
