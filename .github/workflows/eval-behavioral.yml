@@ -21,6 +21,7 @@ jobs:
       COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
       GITHUB_TOKEN: ${{ github.token }}
       REPOSITORY_OWNER_TYPE: ${{ github.event.repository.owner.type }}
+      GITHUB_EVENT_NAME: ${{ github.event_name }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -43,8 +44,31 @@ jobs:
           else
             echo "available=false" >> "$GITHUB_OUTPUT"
             echo "mode=none" >> "$GITHUB_OUTPUT"
-            echo "::notice::This user-owned repository has no COPILOT_GITHUB_TOKEN; model-backed evals were skipped. Configure a Copilot-compatible user token, or move the workflow to an organization-owned repository with Copilot Actions billing/policy enabled."
+            if [[ "${GITHUB_EVENT_NAME:-}" == "workflow_dispatch" ]]; then
+              echo "::error::Manual model-backed evaluation was requested, but this user-owned repository has no COPILOT_GITHUB_TOKEN. Refusing to return a misleading green run."
+            else
+              echo "::notice::This user-owned repository has no COPILOT_GITHUB_TOKEN; scheduled model-backed evals were skipped. Configure a Copilot-compatible user token, or move the workflow to an organization-owned repository with Copilot Actions billing/policy enabled."
+            fi
           fi
+
+      - name: Reject manual run without model credential
+        if: github.event_name == 'workflow_dispatch' && steps.credentials.outputs.available != 'true'
+        shell: bash
+        run: |
+          echo "Manual trusted behavioral evaluation requires actual model execution." >&2
+          exit 1
+
+      - name: Summarize skipped scheduled evaluation
+        if: github.event_name == 'schedule' && steps.credentials.outputs.available != 'true'
+        shell: bash
+        run: |
+          {
+            echo '## Trusted behavioral evaluation'
+            echo
+            echo '**Status: skipped — no supported Copilot credential was available.**'
+            echo
+            echo 'Static Waza specification validation remains separate and is not behavioral model evidence.'
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Install pinned Waza
         if: steps.credentials.outputs.available == 'true'
