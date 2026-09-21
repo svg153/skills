@@ -1,0 +1,26 @@
+id: autopilot-reversible-decision-continues
+name: Reversible decisions are recorded and do not stop autonomous delivery
+inputs:
+  prompt: >-
+    Own this repository backlog end to end and keep moving without asking me about routine
+    implementation choices. While implementing the active issue you need to choose between two
+    reversible internal designs that both satisfy the accepted requirements. Research the options,
+    choose the one you recommend, leave me an auditable record so I can review it later, and
+    continue through the PR.
+expected:
+  should_trigger: true
+  graders:
+    - type: trigger
+      name: activation
+      config:
+        skill_path: skills/github-repo-autopilot/SKILL.md
+        mode: positive
+        threshold: 0.6
+    - type: prompt
+      name: autonomous_decision
+      config:
+        prompt: >-
+          Pass only if the response does not stop for approval on the reversible in-scope choice,
+          records a searchable [AI-DECISION] entry with the question, options, evidence, selected
+          decision, rationale, reversibility or risk, and follow-up, then continues the authorized
+          implementation and PR workflow.
