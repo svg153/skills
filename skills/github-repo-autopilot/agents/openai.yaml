@@ -1,8 +1,10 @@
 interface:
   display_name: GitHub Repository Autopilot
-  short_description: Maintain repositories through verified issue-to-PR loops
-  default_prompt: Use $github-repo-autopilot to assess this repository and complete
-    its authorized backlog with verified pull requests.
+  short_description: Maintain repositories through auditable autonomous issue-to-PR loops
+  default_prompt: Use $github-repo-autopilot to assess this repository, complete its
+    authorized backlog through verified pull requests, record reversible choices with
+    [AI-DECISION], defer non-blocking deep analysis, and continue until a real
+    escalation boundary is reached.
   icon_small: assets/icon.svg
   icon_large: assets/icon.svg
 policy:
