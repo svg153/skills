@@ -42,6 +42,13 @@
         "judgment-day",
         "mcp-skills-provider"
       ]
+    },
+    {
+      "title": "Cost & Optimization",
+      "description": "Analiza y optimiza el uso de tokens, costos de sesiones, y automatizaciones para reducir gasto en agentes de IA.",
+      "skills": [
+        "cost-optimizer"
+      ]
     }
   ]
 }
