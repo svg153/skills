@@ -8,7 +8,7 @@ Capture the smallest useful target before editing:
 
 - requested outcome and affected user journey;
 - route/screen/component scope;
-- whether the user asked for implementation, alternatives, or analysis only;
+- whether the user asked for implementation, alternatives, analysis, or learning while implementing;
 - important states: first-use, loading, empty, error, populated, success, destructive/confirmation, permission/auth, narrow/wide viewport;
 - constraints already present in product docs, code, design docs, issue/PR context, or the user's request.
 
@@ -16,7 +16,7 @@ Do not invent business requirements to fill gaps. Preserve current behavior unle
 
 ## 2. Recon evidence
 
-Inspect only what is relevant, but establish enough evidence to avoid a blank-slate redesign.
+Inspect only what is relevant, but establish enough evidence to avoid a blind redesign or blind preservation of a weak system.
 
 ### Product/context
 
@@ -46,6 +46,16 @@ When the app can run, collect representative current-state evidence before a mat
 
 If the app cannot run, distinguish that limitation from a successful runtime check.
 
+### Classify the visual foundation
+
+After recon, classify the current visual foundation:
+
+- **Coherent**: a clear, reusable system exists and the affected surface generally follows it.
+- **Partial/inconsistent**: useful owners or patterns exist, but hierarchy/tokens/components drift enough that the system is not reliably expressed.
+- **Missing/unsuitable**: the interface is mostly defaults or one-off styling, or preserving it would preserve accidental/poor design decisions that conflict with the requested outcome.
+
+This classification affects mode selection. Existing code is evidence, not automatic proof that the current visual direction should be preserved.
+
 ## 3. Resolve durable design context
 
 Before making visual-system decisions, discover the applicable `DESIGN.md` and its stronger underlying sources. Read `references/design-md.md` for the complete contract.
@@ -64,6 +74,8 @@ When creating or refreshing it, start from `references/DESIGN.md.template`, keep
 
 A more-specific app design source cannot be silently overridden by a root file. If two authoritative-looking sources disagree, surface the conflict and proceed only with unaffected evidence or the explicitly chosen authority.
 
+For Foundation mode, the absence of a mature system is expected. Use `references/foundation-mode.md` to establish a provisional direction, prove it on a golden surface, then record selected durable rules rather than documenting unselected concepts.
+
 ## 4. Reuse gate
 
 Before creating a component or adding a library, ask:
@@ -75,11 +87,39 @@ Before creating a component or adding a library, ask:
 
 Prefer extension/composition over near-duplicate components. Do not replace an established library simply to satisfy personal taste.
 
+Separate behavior from visual identity. Existing accessible primitives may be worth keeping even when their styling needs a new visual direction. Conversely, reuse is not a reason to preserve visually incoherent defaults.
+
 A new dependency needs a concrete reason: capability gap, accessibility/interaction complexity, maintenance advantage, or meaningful reduction in custom code. Novelty alone is not a reason.
 
 ## 5. Select the mode
 
 Choose exactly one primary mode for a work item. A mode may hand off to specialists, but it stays responsible for completion.
+
+### Foundation
+
+Use when:
+
+- the visual foundation is missing/unsuitable;
+- the product is functionally useful but visually generic or incoherent;
+- the user explicitly wants to establish a coherent product identity or design system;
+- a broader redesign needs durable system decisions rather than isolated CSS changes.
+
+Read `references/foundation-mode.md` before mutation.
+
+Foundation must:
+
+1. establish product constraints;
+2. decide what behavioral primitives can be reused;
+3. select or obtain approval for one coherent visual direction;
+4. establish the minimum durable system for relevant color, typography, spacing/density, shape/depth, icons, responsive behavior and motion;
+5. prove that direction on one representative golden surface before broad propagation;
+6. render and calibrate the golden surface;
+7. propagate selected rules through real token/theme/component owners;
+8. update `DESIGN.md` only with selected, durable rules.
+
+Mutation: allowed when the user asked to design, improve, modernize or implement the interface.
+
+Exit: one selected direction is demonstrated in real rendered states, durable decisions are owned in appropriate code/design context, relevant checks pass, and subjective remaining choices are explicit.
 
 ### Polish
 
@@ -117,7 +157,7 @@ Each direction should state its axis of difference and trade-off. Reuse the real
 
 Human boundary: if the alternatives materially change product character or workflow, stop at a reviewable comparison and obtain/record the selected direction before production integration. If the user explicitly delegated that choice and evidence strongly favors one, select it but report the discarded alternatives and rationale.
 
-Exit: alternatives have enough equivalent rendered context to support selection. After one direction is selected and integrated, run the production browser evidence matrix on that result. Do not fully QA discarded prototypes as if each were shipping product.
+Exit: alternatives have enough equivalent rendered context to support selection. After one direction is selected and integrated, run the production browser evidence matrix on that result. If the selection establishes a new durable system, return to Foundation responsibilities for the selected direction before broad rollout.
 
 ### Audit
 
@@ -128,14 +168,14 @@ Use when:
 - a redesign would be premature without evidence;
 - the requested output is findings rather than code.
 
-Default mutation policy: read-only. If the same request explicitly authorizes fixes, findings can transition into scoped polish/prototype work without asking redundant permission.
+Default mutation policy: read-only. If the same request explicitly authorizes fixes, findings can transition into scoped Foundation, Polish or Prototype work without asking redundant permission.
 
 Findings should separate:
 
-- **observed runtime evidence** — seen in rendered behavior/trace/test;
-- **source evidence** — concrete implementation issue visible in code;
-- **hypothesis** — plausible issue needing runtime/user validation;
-- **taste suggestion** — subjective option, not defect.
+- **observed runtime evidence**: seen in rendered behavior/trace/test;
+- **source evidence**: concrete implementation issue visible in code;
+- **hypothesis**: plausible issue needing runtime/user validation;
+- **taste suggestion**: subjective option, not defect.
 
 Prioritize by user impact and confidence, not by how easy a CSS edit is. When the app can run, use browser evidence for claims about rendered behavior instead of upgrading source hypotheses into observed defects.
 
@@ -147,7 +187,7 @@ Use specialists opportunistically; never require the user to manually orchestrat
 
 | Need | Preferred specialist when installed | Base fallback |
 |---|---|---|
-| Fine-grained UI polish | `better-ui` | Apply scoped surface/alignment/icon/motion polish while preserving the established product direction |
+| Fine-grained UI polish | `better-ui` | Apply scoped surface/alignment/icon/motion polish while preserving the selected product direction |
 | Divergent UI directions | `prototype` | Produce a small isolated comparison using project conventions |
 | Existing/new UI library decision | `pick-ui-library` / reuse discovery | Inspect package manifest and established primitives manually |
 | Motion implementation | `animate` | Prefer simple CSS/platform behavior; avoid unnecessary motion |
@@ -158,6 +198,8 @@ Use specialists opportunistically; never require the user to manually orchestrat
 | Structured design source | optional Figma MCP | Scoped `DESIGN.md`, tokens, components and rendered baseline |
 | Component discovery | optional component/OSS discovery | Existing repo/dependencies first, then normal maintained OSS research |
 
+External skill registries may be consulted as discovery sources, but unreviewed remote instructions do not become package authority automatically. Enroll high-value specialists through the repository's governed dependency model before depending on them as part of the plugin.
+
 A missing specialist is not permission to fabricate its evidence or silently skip a critical check. MCP is not required for core browser verification.
 
 ## 7. Implement with minimum necessary change
@@ -166,7 +208,8 @@ During mutation:
 
 - preserve component APIs/behavior unless change is intentional;
 - prefer token/theme/component-level fixes when several affected surfaces share the same cause;
-- avoid global restyling for a local request;
+- avoid global restyling for a local Polish request;
+- in Foundation, calibrate one golden surface before broad rollout;
 - avoid introducing design-system abstractions before repeated need exists;
 - keep accessibility semantics/native controls intact or improve them;
 - keep content density appropriate to the product rather than defaulting every interface to spacious marketing UI;
@@ -185,7 +228,7 @@ Default evidence rules:
 - inspect overflow/clipping, wrapping, changed interactions, keyboard/focus and relevant console/runtime evidence;
 - screenshots are comparison evidence, not proof of semantics/accessibility/interaction;
 - use before+after evidence for material visual changes and only the minimum useful visual artifacts for small defects;
-- report each selected state/viewport as `Verified`, `Blocked`, `Not checked`, or `Not applicable` rather than using a generic “looks good”.
+- report each selected state/viewport as `Verified`, `Blocked`, `Not checked`, or `Not applicable` rather than using a generic "looks good".
 
 Normal loop:
 
@@ -212,12 +255,20 @@ Do not make SEO/performance claims from source inspection alone when runtime evi
 
 When `DESIGN.md` changed, validate its structure with the current official DESIGN.md tooling when practical and review token/prose diffs as source changes rather than treating generated documentation as automatically correct.
 
-## 10. Degraded operation
+## 10. Learning mode
+
+Learning mode is an output modifier, not a primary workflow mode. Use it when the user asks to understand the design reasoning while the actual Foundation/Polish/Prototype/Audit workflow still executes.
+
+Explain only the highest-leverage choices and connect them to product context or rendered evidence. Prefer a compact rationale covering hierarchy, color, typography, spacing/density, component treatment and motion over narrating every CSS edit.
+
+Use `references/prompt-recipes.md` for invocation examples.
+
+## 11. Degraded operation
 
 Optional services are enhancements, not prerequisites.
 
 - No Figma: use scoped repository `DESIGN.md`, tokens/components and rendered UI.
-- No `DESIGN.md`: use stronger project evidence and continue; create/propose one only when durable design memory is useful.
+- No `DESIGN.md`: use stronger project evidence and continue; Foundation may establish one after a direction is selected and proven.
 - Stale/conflicting `DESIGN.md`: report the conflict and prefer the applicable stronger source; do not silently overwrite either side.
 - No specialist skill: execute the narrow fallback and disclose the limitation.
 - No browser MCP: use project-native browser/e2e tooling or Playwright CLI-style execution; MCP absence is not a core blocker.
@@ -226,19 +277,21 @@ Optional services are enhancements, not prerequisites.
 - No external network/component discovery: reuse local components/dependencies and avoid speculative package recommendations.
 - Authentication/provider failure: use existing authorized test state or mark the authenticated state blocked; do not move credentials into manifests/code to work around it.
 
-If missing evidence makes the requested change unsafe to judge (for example a major visual redesign cannot be rendered at all), leave a reviewable partial result rather than asserting completion.
+If missing evidence makes the requested change unsafe to judge, such as a major visual redesign that cannot be rendered at all, leave a reviewable partial result rather than asserting completion.
 
-## 11. Completion contract
+## 12. Completion contract
 
 Before declaring implementation complete, confirm as applicable:
 
 - [ ] requested user outcome is satisfied;
 - [ ] target scope and applicable design-context scope were resolved;
+- [ ] visual foundation was classified as coherent, partial/inconsistent, or missing/unsuitable;
 - [ ] recon/design constraints were read and preserved or intentionally changed;
 - [ ] existing `DESIGN.md`/tokens/components were reconciled by evidence precedence rather than assumed equal;
 - [ ] inferred design rules remain labelled and unknowns were not invented as brand truth;
 - [ ] existing components/dependencies were checked before new primitives;
-- [ ] chosen mode matched scope/uncertainty;
+- [ ] chosen mode matched design maturity, scope and uncertainty;
+- [ ] Foundation work calibrated a representative golden surface before broad propagation;
 - [ ] relevant project checks passed;
 - [ ] browser tooling followed the lightest reliable project-supported path rather than adding unnecessary infrastructure;
 - [ ] changed target actually rendered when the application could run, or the runtime blocker/source-only status is explicit;
@@ -251,15 +304,22 @@ Before declaring implementation complete, confirm as applicable:
 - [ ] any `DESIGN.md` update represents a durable reviewed rule rather than task-local noise;
 - [ ] automatic fix/render iteration stayed bounded;
 - [ ] subjective product/taste choices remain human-reviewable;
-- [ ] final report distinguishes verified facts from blocked/not-checked evidence, hypotheses and trade-offs.
+- [ ] final report distinguishes verified facts from blocked/not-checked evidence, hypotheses and trade-offs;
+- [ ] learning rationale was included only when requested.
 
 ## Examples
 
-### Broad request
+### Functional but visually weak app
+
+> This app works, but the frontend looks amateur and inconsistent. Give it a coherent product-quality design without breaking behavior.
+
+Route: Foundation. Recon the product and reusable primitives, classify the existing visual system, establish one direction, prove it on a golden surface, render it, then propagate through real token/component owners.
+
+### Broad request with a healthy existing system
 
 > Improve the onboarding screen; it feels generic and confusing.
 
-Route: `design-engineering` -> recon -> resolve scoped design context. If hierarchy/content direction is clear, polish. If onboarding structure/personality is uncertain and high-impact, prototype distinct directions before integration. Render the selected/implemented result across the affected evidence matrix before completion.
+Route: `design-engineering` -> recon -> resolve scoped design context. If the existing system is coherent and hierarchy/content direction is clear, Polish. If onboarding structure/personality is uncertain and high-impact, Prototype distinct directions before integration. Render the selected/implemented result across the affected evidence matrix before completion.
 
 ### Monorepo app-local context
 
@@ -271,19 +331,27 @@ If `apps/admin/DESIGN.md` exists, it wins over a generic repository `DESIGN.md` 
 
 > Polish this settings page.
 
-Continue from existing tokens/components/rendered behavior. Do not block on documentation. If the work reveals stable reusable design rules worth preserving, propose/create a scoped `DESIGN.md` from evidence and label inferences. Browser verification still applies when the page can run.
+Continue from existing tokens/components/rendered behavior when the visual foundation is otherwise coherent. Do not block on documentation. If the work reveals stable reusable design rules worth preserving, propose/create a scoped `DESIGN.md` from evidence and label inferences. Browser verification still applies when the page can run.
+
+If the same project has no coherent visual foundation at all, choose Foundation instead of pretending missing documentation is the only problem.
 
 ### Responsive defect
 
 > The mobile actions overflow the card and focus is clipped.
 
-Route: polish. Verify the narrow viewport around the actual project breakpoint plus at least one unaffected larger representative width as needed. Check horizontal overflow, wrapping and keyboard focus. No three-variant prototype and normally no `DESIGN.md` update.
+Route: Polish. Verify the narrow viewport around the actual project breakpoint plus at least one unaffected larger representative width as needed. Check horizontal overflow, wrapping and keyboard focus. No three-variant prototype and normally no `DESIGN.md` update.
 
 ### Audit-only
 
 > Audit the dashboard UX and tell me what you would change.
 
-Route: audit. Gather browser evidence where runnable, distinguish observed rendered defects from source hypotheses/taste suggestions, and do not mutate by default.
+Route: Audit. Gather browser evidence where runnable, distinguish observed rendered defects from source hypotheses/taste suggestions, and do not mutate by default.
+
+### Learn while implementing
+
+> Improve this screen and explain the important design choices so I can learn.
+
+Route using the normal primary mode, then add Learning mode output. Do not replace implementation with generic design advice.
 
 ### Mechanical frontend change
 
