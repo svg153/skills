@@ -19,7 +19,7 @@ When reviewing, slow the interface down. What feels off at 10% speed is what is 
 
 Keep the project's component library, tokens and density, and match its motion language except where a rule below prescribes an exact interaction.
 
-Every duration, curve, scale and blur below is a specific value, not a range to approximate. `cubic-bezier(0.2, 0, 0, 1)` is not `cubic-bezier(0.4, 0, 0.2, 1)`, and `0.96` is not `0.95`. Use what is written.
+Treat the duration, curve, scale and blur values below as exact defaults only when the project has no stronger documented token, component or motion rule. Project-local design decisions take precedence. When a rule applies, do not silently approximate its value: `cubic-bezier(0.2, 0, 0, 1)` is not `cubic-bezier(0.4, 0, 0.2, 1)`, and `0.96` is not `0.95`.
 
 Text wrapping, font rendering, tabular numbers and text spacing are outside this specialist's core scope, as are full accessibility and layout audits. Hand those concerns to an installed typography, accessibility or layout specialist when available; otherwise return them to the broader design/quality workflow and report them separately rather than implying this skill verified them.
 
