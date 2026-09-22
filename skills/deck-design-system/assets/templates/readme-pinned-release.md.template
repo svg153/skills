@@ -1,0 +1,20 @@
+## Source attribution
+
+This repository is derived from the following pinned release:
+
+| Field | Value |
+| --- | --- |
+| Origin repository | <ORIGIN_REPO> |
+| Release tag | `<RELEASE_TAG>` |
+| Release ID | <RELEASE_ID> |
+| Published | <RELEASE_DATE> |
+| License | <LICENSE> |
+
+Consumed assets (immutable release URLs):
+
+| File | Size | URL |
+| --- | --- | --- |
+| <FILE> | <SIZE> | <ORIGIN_REPO>/releases/download/<RELEASE_TAG>/<FILE> |
+
+The tag is pinned on purpose: if the source repo publishes newer releases, this
+repo documents exactly which version was used. Update deliberately, not silently.

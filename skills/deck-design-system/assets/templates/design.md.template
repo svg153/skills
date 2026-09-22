@@ -1,0 +1,69 @@
+# Design System — <DECK_NAME>
+
+> Source: <ORIGIN_REPO> @ `<RELEASE_TAG>` (release <RELEASE_ID>, published <RELEASE_DATE>, license <LICENSE>).
+> Extracted <SLIDE_COUNT> slides across <DECK_COUNT> deck variant(s). Full data: `analysis.json`.
+
+## Canvas & format
+
+- Slide size: <WIDTH_IN> × <HEIGHT_IN> in (ratio <RATIO>) — build decks at the same ratio.
+- Variants: <VARIANTS>.
+
+## Palette
+
+| Hex | Role | Where it appears |
+| --- | --- | --- |
+| #<HEX> | <role> | <usage notes> |
+
+Theme XML declares <THEME_COLORS>, but actual runs are dominated by <TOP_COLORS> — trust usage over theme.
+
+![palette](palette.png)
+
+## Typography
+
+- Families: <FAMILIES> (theme declares: <THEME_FONTS>).
+- Size scale (pt, from `font_size_pt_top`): <SIZE_SCALE>.
+- Weights/variants observed: <WEIGHTS>.
+
+## Layout archetypes
+
+<For each dominant layout from layout_usage: name, when used, structure (title zone, content zone, footer). Reference 2-3 preview images per archetype.>
+
+## Visual patterns
+
+<Recurring devices: iconography style, image treatment, dividers, badges, code blocks, footers.>
+
+## Tokens
+
+```css
+:root {
+  --color-bg: #<HEX>;
+  --color-fg: #<HEX>;
+  --color-accent: #<HEX>;
+  --font-display: "<FAMILY>", sans-serif;
+  --font-body: "<FAMILY>", sans-serif;
+  --text-title: <PT>px;
+  --text-body: <PT>px;
+}
+```
+
+```json
+{
+  "colors": { "bg": "#<HEX>", "fg": "#<HEX>", "accent": "#<HEX>" },
+  "fonts": { "display": "<FAMILY>", "body": "<FAMILY>" },
+  "scale": { "title": <PT>, "body": <PT> }
+}
+```
+
+## Tool mapping
+
+- **Slidev**: tokens in `styles/index.css`; custom layouts in `layouts/`; fonts via `public/fonts/` + `@font-face`.
+- **Bento / OpenSlide**: map tokens to their theme/config format; keep the same scale ratios.
+
+## Reuse checklist
+
+- [ ] Same canvas ratio as source.
+- [ ] Palette limited to the documented roles.
+- [ ] Type scale matches (±1 step).
+- [ ] Layout archetypes reproduced (title / section / content / quote).
+- [ ] Brand fonts embedded, not substituted.
+- [ ] Attribution + pinned release kept in README.

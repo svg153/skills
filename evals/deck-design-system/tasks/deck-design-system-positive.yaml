@@ -1,0 +1,22 @@
+id: deck-design-system-positive
+name: deck-design-system activates for its primary workflow
+inputs:
+  prompt: 'Here are three .pptx decks from an event: make PDFs, extract the design
+    system into design.md, build a Slidev template and publish it to a repo with a
+    GitHub Pages site.'
+expected:
+  should_trigger: true
+  graders:
+  - type: trigger
+    name: activation
+    config:
+      skill_path: skills/deck-design-system/SKILL.md
+      mode: positive
+      threshold: 0.6
+  - type: prompt
+    name: behavior_contract
+    config:
+      prompt: 'Pass only if the response follows the phased pipeline: convert to PDF,
+        extract and dedupe assets, analyze usage, write design.md, build/verify a
+        Slidev template, publish with pinned release attribution and verified GitHub
+        Pages.'
