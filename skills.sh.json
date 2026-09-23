@@ -13,7 +13,9 @@
         "community-pr-audit",
         "branch-pr",
         "chained-pr",
-        "issue-creation"
+        "issue-creation",
+        "enterprise-agentic-delivery",
+        "personal-agentic-delivery"
       ]
     },
     {

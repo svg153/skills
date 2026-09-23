@@ -1,0 +1,6 @@
+interface:
+  display_name: "Enterprise Agentic Delivery"
+  short_description: "Traceable roadmap-to-merge development"
+  default_prompt: "Use $enterprise-agentic-delivery to execute this repository change with auditable issues, commits, CI, and roadmap synchronization."
+policy:
+  allow_implicit_invocation: false
