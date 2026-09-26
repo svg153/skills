@@ -1,0 +1,16 @@
+name: open-source-repo-bootstrap
+origin: https://github.com/svg153/skills
+origin_path: skills/open-source-repo-bootstrap
+category: github
+status: active
+sync:
+  enabled: false
+  interval: manual
+  strategy: local
+  authoritative: local
+tags:
+- github
+- open-source
+- repository
+- governance
+- release-automation

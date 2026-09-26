@@ -13,7 +13,10 @@
         "community-pr-audit",
         "branch-pr",
         "chained-pr",
-        "issue-creation"
+        "issue-creation",
+        "enterprise-agentic-delivery",
+        "personal-agentic-delivery",
+        "open-source-repo-bootstrap"
       ]
     },
     {
@@ -42,6 +45,13 @@
         "gentle-ai-ecosystem",
         "judgment-day",
         "mcp-skills-provider"
+      ]
+    },
+    {
+      "title": "Cost & Optimization",
+      "description": "Analiza y optimiza el uso de tokens, costos de sesiones, y automatizaciones para reducir gasto en agentes de IA.",
+      "skills": [
+        "cost-optimizer"
       ]
     }
   ]

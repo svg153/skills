@@ -1,0 +1,6 @@
+interface:
+  display_name: "Personal Agentic Delivery"
+  short_description: "Autonomous roadmap delivery with grouped PRs"
+  default_prompt: "Use $personal-agentic-delivery to continue this project roadmap autonomously with concept-level PRs, linear commits, and documented decisions."
+policy:
+  allow_implicit_invocation: true
