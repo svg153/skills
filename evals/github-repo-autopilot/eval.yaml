@@ -3,7 +3,7 @@ description: >-
   Catalog-owned behavioral evaluation suite for github-repo-autopilot.
 skill: github-repo-autopilot
 schemaVersion: "1.2"
-version: "1.0"
+version: "1.1"
 
 config:
   trials_per_task: 1
