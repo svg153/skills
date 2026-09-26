@@ -147,6 +147,7 @@ Use specialists opportunistically; never require the user to manually orchestrat
 
 | Need | Preferred specialist when installed | Base fallback |
 |---|---|---|
+| Fine-grained UI polish | `better-ui` | Apply scoped surface/alignment/icon/motion polish while preserving the established product direction |
 | Divergent UI directions | `prototype` | Produce a small isolated comparison using project conventions |
 | Existing/new UI library decision | `pick-ui-library` / reuse discovery | Inspect package manifest and established primitives manually |
 | Motion implementation | `animate` | Prefer simple CSS/platform behavior; avoid unnecessary motion |

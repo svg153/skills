@@ -1,0 +1,18 @@
+name: better-ui
+origin: https://github.com/jakubkrehel/skills
+origin_path: skills/better-ui
+origin_ref: 267330e1adfc66a718fb65fa6918c1f06d0a689e
+category: software-development
+status: active
+license: MIT
+sync:
+  enabled: false
+  interval: manual
+  strategy: manual
+  authoritative: local
+tags:
+  - ui
+  - design-engineering
+  - frontend
+  - polish
+  - agent-skills
