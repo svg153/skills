@@ -1,0 +1,19 @@
+name: startup-positioning
+origin: https://github.com/ferdinandobons/startup-skill
+origin_path: startup-positioning
+origin_ref: latest-release
+category: research
+status: active
+license: MIT
+sync:
+  enabled: true
+  interval: weekly
+  strategy: download
+  authoritative: upstream
+  channel: stable
+tags:
+  - startup
+  - positioning
+  - jtbd
+  - market-strategy
+  - agent-skills
