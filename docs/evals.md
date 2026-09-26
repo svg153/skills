@@ -10,7 +10,7 @@ The representative set includes:
 
 - `github-build-or-reuse` — **catalog routing only**: specialized build/reuse decisions activate it while generic evidence research and existing-repository delivery do not. Intrinsic behavior is owned upstream by `ghspain/github-build-or-reuse`.
 - `social-publishing` — attribution, privacy, and typo-only boundaries.
-- `github-repo-autopilot` — repository delivery and no-merge / failed-CI safety boundaries.
+- `github-repo-autopilot` - autonomous repository delivery, auditable reversible decisions, deferred non-blocking research, and no-merge / CI safety boundaries.
 - `evidence-based-decision-research` — primary-evidence discipline and false-precision refusal.
 - `issue-creation` — a compact issue-first/approval-gate workflow.
 - `planning` — new-work structuring, provider ownership, degraded GitHub/Jira operation, and the explicit mutation boundary of the planning capability plugin.

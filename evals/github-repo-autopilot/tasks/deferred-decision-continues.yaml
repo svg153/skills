@@ -1,0 +1,25 @@
+id: autopilot-deferred-decision-continues
+name: Expensive non-blocking research becomes linked follow-up work
+inputs:
+  prompt: >-
+    Continue this repository autonomously. During the current issue you discover that deciding
+    whether to replace a core library needs a much deeper benchmark and migration study, but that
+    choice does not block the current feature or make it incorrect. Do not stop the current PR just
+    to do that research now.
+expected:
+  should_trigger: true
+  graders:
+    - type: trigger
+      name: activation
+      config:
+        skill_path: skills/github-repo-autopilot/SKILL.md
+        mode: positive
+        threshold: 0.6
+    - type: prompt
+      name: deferred_decision
+      config:
+        prompt: >-
+          Pass only if the response creates or calls for a repository-native follow-up issue with
+          the deferred research scope, evidence needed, dependencies and acceptance criteria, links
+          it from the active work, records the deferral with [AI-DECISION], and continues the
+          current non-blocked delivery instead of pausing for a large side investigation.
