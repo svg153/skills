@@ -59,6 +59,11 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Set up Node.js for skill executors
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '22'
+
       - name: Install validation dependencies
         shell: bash
         run: |
@@ -67,6 +72,9 @@ jobs:
 
       - name: Validate workflow security baseline
         run: python scripts/validate-workflow-security.py
+
+      - name: Test public repository bootstrap executor
+        run: node --test skills/open-source-repo-bootstrap/tests/*.test.mjs
 
       - name: Validate Renovate policy contract
         shell: bash
