@@ -1,0 +1,14 @@
+id: deck-design-system-boundary
+name: deck-design-system stays out of an explicit boundary
+inputs:
+  prompt: Write a brand-new presentation about our roadmap from scratch; we have no
+    source deck.
+expected:
+  should_trigger: false
+  graders:
+  - type: trigger
+    name: boundary
+    config:
+      skill_path: skills/deck-design-system/SKILL.md
+      mode: negative
+      threshold: 0.6
