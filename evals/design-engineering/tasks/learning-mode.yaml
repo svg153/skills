@@ -1,0 +1,23 @@
+id: design-engineering-learning-mode
+name: Learning request keeps implementation primary and explains key design choices
+inputs:
+  prompt: >-
+    Improve this product screen and implement the changes, but explain the important design decisions
+    so I can learn why the result is better.
+expected:
+  should_trigger: true
+  graders:
+    - type: trigger
+      name: activation
+      config:
+        skill_path: plugins/design-engineering/skills/design-engineering/SKILL.md
+        mode: positive
+        threshold: 0.6
+    - type: prompt
+      name: implementation_plus_rationale
+      config:
+        prompt: >-
+          Pass only if the response still performs the appropriate design-engineering workflow rather
+          than replacing it with generic design theory, and includes a compact rationale for the
+          highest-leverage decisions such as hierarchy, color, typography, spacing/density, components
+          or motion tied to the product context or rendered evidence.

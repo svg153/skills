@@ -1,0 +1,25 @@
+id: design-engineering-foundation-weak-visual-system
+name: Weak visual system routes to Foundation before broad restyling
+inputs:
+  prompt: >-
+    This React app works, but the frontend looks amateur. Most screens use framework defaults,
+    random spacing, several unrelated colors and inconsistent cards/buttons. Make it feel like a
+    coherent production product without changing the business behavior.
+expected:
+  should_trigger: true
+  graders:
+    - type: trigger
+      name: activation
+      config:
+        skill_path: plugins/design-engineering/skills/design-engineering/SKILL.md
+        mode: positive
+        threshold: 0.6
+    - type: prompt
+      name: foundation_golden_surface
+      config:
+        prompt: >-
+          Pass only if the response recognizes that blindly preserving the current visual system is
+          inappropriate, routes the work through Foundation or equivalent visual-foundation behavior,
+          reuses sound behavioral primitives where possible, establishes a coherent visual direction,
+          proves it on one representative golden surface before broad propagation, and requires rendered
+          verification rather than applying a full-app aesthetic in one unverified pass.
