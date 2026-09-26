@@ -13,6 +13,7 @@
     "agent-skill-release-lifecycle",
     "agent-skills",
     "ai-agents",
+    "better-ui",
     "branch-pr",
     "chained-pr",
     "claude-code",
@@ -58,6 +59,10 @@
     "skill-sync",
     "smart-shopping-advisor",
     "social-publishing",
+    "startup-competitors",
+    "startup-design",
+    "startup-pitch",
+    "startup-positioning",
     "work-unit-commits"
   ]
 }

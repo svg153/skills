@@ -1,0 +1,19 @@
+name: startup-design
+origin: https://github.com/ferdinandobons/startup-skill
+origin_path: startup-design
+origin_ref: latest-release
+category: research
+status: active
+license: MIT
+sync:
+  enabled: true
+  interval: weekly
+  strategy: download
+  authoritative: upstream
+  channel: stable
+tags:
+  - startup
+  - validation
+  - market-research
+  - business-model
+  - agent-skills

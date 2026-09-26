@@ -1,0 +1,19 @@
+name: startup-competitors
+origin: https://github.com/ferdinandobons/startup-skill
+origin_path: startup-competitors
+origin_ref: latest-release
+category: research
+status: active
+license: MIT
+sync:
+  enabled: true
+  interval: weekly
+  strategy: download
+  authoritative: upstream
+  channel: stable
+tags:
+  - startup
+  - competitive-intelligence
+  - pricing
+  - market-research
+  - agent-skills
