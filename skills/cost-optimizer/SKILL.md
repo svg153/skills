@@ -4,7 +4,7 @@ description: "Trigger: cost-tips, chronicle cost, optimizar costos, ahorrar toke
 license: Apache-2.0
 metadata:
   author: svg153
-  version: "2.1"
+  version: "2.2"
 ---
 
 ## Activation Contract
@@ -27,6 +27,17 @@ No actives cuando:
 - Cada recomendación: Contexto (1 oración) → Problema (1 oración con evidencia) → **Ubicación** (dónde va el fix) → Acción (1 oración con comando concreto) → Impacto (Alto/Medio/Bajo).
 - No inventes precisión: di "señal proxy" cuando no hay datos exactos de uso.
 - No recomiendes `/model` a un modelo más barato a menos que la mezcla de modelos lo justifique con evidencia.
+- Si detectas un patrón de mejora repetido, propón una skill nueva con **nombre, trigger y ubicación exacta** en `svg153/skills`.
+
+## Presupuesto de datos
+
+Límites duros por ejecución (basados en la ejecución del 2026-09-28: 15+ llamadas de recolección, listing de 21KB, 6 consultas SQL con 1 error):
+
+- **1** `list_workflows` (suficiente para toda la config de automatizaciones).
+- **Máx 5** consultas `session_store_sql`: agregados con `GROUP BY` (modelo, sesión), una sola ventana temporal (7 días), `LIMIT` siempre. Si una consulta falla por columna, corrige la columna; no replanifiques el resto.
+- Directorios GitHub solo con `fields=["name","path"]`. Nunca listing completo.
+- SKILL.md solo de skills con overlap real de costos (las que invoca un workflow activo).
+- Si `session_usage.cost = 0` en toda la BD: di "señal proxy" y continúa; no busques fuentes alternativas de facturación.
 
 ## Decision Gates
 
@@ -57,7 +68,7 @@ Cada recomendación DEBE incluir dónde se implementa el fix. Aplica esta tabla:
 ## Execution Steps
 
 ### Fase 1: Análisis de costos
-1. Recibe el precomputed cost profile (no consultes historial directamente).
+1. Si llega un precomputed cost profile, úsalo (no consultes historial directamente). Si no llega (ejecución vía workflow), recógetelo respetando el **Presupuesto de datos** de arriba.
 2. Clasifica la precisión de la evidencia: exacta, proxy, o mixta.
 3. Identifica las 3 señales de mayor impacto usando la tabla de Decision Gates.
 
@@ -112,7 +123,7 @@ Si no hay problemas: "Todas las automatizaciones y skills evaluadas son eficient
 
 ## References
 
-- Perfil de costos precomputado: se recibe como input, no se consulta.
+- Perfil de costos: se recibe como input si viene precomputado; si no, recógelo respetando el Presupuesto de datos (Fase 1).
 - Repo de skills: svg153/skills — para crear/modificar skills de optimización.
 - Automatizaciones: se consultan vía list_workflows para el cruce.
 - Instrucciones globales: `~/.copilot/copilot-instructions.md` — para patrones comportamentales.
