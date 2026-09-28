@@ -19,6 +19,8 @@ The script is idempotent and converges the repository on:
 
 The script **replaces** the topic set rather than only appending topics, so repeated runs do not accumulate stale discovery metadata.
 
+Metadata writes are retained for the legacy default invocation targeting `svg153/skills`. A non-default repository requires explicit `--configure-metadata`; `--configure-security` never writes metadata unless that flag is also supplied.
+
 Security settings are opt-in and read before every security write:
 
 ```bash
@@ -29,7 +31,7 @@ Security settings are opt-in and read before every security write:
   --required-check CI_CHECK_NAME
 ```
 
-Repeat `--required-check` for every status context that the target repository already publishes. The security mode enables only missing secret-scanning protections and Dependabot security updates. It reports CodeQL default setup for UI or entitlement review, and it creates the managed `main-pull-request` ruleset only when no rulesets exist, an explicit bypass login is supplied, and required checks are supplied. The ruleset targets the repository's reported default branch. Existing rulesets are preserved and reported, never replaced. Use `--dry-run` for a read-only report.
+Repeat `--required-check` for every status context that the target repository already publishes. The security mode is metadata-free by default: it enables only missing secret-scanning protections and Dependabot security updates. It reports CodeQL default setup for UI or entitlement review, and it creates the managed `main-pull-request` ruleset only when no rulesets exist, an explicit bypass login is supplied, and required checks are supplied. The ruleset targets the repository's reported default branch. Existing rulesets are preserved and reported, never replaced. Add `--configure-metadata` only when an intentional metadata write is wanted. Use `--dry-run` for a read-only report.
 
 ## Branch cleanup
 

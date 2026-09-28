@@ -105,16 +105,34 @@ run_case() {
   GH_SCENARIO="$scenario" GH_LOG="$log" PATH="$mock_bin:$PATH" bash "$script" --repo owner/repo "$@"
 }
 
+run_default_case() {
+  local scenario="$1"
+  shift
+  : > "$log"
+  GH_SCENARIO="$scenario" GH_LOG="$log" PATH="$mock_bin:$PATH" bash "$script" "$@"
+}
+
 assert_log_absent() {
   ! grep -Fq -- "$1" "$log"
 }
 
 echo "metadata behavior"
-run_case default
-grep -Fq 'repo edit owner/repo' "$log"
-grep -Fq 'PUT repos/owner/repo/topics' "$log"
-grep -Fq 'PUT repos/owner/repo/private-vulnerability-reporting' "$log"
+run_default_case default
+grep -Fq 'repo edit svg153/skills' "$log"
+grep -Fq 'PUT repos/svg153/skills/topics' "$log"
+grep -Fq 'PUT repos/svg153/skills/private-vulnerability-reporting' "$log"
 assert_log_absent 'automated-security-fixes'
+
+echo "non-default metadata requires explicit opt-in"
+if GH_SCENARIO=default GH_LOG="$log" PATH="$mock_bin:$PATH" bash "$script" --repo owner/repo >"$tmp/reject.out" 2>&1; then
+  echo "expected non-default metadata invocation to fail" >&2
+  exit 1
+fi
+grep -Fq 'require explicit --configure-metadata' "$tmp/reject.out"
+
+echo "explicit metadata opt-in"
+run_case default --configure-metadata
+grep -Fq 'repo edit owner/repo' "$log"
 
 echo "fresh security configuration"
 output="$(run_case fresh --configure-security --bypass-login maintainer --required-check test --required-check title --required-check commits)"
@@ -124,6 +142,9 @@ grep -Fq 'POST repos/owner/repo/rulesets' "$log"
 grep -Fq 'explicit bypass user maintainer' <<<"$output"
 grep -Fq 'refs/heads/main' "$log"
 grep -Fq '"context":"test"' "$log"
+assert_log_absent 'repo edit owner/repo'
+assert_log_absent 'PUT repos/owner/repo/topics'
+assert_log_absent 'PUT repos/owner/repo/private-vulnerability-reporting'
 
 echo "non-main default branch is targeted"
 output="$(run_case non-main --configure-security --bypass-login maintainer --required-check ci/test)"

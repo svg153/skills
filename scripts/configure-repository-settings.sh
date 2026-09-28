@@ -2,8 +2,10 @@
 # Apply GitHub repository properties that require an administrator identity.
 set -euo pipefail
 
-repo="svg153/skills"
+default_repo="svg153/skills"
+repo="$default_repo"
 configure_security=false
+configure_metadata_requested=false
 dry_run=false
 bypass_login=""
 required_checks=()
@@ -18,6 +20,7 @@ Usage: ./scripts/configure-repository-settings.sh [options]
 Options:
   --repo OWNER/REPO             Repository to configure (default: svg153/skills)
   --configure-security          Read and configure supported security defaults
+  --configure-metadata          Explicitly apply metadata, topics, and vulnerability reporting
   --bypass-login LOGIN          Explicit GitHub user for a new default-branch ruleset
   --required-check CONTEXT      Required status check (repeat for each check)
   --dry-run                     Report planned writes without changing GitHub
@@ -34,6 +37,10 @@ while (($#)); do
       ;;
     --configure-security)
       configure_security=true
+      shift
+      ;;
+    --configure-metadata)
+      configure_metadata_requested=true
       shift
       ;;
     --bypass-login)
@@ -69,6 +76,11 @@ done
 
 if [[ ! "$repo" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]]; then
   echo "ERROR: --repo must be an OWNER/REPO slug." >&2
+  exit 2
+fi
+
+if [[ "$repo" != "$default_repo" && "$configure_security" != true && "$configure_metadata_requested" != true ]]; then
+  echo "ERROR: metadata writes for --repo $repo require explicit --configure-metadata." >&2
   exit 2
 fi
 
@@ -298,7 +310,13 @@ configure_ruleset() {
 }
 
 echo "Configuring $repo"
-configure_metadata
+if [[ "$configure_metadata_requested" == true ]]; then
+  configure_metadata
+elif [[ "$configure_security" != true && "$repo" == "$default_repo" ]]; then
+  configure_metadata
+else
+  echo "Metadata: skipped; security mode is non-destructive."
+fi
 
 if [[ "$configure_security" == true ]]; then
   configure_security
