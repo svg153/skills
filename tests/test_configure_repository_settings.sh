@@ -32,7 +32,11 @@ endpoint=""
 while (($#)); do
   case "$1" in
     --method) method="$2"; shift 2 ;;
-    --input) cat >/dev/null; shift 2 ;;
+    --input)
+      body="$(cat)"
+      printf 'BODY %s\n' "$body" >> "$GH_LOG"
+      shift 2
+      ;;
     --jq) shift 2 ;;
     --paginate|--silent) shift ;;
     -f) shift 2 ;;
@@ -78,11 +82,13 @@ case "$endpoint" in
     ;;
   repos/*)
     if [[ "$GH_SCENARIO" == no-admin ]]; then
-      printf '%s\n' '{"permissions":{"admin":false},"security_and_analysis":{}}'
+      printf '%s\n' '{"default_branch":"main","permissions":{"admin":false},"security_and_analysis":{}}'
     elif [[ "$GH_SCENARIO" == fresh ]]; then
-      printf '%s\n' '{"permissions":{"admin":true},"security_and_analysis":{"secret_scanning":{"status":"disabled"},"secret_scanning_push_protection":{"status":"disabled"}}}'
+      printf '%s\n' '{"default_branch":"main","permissions":{"admin":true},"security_and_analysis":{"secret_scanning":{"status":"disabled"},"secret_scanning_push_protection":{"status":"disabled"}}}'
+    elif [[ "$GH_SCENARIO" == non-main ]]; then
+      printf '%s\n' '{"default_branch":"develop","permissions":{"admin":true},"security_and_analysis":{"secret_scanning":{"status":"enabled"},"secret_scanning_push_protection":{"status":"enabled"}}}'
     else
-      printf '%s\n' '{"permissions":{"admin":true},"security_and_analysis":{"secret_scanning":{"status":"enabled"},"secret_scanning_push_protection":{"status":"enabled"}}}'
+      printf '%s\n' '{"default_branch":"main","permissions":{"admin":true},"security_and_analysis":{"secret_scanning":{"status":"enabled"},"secret_scanning_push_protection":{"status":"enabled"}}}'
     fi
     ;;
   *)
@@ -111,11 +117,19 @@ grep -Fq 'PUT repos/owner/repo/private-vulnerability-reporting' "$log"
 assert_log_absent 'automated-security-fixes'
 
 echo "fresh security configuration"
-output="$(run_case fresh --configure-security --bypass-login maintainer)"
+output="$(run_case fresh --configure-security --bypass-login maintainer --required-check test --required-check title --required-check commits)"
 grep -Fq 'PATCH repos/owner/repo' "$log"
 grep -Fq 'PUT repos/owner/repo/automated-security-fixes' "$log"
 grep -Fq 'POST repos/owner/repo/rulesets' "$log"
 grep -Fq 'explicit bypass user maintainer' <<<"$output"
+grep -Fq 'refs/heads/main' "$log"
+grep -Fq '"context":"test"' "$log"
+
+echo "non-main default branch is targeted"
+output="$(run_case non-main --configure-security --bypass-login maintainer --required-check ci/test)"
+grep -Fq 'POST repos/owner/repo/rulesets' "$log"
+grep -Fq 'refs/heads/develop' "$log"
+grep -Fq 'created main-pull-request' <<<"$output"
 
 echo "idempotent existing state"
 run_case managed --configure-security --bypass-login maintainer >/dev/null
@@ -129,9 +143,14 @@ assert_log_absent 'POST repos/owner/repo/rulesets'
 grep -Fq 'existing branch/tag rulesets detected' <<<"$output"
 
 echo "missing bypass identity is reported"
-output="$(run_case fresh --configure-security)"
+output="$(run_case fresh --configure-security --required-check ci/test)"
 assert_log_absent 'POST repos/owner/repo/rulesets'
 grep -Fq 'no bypass identity supplied' <<<"$output"
+
+echo "missing required checks are reported"
+output="$(run_case fresh --configure-security --bypass-login maintainer)"
+assert_log_absent 'POST repos/owner/repo/rulesets'
+grep -Fq 'required status checks were not supplied' <<<"$output"
 
 echo "insufficient permissions are reported"
 output="$(run_case no-admin --configure-security)"

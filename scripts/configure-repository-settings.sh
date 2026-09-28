@@ -6,6 +6,7 @@ repo="svg153/skills"
 configure_security=false
 dry_run=false
 bypass_login=""
+required_checks=()
 ruleset_name="main-pull-request"
 homepage="https://svg153.github.io/skills/"
 description="Cross-agent Agent Skills catalog with provenance, stable upstream sync, behavioral evals, and reproducible packaging."
@@ -17,7 +18,8 @@ Usage: ./scripts/configure-repository-settings.sh [options]
 Options:
   --repo OWNER/REPO             Repository to configure (default: svg153/skills)
   --configure-security          Read and configure supported security defaults
-  --bypass-login LOGIN          Explicit GitHub user for a new main ruleset
+  --bypass-login LOGIN          Explicit GitHub user for a new default-branch ruleset
+  --required-check CONTEXT      Required status check (repeat for each check)
   --dry-run                     Report planned writes without changing GitHub
   -h, --help                   Show this help
 EOF
@@ -37,6 +39,11 @@ while (($#)); do
     --bypass-login)
       [[ $# -ge 2 ]] || { echo "ERROR: --bypass-login requires a GitHub login." >&2; exit 2; }
       bypass_login="$2"
+      shift 2
+      ;;
+    --required-check)
+      [[ $# -ge 2 && -n "$2" && "$2" != -* ]] || { echo "ERROR: --required-check requires a check context." >&2; exit 2; }
+      required_checks+=("$2")
       shift 2
       ;;
     --dry-run)
@@ -136,7 +143,7 @@ configure_metadata() {
 }
 
 configure_security() {
-  local base="repos/$repo" repo_state security_state secret_status push_status
+  local base="repos/$repo" repo_state security_state secret_status push_status default_branch
   if ! repo_state=$(api_read "$base" 2>&1); then
     report_api_failure "security defaults" "$repo_state"
     return
@@ -144,6 +151,12 @@ configure_security() {
 
   if [[ "$(jq -r '.permissions.admin // false' <<<"$repo_state")" != true ]]; then
     report_api_failure "security defaults" "authenticated account does not have verified repository administration permission"
+    return
+  fi
+
+  default_branch=$(jq -r '.default_branch // empty' <<<"$repo_state")
+  if [[ -z "$default_branch" ]]; then
+    report_api_failure "branch ruleset" "repository response did not contain default_branch"
     return
   fi
 
@@ -203,11 +216,11 @@ configure_security() {
     fi
   fi
 
-  configure_ruleset "$base"
+  configure_ruleset "$base" "$default_branch"
 }
 
 configure_ruleset() {
-  local base="$1" rulesets actor_json actor_id ruleset_count error
+  local base="$1" default_branch="$2" rulesets actor_json actor_id ruleset_count error
   if ! rulesets=$(api_read "$base/rulesets?per_page=100" 2>&1); then
     report_api_failure "branch ruleset" "$rulesets"
     return
@@ -228,6 +241,11 @@ configure_ruleset() {
     return
   fi
 
+  if ((${#required_checks[@]} == 0)); then
+    echo "REPORT: required status checks were not supplied; skipping $ruleset_name creation. Pass --required-check CONTEXT once per check."
+    return
+  fi
+
   if ! actor_json=$(api_read "users/$bypass_login" 2>&1); then
     report_api_failure "branch ruleset" "$actor_json"
     return
@@ -238,12 +256,16 @@ configure_ruleset() {
     return
   fi
 
-  local ruleset
-  ruleset=$(jq -cn --argjson actor_id "$actor_id" --arg name "$ruleset_name" '{
+  local required_status_checks='[]' check ruleset
+  for check in "${required_checks[@]}"; do
+    required_status_checks=$(jq -c --arg context "$check" '. + [{context: $context}]' <<<"$required_status_checks")
+  done
+
+  ruleset=$(jq -cn --argjson actor_id "$actor_id" --arg name "$ruleset_name" --arg branch "$default_branch" --argjson checks "$required_status_checks" '{
     name: $name,
     target: "branch",
     enforcement: "active",
-    conditions: {ref_name: {include: ["refs/heads/main"], exclude: []}},
+    conditions: {ref_name: {include: ["refs/heads/" + $branch], exclude: []}},
     rules: [
       {type: "deletion"},
       {type: "non_fast_forward"},
@@ -259,11 +281,7 @@ configure_ruleset() {
       {type: "required_status_checks", parameters: {
         strict_required_status_checks_policy: true,
         do_not_enforce_on_create: false,
-        required_status_checks: [
-          {context: "test", integration_id: 15368},
-          {context: "title", integration_id: 15368},
-          {context: "commits", integration_id: 15368}
-        ]
+        required_status_checks: $checks
       }}
     ],
     bypass_actors: [{actor_id: $actor_id, actor_type: "User", bypass_mode: "always"}]
