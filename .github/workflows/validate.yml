@@ -76,6 +76,10 @@ jobs:
       - name: Test public repository bootstrap executor
         run: node --test skills/open-source-repo-bootstrap/tests/*.test.mjs
 
+      - name: Test repository settings safety guards
+        shell: bash
+        run: bash tests/test_configure_repository_settings.sh
+
       - name: Validate Renovate policy contract
         shell: bash
         run: |
