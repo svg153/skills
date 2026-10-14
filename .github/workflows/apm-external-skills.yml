@@ -10,6 +10,7 @@ on:
       - 'scripts/complete-apm-renovate-update.py'
       - 'skills/github-build-or-reuse/**'
       - 'tests/test_apm_mirror_rollback.sh'
+      - 'tests/test_apm_resolver_refresh.py'
       - '.github/workflows/apm-external-skills.yml'
   workflow_dispatch:
 
@@ -29,6 +30,13 @@ jobs:
       - name: Install pinned APM CLI
         shell: bash
         run: bash scripts/install-apm-ci.sh
+
+      - name: Verify resolver-only maintenance and immutable release updates
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install 'PyYAML>=6,<7'
+          python tests/test_apm_resolver_refresh.py
 
       - name: Verify external dependency lock and SBOM
         working-directory: dependencies/external-skills

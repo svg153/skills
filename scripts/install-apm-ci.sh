@@ -3,8 +3,8 @@
 # Keep the version and release checksum here so every workflow uses one pin.
 set -euo pipefail
 
-readonly APM_VERSION="0.30.0"
-readonly APM_ARCHIVE_SHA256="8b84bebf19c350faf36d21aebb350dc656d04c0b7a1c2bf8ea35c0caa0e44bb9"
+readonly APM_VERSION="0.33.0"
+readonly APM_ARCHIVE_SHA256="e6374402c74318f7c8bef97a90d8572d049fdab0dc3871492c6b0647ae9e881f"
 readonly APM_ASSET="apm-linux-x86_64.tar.gz"
 
 : "${RUNNER_TEMP:?RUNNER_TEMP must be set (this installer is CI-specific)}"
