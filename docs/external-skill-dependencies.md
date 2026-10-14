@@ -68,11 +68,11 @@ A Renovate upstream change is being evaluated instead of growing permanent repos
 
 ## Lock and mirror verification
 
-CI uses checksum-verified Microsoft APM CLI **0.30.0** through `scripts/install-apm-ci.sh`. The version and Linux x86_64 release archive SHA-256 are centralized in that installer so workflows do not carry independent toolchain pins.
+CI uses checksum-verified Microsoft APM CLI **0.33.0** through `scripts/install-apm-ci.sh`. The version and Linux x86_64 release archive SHA-256 are centralized in that installer so workflows do not carry independent toolchain pins.
 
-The current digest-pinned resolver path has been validated with APM 0.30.0 for:
+The current digest-pinned resolver path has been validated with APM 0.33.0 for:
 
-- `apm lock`;
+- `apm lock` and `apm lock --update` with immutable manifest pins;
 - `apm lock export --format cyclonedx`;
 - `apm policy status --check`;
 - `apm audit --ci --no-drift`;
@@ -160,3 +160,27 @@ The existing scheduled `sync-upstream-skills.yml` remains active during the pilo
 6. The entry is explicitly marked as APM-managed so the generic scheduled synchronizer skips only migrated mirrors.
 
 Only then should the old direct-to-`main` synchronization path stop managing that mirror.
+
+## October 2026 maintenance validation
+
+See [the reproducible review evidence](apm-033-renovate-review.md). APM 0.33.0
+provides `apm lock --update`, and the catalog can already use it directly without
+deployment. This does not select that command in hosted Renovate: upstream PR
+#45683 keeps `apm install --update` for maintenance and `apm install` after
+manifest updates. Both install paths still require a harness.
+
+Keep normal reviewed SHA + release-tag updates and the trusted `apm lock`
+completion flow. Do not enable Renovate lockfile maintenance or manufacture a
+runtime target just to make installation succeed. The upstream follow-up needs
+an explicit resolver-only option covering both artifact update paths.
+
+Run the CLI regression check with the checksum-pinned APM on PATH:
+
+```bash
+python tests/test_apm_resolver_refresh.py
+```
+
+The check uses temporary projects; it verifies immutable refresh, an update
+between two existing releases, and absence of harness deployment. It does not
+prove hosted Renovate discovery of a future release or authorize legacy-sync
+cutover.
