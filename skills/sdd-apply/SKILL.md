@@ -1,13 +1,13 @@
 ---
 name: sdd-apply
 description: "Implement SDD tasks from specs and design. Trigger: orchestrator launches apply for one or more change tasks."
-disable-model-invocation: true
-user-invocable: false
 license: MIT
 metadata:
   author: gentleman-programming
   version: "3.0"
-  delegate_only: true
+  delegate_only: "true"
+  claude_disable_model_invocation: "true"
+  claude_user_invocable: "false"
 ---
 
 > **ORCHESTRATOR GATE**: If you loaded this skill via the `skill()` tool, you are
