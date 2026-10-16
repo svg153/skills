@@ -10,6 +10,6 @@ sync:
   authoritative: local
 tags:
   - agent-skills
-  - skill-sync
+  - domain-manager-sync
   - hermes
   - repository-sync
