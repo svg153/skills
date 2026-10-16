@@ -1,5 +1,5 @@
 ---
-name: skill-sync
+name: domain-manager-sync
 description: 'Auto-sync all skills from svg153/skills GitHub repo. Maintains symlinks from /hermes-home/skills/ to the canonical repo. Before any task, verify symlinks are current by pulling latest from repo. Trigger: any skill management, skill updates, or when unsure if a skill is up to date.'
 license: MIT
 metadata:
@@ -7,7 +7,7 @@ metadata:
   version: "1.0"
 ---
 
-# Skill Sync — Sincronización Genérica de Skills
+# Domain Manager Sync - Sincronización Genérica de Skills
 
 Mantiene todas las skills del repositorio `svg153/skills` sincronizadas con la carpeta de Hermes.
 
@@ -81,7 +81,7 @@ done
 
 - **NUNCA** hardcodear API keys en SKILL.md o scripts
 - **NUNCA** commit de credenciales (`.gitignore` excluye `*.env`, `*.key`, `hosts.yml`)
-- **SKILL.md es público** — solo instrucciones no sensibles
+- **SKILL.md es público**: solo instrucciones no sensibles
 - Usar `***` como placeholder para credenciales
 - Referencias a GitHub Secrets: `${{ secrets.VAR }}`
 
