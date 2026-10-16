@@ -87,8 +87,10 @@ jobs:
           python scripts/validate-renovate-policy.py
           python -m unittest discover -s tests -p 'test_renovate_policy.py' -v
 
-      - name: Validate Agent Skill frontmatter
-        run: python scripts/validate-skills.py
+      - name: Validate Agent Skills specification
+        run: |
+          python scripts/validate-skills.py
+          python -m unittest discover -s tests -p 'test_validate_skills.py' -v
 
       - name: Validate metadata lifecycle
         run: |
