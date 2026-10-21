@@ -17,6 +17,8 @@ Every spec uses `schemaVersion: 1` and requires:
 - `skills_sh_group`: exact existing grouping title or `null`;
 - `allow_overlap_with`: explicit sibling catalog names when overlap is intentional.
 
+For LOCAL skills, the generated `SKILL.md` description joins `use_for` phrases with `; ` and renders `Trigger: <joined phrases>. <summary>`. The complete result must be at most 1024 characters, including the prefix, separators, and summary; the publisher and `scripts/validate-skills.py` count characters rather than UTF-8 bytes. This matches the [Agent Skills specification](https://agentskills.io/specification#description-field). The former 250-character guard was an internal historical limit, not a current validation requirement. The ceiling is not a target: keep capability and activation cues informative without padding.
+
 When `evals` is true, also supply `eval_positive_prompt`, `eval_negative_prompt`, and `eval_behavior`.
 
 ## MCP composition is not a skill-registration field
