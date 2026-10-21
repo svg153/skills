@@ -1,15 +1,15 @@
 ---
 name: work-unit-commits
-description: "Plan commits as reviewable work units. Trigger: implementation, commit splitting, chained PRs, or keeping tests and docs with code."
+description: "Organize implementation, tests and relevant documentation into coherent, reviewable commits rather than file-type batches. Use when choosing commit boundaries, splitting a feature into independently meaningful changes, preparing commits for review, or building a single PR or PR chain. Commit boundaries need not become separate PRs; follow the selected delivery mode and project budget."
 license: Apache-2.0
 metadata:
   author: gentleman-programming
-  version: "1.0"
+  version: "1.1"
 ---
 
 ## When to Use
 
-Load this skill when deciding what belongs in each commit or PR.
+Load this helper when deciding what belongs in each commit or PR. Keep the selected delivery mode and host/repository workflow authoritative; commit boundaries do not automatically become PR boundaries. Preserve configured TDD/RDD and never select SDD from a line count.
 
 Use it for:
 
@@ -17,7 +17,7 @@ Use it for:
 - Preparing commits before opening a PR.
 - Turning a large change into chained or stacked PRs.
 - Keeping reviewer cognitive load healthy.
-- Applying SDD tasks without accidentally producing a PR above 400 changed lines.
+- Applying existing SDD/ODD tasks within their effective delivery budget.
 
 ## Critical Rules
 
@@ -29,7 +29,7 @@ Use it for:
 | Keep docs with the user-visible change | Docs belong with the feature or workflow they explain. |
 | Tell a story | A reviewer should understand why each commit exists from its diff and message. |
 | Future PR-ready | Each commit should be a candidate chained PR when the change grows. |
-| SDD workload guard | If SDD tasks forecast a >400-line change, group commits into chained PR slices before implementation. |
+| Workload guard | Follow the effective host/project budget and delivery strategy. Use 400 authored additions plus deletions only as an unspecified planning default, not a new gate or override of Personal batching. |
 
 ## Work Unit Checklist
 
@@ -57,7 +57,7 @@ Use work-unit commits as the foundation for chained PRs:
 1. Build the smallest independent work unit.
 2. Include verification for that unit.
 3. Commit it with a Conventional Commit message.
-4. If the PR approaches 400 changed lines, promote commits or groups of commits into chained PRs.
+4. If the effective budget/strategy calls for slicing, promote cohesive commits or groups into chained PRs. Preserve real repository size gates; do not create one PR per tiny commit merely because a helper has a 400-line default. Push and PR creation still require user authorization.
 
 ## SDD Relationship
 
@@ -65,7 +65,7 @@ When `sdd-tasks` produces a Review Workload Forecast:
 
 - Low risk: keep work-unit commits inside one PR.
 - Medium risk: commit by work unit and monitor changed lines before PR creation.
-- High risk: follow SDD `delivery_strategy` — ask on `ask-on-risk`, auto-slice on `auto-chain`, require `size:exception` on over-budget `single-pr`, or record accepted `size:exception` on `exception-ok`.
+- High risk: follow the already-selected SDD `delivery_strategy` and effective budget. Use only the actual repository exception process for a hard gate; do not invent `size:exception` labels elsewhere.
 
 Each SDD work unit should map cleanly to a commit or PR with:
 

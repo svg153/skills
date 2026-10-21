@@ -21,6 +21,6 @@ expected:
       config:
         prompt: >-
           Pass only if the response does not stop for approval on the reversible in-scope choice,
-          records a searchable [AI-DECISION] entry with the question, options, evidence, selected
+          records one searchable entry under the exact heading ## Decision record — CODEX with [AI-DECISION] inside it with the question, options, evidence, selected
           decision, rationale, reversibility or risk, and follow-up, then continues the authorized
           implementation and PR workflow.

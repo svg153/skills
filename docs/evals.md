@@ -12,6 +12,7 @@ The representative set includes:
 - `social-publishing` — attribution, privacy, and typo-only boundaries.
 - `github-repo-autopilot` - autonomous repository delivery, auditable reversible decisions, deferred non-blocking research, and no-merge / CI safety boundaries.
 - `evidence-based-decision-research` — primary-evidence discipline and false-precision refusal.
+- `personal-agentic-delivery` — selected-mode isolation, concept batching within effective budgets, local-only authorization and real size/correctness gates.
 - `issue-creation` — a compact issue-first/approval-gate workflow.
 - `planning` — new-work structuring, provider ownership, degraded GitHub/Jira operation, and the explicit mutation boundary of the planning capability plugin.
 - `backlog-management` — existing-backlog cleanup, cross-provider source-of-truth rules, degraded provider reads, and the boundary with greenfield planning.

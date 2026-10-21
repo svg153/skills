@@ -1,6 +1,6 @@
 ---
 name: issue-creation
-description: "Create Gentle AI issues with issue-first checks. Trigger: creating GitHub issues, bug reports, or feature requests."
+description: "Create and triage GitHub issues for Gentle AI repositories or projects explicitly adopting its issue-first workflow. Use to check duplicates, file complete bug reports or feature requests with the correct templates, or guide maintainer review and approval before PR work. Do not impose Gentle AI labels or approval rules on unrelated repositories."
 license: Apache-2.0
 metadata:
   author: gentleman-programming
@@ -9,7 +9,9 @@ metadata:
 
 ## When to Use
 
-Use this skill when:
+The label/template rules below apply only to Gentle AI repositories or repositories that explicitly adopted them. Elsewhere use the target repository's real conventions, not these source-project defaults. Host instructions and the selected delivery mode remain authoritative. Confirm authorization for the remote issue/PR/push operations; invoking this helper grants none.
+
+Use this skill within that scope when:
 - Creating a GitHub issue (bug report or feature request)
 - Helping a contributor file an issue
 - Triaging or approving issues as a maintainer

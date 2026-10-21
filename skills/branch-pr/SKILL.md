@@ -1,6 +1,6 @@
 ---
 name: branch-pr
-description: "Create Gentle AI pull requests with issue-first checks. Trigger: creating, opening, or preparing PRs for review."
+description: "Prepare and open pull requests for Gentle AI repositories or projects explicitly adopting its issue-first workflow. Use to verify approved issue linkage, branch naming, PR templates, type labels and required checks before submission. Do not impose Gentle AI approval labels or templates on unrelated repositories; use their actual contribution rules."
 license: Apache-2.0
 metadata:
   author: gentleman-programming
@@ -9,7 +9,9 @@ metadata:
 
 ## When to Use
 
-Use this skill when:
+The label/template rules below apply only to Gentle AI repositories or repositories that explicitly adopted them. Elsewhere use the target repository's real conventions, not these source-project defaults. Host instructions and the selected delivery mode remain authoritative. Confirm authorization for the remote issue/PR/push operations; invoking this helper grants none.
+
+Use this skill within that scope when:
 - Creating a pull request for any change
 - Preparing a branch for submission
 - Helping a contributor open a PR

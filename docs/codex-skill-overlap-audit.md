@@ -4,6 +4,10 @@
 **Catalog baseline:** `main` at `c9c4450`
 **Scope:** User-level skills in the local `.codex/skills` directory other than the two delivery skills proposed in [PR #83](https://github.com/svg153/skills/pull/83), compared with this repository's catalog and related open PRs. This is an evidence-based inventory, not authorization to redistribute or delete anything.
 
+## Compatibility follow-up (2026-10-21)
+
+The September evidence below is historical. PRs #78, #79, #83 and #84 are merged; #82 was replaced by merged #86. Delivery skills now select one policy at a time and defer to applicable host/repository gates and authorization. Slicing helpers use the effective budget, not a universal 400-line gate; real CI/size limits still stand. Decision entries use the CODEX heading with the legacy AI-DECISION marker in the same entry when required. This change does not install, link or import additional skills.
+
 ## Executive summary
 
 - No exact-name collision exists between the nine other user-level skills and catalog entries.

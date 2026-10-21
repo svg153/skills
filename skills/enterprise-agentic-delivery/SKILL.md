@@ -1,6 +1,6 @@
 ---
 name: enterprise-agentic-delivery
-description: Run traceable, autonomous enterprise development through roadmap audit, GSD issues, linear commits, pull requests, CI, merge, and parent-roadmap synchronization. Use for GitHub-backed work where auditability and decision history matter; do not use this workflow for personal or MVP batching unless explicitly requested.
+description: "Run auditable GitHub roadmap delivery: reconcile issues and dependencies, define independently reviewable units, implement linear commits and PRs, verify CI, record decisions, and synchronize parent roadmaps after authorized merges. Use only when the user explicitly selects enterprise delivery for issue-to-code traceability and audit history; not merely because a codebase is large or uses GitHub."
 metadata:
   short-description: Traceable enterprise issue-to-PR delivery
 ---
@@ -8,6 +8,14 @@ metadata:
 # Enterprise agentic delivery
 
 Use this skill when the work must remain auditable from roadmap to merged code. The goal is not to maximize the number of issues or PRs; it is to make every change explainable, reviewable, reversible, and linked to its architectural context.
+
+## Activation and precedence
+
+Use only when the user explicitly selects enterprise delivery. Do not infer it merely from application size or load it alongside Personal or Autopilot's delivery policy. Applicable host/repository instructions, configured ODD/SDD route, TDD mode, user-owned RDD switch and actual gates remain authoritative; this skill does not select SDD or enable reviews.
+
+Confirm user authorization for each remote operation and destination (issue updates, push, PR creation, merge, release). Skill invocation or local implementation approval is not remote authorization; an existing explicit backlog authorization covers only its stated scope. Hand off at the first unauthorized boundary rather than assuming permission.
+
+Keep `## Decision record — CODEX` as the decision heading; when `[AI-DECISION]` is used by the repository, include it in that same record, not a separate duplicate. Neither marker grants approval.
 
 ## Core operating rule
 
@@ -31,7 +39,7 @@ If implementation already exists on a dirty branch or worktree, preserve and ver
 
 Create a child issue only when no existing issue accurately owns the work. Prefer updating an existing issue over creating a parallel one.
 
-Use the issue structure in [references/issue-template.md](references/issue-template.md). It must state:
+Use the repository's actual issue template; when none exists, use the issue structure in [references/issue-template.md](references/issue-template.md). It must state:
 
 - objective and context;
 - exact scope and explicit non-goals;
@@ -69,13 +77,13 @@ Before opening the PR, verify the diff, changed files, branch base, issue link, 
 
 ## Pull request and CI
 
-Use the structure in [references/pr-template.md](references/pr-template.md). The PR must include scope, non-goals, implementation summary, tests, risk/rollback, linked issues, and the exact decision-record heading when relevant.
+Use the repository's actual PR template; when none exists, use [references/pr-template.md](references/pr-template.md). The PR must include scope, non-goals, implementation summary, tests, risk/rollback, linked issues, and the exact decision-record heading when relevant.
 
 CI policy:
 
 - Fix failures caused by the change.
 - Investigate external failures and rerun once when useful.
-- If the same external failure occurs twice, document the exact evidence and risk in the PR and issue; merge only when the remaining local and security validation is sufficient.
+- If the same external failure occurs twice, document the exact evidence and risk in the PR and issue; merge only when explicitly authorized, repository gates permit it, and the remaining local and security validation is sufficient; never describe unavailable CI as passed.
 - Never bypass required security or correctness checks by relabeling them as external.
 
 Inspect repository merge rules before choosing squash, merge, or rebase. If the repository rejects squash, use the permitted strategy and document it.

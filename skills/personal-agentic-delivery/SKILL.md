@@ -1,6 +1,6 @@
 ---
 name: personal-agentic-delivery
-description: Continue a GitHub roadmap autonomously for a personal project or small team, grouping related work into reviewable PRs to reduce time and token overhead while preserving issues, decisions, tests, CI evidence, and roadmap traceability. This workflow supersedes enterprise-agentic-delivery for the current run.
+description: "Continue GitHub roadmaps autonomously for personal projects or small teams: recover unfinished work, prioritize dependencies, and group related issues into concept-level PRs with reviewable commits. Use for sustained backlog delivery with less per-ticket ceremony while retaining decisions, tests, CI evidence and roadmap traceability. Application size does not select Enterprise; do not run competing delivery loops."
 metadata:
   short-description: Efficient autonomous roadmap delivery
 ---
@@ -11,11 +11,15 @@ Use this workflow when one agent or a small team owns a large application but do
 
 This is not a small-code or low-quality mode. It changes the shape of delivery: related technical steps are grouped into one concept-level PR, while security boundaries, risky migrations, provider integrations, and architectural changes remain separate when they need independent review or rollback.
 
-When this skill is active, do not implicitly load or apply enterprise-agentic-delivery. Switch to the enterprise workflow only when the user explicitly requests it.
+## Activation and precedence
+
+Use one delivery policy at a time: Personal owns concept-level batching when selected; do not also run Enterprise or Autopilot's delivery loop. Switch modes only on the user's explicit request. Helpers may support the selected mode, not replace it.
+
+Applicable host/repository instructions and actual repository gates take precedence over these defaults. Preserve the configured ODD/SDD route, TDD mode and user-owned RDD switch; invoking this skill does not select SDD, enable reviews or authorize external actions. Never bypass required consent or branch protections.
 
 ## Operating objective
 
-Continue the canonical roadmap until there are no actionable items left, respecting dependencies and priorities. Work autonomously one coherent unit at a time. Create missing issues when the code or roadmap reveals real work, but do not manufacture speculative backlog.
+Continue the authorized scope of the canonical roadmap until there are no actionable items left, respecting dependencies and priorities. Work autonomously one coherent unit at a time. Create missing issues when the code or roadmap reveals real work, but do not manufacture speculative backlog.
 
 The loop may continue without asking the user after every issue. Ask only when progress requires authorization, a product decision with no safe default, destructive/data-loss action, production credentials or external access, or a conflict that cannot be resolved from the repository and roadmap.
 
@@ -48,7 +52,7 @@ Keep separate issues/PRs for:
 - architecture work that changes the direction or terminology of the roadmap;
 - work blocked on an external decision or environment.
 
-There is no hard line-count gate. As a practical review aid, aim to stay below roughly 5,000–7,000 changed lines per conceptual PR and avoid 10,000–20,000 line reviews unless generated or mechanically reviewable files dominate. Complexity and semantic scope matter more than raw size.
+This skill adds no hard line-count gate. Follow the effective host/project delivery budget and any enforced PR size gate first. A helper's default 400-line threshold must not silently replace a selected concept-batching policy; conversely, Personal never overrides a real repository limit. Roughly 5,000–7,000 changed lines is an upper review warning, not a target or standing size exception. Prefer much smaller coherent PRs; distinguish authored work from generated/vendor churn without excluding it from review.
 
 ## Issue and roadmap handling
 
@@ -95,7 +99,7 @@ For failures:
 - fix failures caused by the change;
 - classify failures as code, repository baseline, provider/environment, quota/rate-limit, runner-minute exhaustion, unavailable optional review, or pending infrastructure;
 - retry an external check once when useful;
-- after the second identical external failure, document the exact evidence under `## Decision record — CODEX` in the PR or issue and continue if local/security validation is sufficient;
+- after the second identical external failure, document the exact evidence under `## Decision record — CODEX` in the PR or issue and continue within authorization only when repository safeguards permit it and local/security validation is sufficient; unavailable required checks remain unmet;
 - do not wait indefinitely for optional Copilot review or unavailable agents/runners;
 - never weaken security or correctness checks to force green CI.
 
@@ -103,19 +107,21 @@ Examples of acceptable documented external exceptions include Vercel preview rat
 
 ## Merge and autonomous continuation
 
-After opening a PR:
+Before any remote mutation, confirm that the user authorized that operation and destination: issue updates, push, PR creation, merge and release are distinct scopes. Local implementation or skill invocation alone grants none of them. An explicit backlog-wide authorization can cover repeated operations in that same scope; do not ask again per PR unless scope or risk changes. If publication or merge is not authorized, hand off the verified local change or open PR at that boundary.
+
+After an authorized PR is opened:
 
 1. Verify the diff, changed files, base branch, linked issue, commits, and checks.
-2. Merge using the repository's permitted strategy; use `gh` rather than browser automation when possible.
+2. Merge only with user authorization, satisfied repository gates and the permitted strategy; use `gh` rather than browser automation when possible.
 3. Verify the merge commit and close the issue only when acceptance criteria are met.
 4. Add a concise completion decision record with PR, commit, scope, and CI exceptions.
 5. Synchronize the direct parent roadmap.
 6. Re-audit the board and immediately choose the next actionable issue.
 
-Do not stop after one PR merely because it is complete. Stop only when the actionable roadmap is exhausted, the user asks to pause, or a real external/product/security blocker remains. Leave the blocker with evidence and a resume condition.
+Do not stop after one PR merely because it is complete. Stop only when the actionable roadmap is exhausted, the user asks to pause, the next operation is outside authorization, or a real external/product/security blocker remains. Leave the blocker with evidence and a resume condition.
 
 ## Decision records and memory
 
-Use the exact heading `## Decision record — CODEX` in issues or PRs whenever a decision is made. Include the question, options, selected decision, reason, affected scope, and follow-up.
+Use the exact heading `## Decision record — CODEX` in issues or PRs whenever a decision is made. Include the question, options, selected decision, reason, affected scope, and follow-up. When the repository also uses `[AI-DECISION]`, include that marker inside the same record rather than duplicating it. A decision record never substitutes for authorization.
 
 Persist important decisions, discoveries, bug fixes, user constraints, and workflow changes in the available memory system. Keep the user-facing response short; the issue/PR and commit history are the durable project record.
