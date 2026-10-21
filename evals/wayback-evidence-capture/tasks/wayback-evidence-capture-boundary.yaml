@@ -1,0 +1,13 @@
+id: wayback-evidence-capture-boundary
+name: wayback-evidence-capture stays out of an explicit boundary
+inputs:
+  prompt: Please write a short paragraph explaining how PDF files work, without visiting or archiving any websites.
+expected:
+  should_trigger: false
+  graders:
+  - type: trigger
+    name: boundary
+    config:
+      skill_path: skills/wayback-evidence-capture/SKILL.md
+      mode: negative
+      threshold: 0.6
