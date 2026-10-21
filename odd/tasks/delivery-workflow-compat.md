@@ -24,20 +24,24 @@ Reconcile the existing Personal, Enterprise, Autopilot, and commit/PR helpers wi
   - Checks: structural source reread, existing catalog/frontmatter/lifecycle/eval/distribution validators; independent forward scenarios for selected mode, restricted remote authorization, actual size gate and unavailable CI.
   - Runtime harness: N/A (instruction/YAML change); behavioral fixtures and forward-check results are the applicable runtime evidence.
   - Rollback: restore only the changed workflow skill text, references, behavioral fixtures and this document.
-  - Commit/evidence: all outcomes below observed; implementation commit identity recorded at T2 closeout.
-- [ ] T2: Record observed checks and limitations, publish the compatibility PR for user review, and preserve the worktree/global copies.
+  - Commit/evidence: implementation commit 21e58c8fa85873ed084a42681c759c3df6c7a3c7; outcomes below observed.
+- [x] T2: Record observed checks and limitations, publish the compatibility PR for user review, and preserve the worktree/global copies.
   - Acceptance: PR has scope, non-goals, checks, decision record, and no merge; task document and Engram mirror agree.
   - Checks: `git diff --check`, clean committed branch, remote PR/check snapshot.
-  - Commit/evidence: pending.
+  - Commit/evidence: implementation 21e58c8 published in https://github.com/svg153/skills/pull/97; this documentation-only closeout is recorded in the task file's Git history.
 
 ## Progress and next action
-T1 implemented and verified; publish for user review next. No global skill changes.
+T1/T2 complete: PR #97 is open for user review, not merged. No global skill changes. Next action requires maintainer review; installation and cleanup remain separate.
 - `python -m unittest discover -s tests -v`: 71 passed (bundled Python with existing PyYAML cache on PYTHONPATH).
 - Frontmatter (48 skills), lifecycle (45 entries), metadata-repair check, distribution (8 manifests), catalog renderer and eval validator (12 suites): passed.
 - Git Bash `bash scripts/sync-upstreams.sh --list`: passed, 5 legacy-sync upstream skills listed, no sync performed.
 - `git diff --check`: passed.
 - Independent forward check (Luna, read-only): four observed responses preserved Personal/Enterprise/generic selection, real budgets, remote authorization and genuine-test-failure blockers. Not a Waza model-backed run or RDD receipt.
-- Windows workflow-security validator: 3 executable-bit findings on untouched scripts/workflows; Git records sync-upstreams.sh as 100755. No protection or script changed; Linux CI remains required evidence.
-- Offline `npx skills add . --list`: unavailable (ENOTCACHED); no network package installation attempted. Local Waza executable unavailable; CI static Waza verification pending, trusted model-backed Waza not run.
+- Windows workflow-security validator: 3 executable-bit findings on untouched scripts/workflows; Git records sync-upstreams.sh as 100755. No protection or script changed; Linux CI Skills Validation passed at implementation commit 21e58c8, including workflow security, npx discovery and APM consumption (run 39681394980).
+- Offline `npx skills add . --list`: unavailable (ENOTCACHED); no network package installation attempted. Local Waza executable unavailable; CI static Waza verification passed at implementation commit 21e58c8 (run 39681394866); trusted model-backed Waza not run.
 - RDD remains disabled/unmanaged (global off). Runtime harness N/A (only instruction text/fixtures); no application TDD mode changed.
-- Actual authored diff before closeout: 260 additions + deletions including the task document; single conceptual PR remains within forecast.
+- Implementation commit authored diff: 272 additions + deletions including the task document; single conceptual PR remains within forecast.
+
+## Publication snapshot
+- PR #97 at implementation commit 21e58c8: six check runs passed, merge state CLEAN, PR OPEN. This records observed implementation evidence, not a promise about later CI runs; see the PR for latest status.
+- A later documentation-only closeout records this snapshot. Keep the worktree and installed copies until explicit maintainer instructions; no merge or cleanup performed.
