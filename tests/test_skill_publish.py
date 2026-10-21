@@ -17,6 +17,12 @@ sys.modules["catalog_skill"] = catalog_skill
 assert spec.loader is not None
 spec.loader.exec_module(catalog_skill)
 
+VALIDATOR_SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "validate-skills.py"
+validator_spec = importlib.util.spec_from_file_location("validate_skills", VALIDATOR_SCRIPT)
+validate_skills = importlib.util.module_from_spec(validator_spec)
+assert validator_spec.loader is not None
+validator_spec.loader.exec_module(validate_skills)
+
 
 class CatalogSkillTests(unittest.TestCase):
     def setUp(self) -> None:
@@ -91,6 +97,32 @@ license: MIT
         item = next(file for file in plan.files if file.path.endswith("/metadata.yaml"))
         return yaml.safe_load(item.content.decode("utf-8"))
 
+    def plan_with_description_length(self, length: int, *, unicode_summary: bool = False):
+        value = self.local_spec()
+        value["use_for"] = ["first unique trigger", "second unique trigger"]
+        prefix = f"Trigger: {'; '.join(value['use_for'])}. "
+        fill = "é" if unicode_summary else "x"
+        value["summary"] = fill * (length - len(prefix))
+        return value, catalog_skill.plan_from_spec(self.write_spec(value), repo_root=self.root)
+
+    def description_from_plan(self, plan) -> str:
+        item = next(file for file in plan.files if file.path.endswith("/SKILL.md"))
+        frontmatter = yaml.safe_load(item.content.decode("utf-8").split("---\n", 2)[1])
+        return frontmatter["description"]
+
+    def assert_validator_accepts_rendered_skill(self, plan) -> None:
+        skill_root = Path(tempfile.mkdtemp())
+        try:
+            skill_dir = skill_root / "skills" / "new-skill"
+            skill_dir.mkdir(parents=True)
+            item = next(file for file in plan.files if file.path == "skills/new-skill/SKILL.md")
+            (skill_dir / "SKILL.md").write_bytes(item.content)
+            runtime_name, errors = validate_skills.validate_skill_dir(skill_dir, root=skill_root)
+            self.assertEqual(runtime_name, "new-skill")
+            self.assertEqual(errors, [])
+        finally:
+            shutil.rmtree(skill_root, ignore_errors=True)
+
     def test_local_plan_is_zero_write_and_complete(self) -> None:
         before = sorted(path.relative_to(self.root).as_posix() for path in self.root.rglob("*"))
         plan = catalog_skill.plan_from_spec(self.write_spec(self.local_spec()), repo_root=self.root)
@@ -103,6 +135,31 @@ license: MIT
         self.assertIn("evals/new-skill/eval.yaml", paths)
         self.assertIn("skills.sh.json", paths)
         self.assertRegex(plan.approval_hash, r"^[0-9a-f]{64}$")
+
+    def test_description_longer_than_legacy_cap_is_accepted(self) -> None:
+        value, plan = self.plan_with_description_length(251)
+        description = self.description_from_plan(plan)
+        self.assertEqual(description, f"Trigger: {'; '.join(value['use_for'])}. {value['summary']}")
+        self.assertEqual(len(description), 251)
+
+    def test_description_at_spec_limit_counts_unicode_characters_and_validates(self) -> None:
+        value, plan = self.plan_with_description_length(1024, unicode_summary=True)
+        description = self.description_from_plan(plan)
+        self.assertEqual(description, f"Trigger: {'; '.join(value['use_for'])}. {value['summary']}")
+        self.assertEqual(len(description), 1024)
+        self.assertGreater(len(description.encode("utf-8")), len(description))
+        self.assert_validator_accepts_rendered_skill(plan)
+
+    def test_description_over_spec_limit_fails_before_any_write(self) -> None:
+        value = self.local_spec()
+        value["use_for"] = ["first unique trigger", "second unique trigger"]
+        prefix = f"Trigger: {'; '.join(value['use_for'])}. "
+        value["summary"] = "x" * (1025 - len(prefix))
+        before = sorted(path.relative_to(self.root).as_posix() for path in self.root.rglob("*"))
+        with self.assertRaisesRegex(catalog_skill.SkillPlanError, "exceeds 1024"):
+            catalog_skill.plan_from_spec(self.write_spec(value), repo_root=self.root)
+        after = sorted(path.relative_to(self.root).as_posix() for path in self.root.rglob("*"))
+        self.assertEqual(before, after)
 
     def test_local_apply_writes_approved_plan(self) -> None:
         plan = catalog_skill.plan_from_spec(self.write_spec(self.local_spec()), repo_root=self.root)

@@ -20,6 +20,7 @@ import yaml
 
 NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 OWNERSHIP_MODES = {"LOCAL", "MIRRORED_UPSTREAM", "CURATED_UPSTREAM"}
+MAX_DESCRIPTION_LENGTH = 1024
 GENERATED_PATHS = (
     "plugin.json",
     "marketplace.json",
@@ -266,8 +267,11 @@ def normalize_spec(raw: dict[str, Any]) -> dict[str, Any]:
 
 def description_for(spec: dict[str, Any]) -> str:
     description = f"Trigger: {'; '.join(spec['use_for'])}. {spec['summary']}"
-    if len(description) > 250:
-        fail("generated SKILL.md description exceeds 250 chars; shorten summary/use_for")
+    if len(description) > MAX_DESCRIPTION_LENGTH:
+        fail(
+            f"generated SKILL.md description exceeds {MAX_DESCRIPTION_LENGTH} characters; "
+            "shorten summary/use_for"
+        )
     return description
 
 
