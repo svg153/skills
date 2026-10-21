@@ -1,6 +1,6 @@
 ---
 name: chained-pr
-description: "Split review-heavy changes into stacked or chained PRs using the effective delivery budget. Use for review slices or an exceeded project budget, not to select a delivery mode."
+description: "Split large or review-heavy changes into stacked PRs to main or a feature-branch chain with a tracker. Use when the user requests PR slicing, stacked changes or reviewer-load control, or the effective project delivery strategy requires a split. Define slice boundaries, dependencies, review order and checks without replacing the selected delivery mode or imposing a universal line-count gate."
 license: Apache-2.0
 metadata:
   author: gentleman-programming

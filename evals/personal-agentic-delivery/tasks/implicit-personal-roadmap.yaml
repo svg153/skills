@@ -1,0 +1,26 @@
+id: personal-implicit-roadmap
+name: Discover personal roadmap delivery without naming a skill
+inputs:
+  prompt: >-
+    This is my own application, maintained by two people. Continue the GitHub backlog
+    by dependency order, picking up the unfinished branch first. Group related
+    normalizations into coherent PRs with useful commits instead of one tiny PR per
+    ticket. Keep tests and decisions traceable. Only local edits and commits are
+    authorized for now; stop before publication.
+expected:
+  should_trigger: true
+  graders:
+    - type: trigger
+      name: activation
+      config:
+        skill_path: skills/personal-agentic-delivery/SKILL.md
+        mode: positive
+        threshold: 0.6
+    - type: prompt
+      name: routing_and_scope
+      config:
+        prompt: >-
+          Pass only if the response selects Personal as the delivery policy, recovers
+          unfinished work before new implementation, preserves coherent batching and
+          tests, does not start an Enterprise or generic Autopilot loop in parallel,
+          and stops before unauthorized push, PR creation or merge.

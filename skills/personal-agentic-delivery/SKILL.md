@@ -1,6 +1,6 @@
 ---
 name: personal-agentic-delivery
-description: Continue a GitHub roadmap autonomously for a personal project or small team, grouping related work into reviewable PRs to reduce time and token overhead while preserving issues, decisions, tests, CI evidence, and roadmap traceability. This workflow supersedes enterprise-agentic-delivery for the current run.
+description: "Continue GitHub roadmaps autonomously for personal projects or small teams: recover unfinished work, prioritize dependencies, and group related issues into concept-level PRs with reviewable commits. Use for sustained backlog delivery with less per-ticket ceremony while retaining decisions, tests, CI evidence and roadmap traceability. Application size does not select Enterprise; do not run competing delivery loops."
 metadata:
   short-description: Efficient autonomous roadmap delivery
 ---

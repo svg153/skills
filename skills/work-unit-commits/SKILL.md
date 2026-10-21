@@ -1,6 +1,6 @@
 ---
 name: work-unit-commits
-description: "Plan commits as reviewable work units. Trigger: implementation, commit splitting, chained PRs, or keeping tests and docs with code."
+description: "Organize implementation, tests and relevant documentation into coherent, reviewable commits rather than file-type batches. Use when choosing commit boundaries, splitting a feature into independently meaningful changes, preparing commits for review, or building a single PR or PR chain. Commit boundaries need not become separate PRs; follow the selected delivery mode and project budget."
 license: Apache-2.0
 metadata:
   author: gentleman-programming

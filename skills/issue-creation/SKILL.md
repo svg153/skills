@@ -1,6 +1,6 @@
 ---
 name: issue-creation
-description: "Create Gentle AI issues with issue-first checks. Trigger: creating GitHub issues, bug reports, or feature requests."
+description: "Create and triage GitHub issues for Gentle AI repositories or projects explicitly adopting its issue-first workflow. Use to check duplicates, file complete bug reports or feature requests with the correct templates, or guide maintainer review and approval before PR work. Do not impose Gentle AI labels or approval rules on unrelated repositories."
 license: Apache-2.0
 metadata:
   author: gentleman-programming

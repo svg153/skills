@@ -1,6 +1,6 @@
 ---
 name: github-repo-autopilot
-description: "Maintain a GitHub repository through authorized backlog, implementation, PR and release work when no Personal or Enterprise delivery policy is selected. Defer to an explicitly selected delivery mode instead of running a parallel loop."
+description: "Autonomously assess and maintain GitHub repositories: prioritize roadmap issues and dependencies, implement changes with tests and documentation, review PRs and CI, and handle authorized merges or releases. Use to continue a project, clear a backlog, plan delivery phases, or coordinate authorized agents. Generic fallback only; an explicitly selected Personal or Enterprise delivery mode owns the loop."
 ---
 
 # GitHub Repository Autopilot

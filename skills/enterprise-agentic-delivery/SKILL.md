@@ -1,6 +1,6 @@
 ---
 name: enterprise-agentic-delivery
-description: Run traceable, autonomous enterprise development through roadmap audit, GSD issues, linear commits, pull requests, CI, merge, and parent-roadmap synchronization. Use for GitHub-backed work where auditability and decision history matter; do not use this workflow for personal or MVP batching unless explicitly requested.
+description: "Run auditable GitHub roadmap delivery: reconcile issues and dependencies, define independently reviewable units, implement linear commits and PRs, verify CI, record decisions, and synchronize parent roadmaps after authorized merges. Use only when the user explicitly selects enterprise delivery for issue-to-code traceability and audit history; not merely because a codebase is large or uses GitHub."
 metadata:
   short-description: Traceable enterprise issue-to-PR delivery
 ---

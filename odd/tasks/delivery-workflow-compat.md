@@ -19,6 +19,15 @@ Reconcile the existing Personal, Enterprise, Autopilot, and commit/PR helpers wi
 - Delivery strategy: single-pr, one compatibility concept; forecast 250-350 authored changed lines. No hard repository size gate has been found. Revisit if the honest scope exceeds the current delivery strategy.
 
 ## Tasks
+- [x] T3: Apply the maintainer-approved description refinement to the seven workflow/helper skills and add implicit routing coverage.
+  - Scope: capability first, real activation cases second, discriminating boundaries last; preserve bodies and invocation policies. Maximum 1024 characters is a ceiling, not a target.
+  - Checks: parsed descriptions and lengths; validators, Python regression suite, static behavioral fixtures, independent metadata-only routing spot-check; distinguish model spot-checks from Waza runs.
+  - Delivery: update existing PR #97, no merge. Memory mirror pending: runtime session registration unavailable after compaction; do not attempt unattributed writes.
+  - Observed: all seven parsed descriptions are 347-417 characters; Autopilot 403, Personal 417, Enterprise 399, Chained PR 393, Work-unit commits 387, Branch PR 350, Issue creation 347. Other frontmatter fields, bodies and invocation policies are unchanged from the prior PR head.
+  - Verification: 71 Python tests passed; 48 skill frontmatters, 45 lifecycle entries, metadata repair, 8 distribution manifests, catalog rendering and 12 eval suites passed. Added unnamed positive discovery fixtures for Personal and generic Autopilot; existing negative boundary cases remain.
+  - Independent metadata-only Luna spot-check: ten requests matched expected routing (seven skill capabilities, explanation-only NONE, personal 650/1000 advisory-budget case without forced slicing, unrelated generic issue NONE). No bodies or graders were supplied; no model-backed Waza run or native RDD approval is claimed. Parent independently reran validators and the full Python suite.
+  - Sources: https://agentskills.io/specification#description-field and https://learn.chatgpt.com/docs/build-skills ; 1024 is the portable character ceiling, not a target. Discovery metadata carries capability and triggers; procedures remain in the existing body.
+  - Commit/publication: pending final push; next action is update PR #97 and report current CI honestly. No merge or installed-skill change.
 - [x] T1: Reconcile activation, precedence, sizing, decision indexing and remote authorization across skills and supporting references; add relevant behavioral fixtures alongside the change.
   - Acceptance: explicit Personal does not load Enterprise/Autopilot policy in parallel; helpers use the effective host/project budget without bypassing real gates; local continuation does not silently authorize remote actions; CI quota exceptions never turn real failures green.
   - Checks: structural source reread, existing catalog/frontmatter/lifecycle/eval/distribution validators; independent forward scenarios for selected mode, restricted remote authorization, actual size gate and unavailable CI.
@@ -31,6 +40,7 @@ Reconcile the existing Personal, Enterprise, Autopilot, and commit/PR helpers wi
   - Commit/evidence: implementation 21e58c8 published in https://github.com/svg153/skills/pull/97; this documentation-only closeout is recorded in the task file's Git history.
 
 ## Progress and next action
+Maintainer accepted T3 after the original publication. Earlier T1/T2 evidence remains historical, not evidence for the pending refinement. This is the same instruction/YAML-only route and single-PR strategy; RDD stays disabled and no TDD setting changes.
 T1/T2 complete: PR #97 is open for user review, not merged. No global skill changes. Next action requires maintainer review; installation and cleanup remain separate.
 - `python -m unittest discover -s tests -v`: 71 passed (bundled Python with existing PyYAML cache on PYTHONPATH).
 - Frontmatter (48 skills), lifecycle (45 entries), metadata-repair check, distribution (8 manifests), catalog renderer and eval validator (12 suites): passed.
