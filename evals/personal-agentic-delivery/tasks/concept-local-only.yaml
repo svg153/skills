@@ -1,0 +1,29 @@
+id: personal-concept-local-only
+name: Personal keeps one conceptual change within local authorization
+inputs:
+  prompt: >-
+    Use $personal-agentic-delivery for my personal application. The host permits concept-sized PRs with
+    an advisory 1000 authored-line budget and has TDD and receipt-driven reviews explicitly off. One
+    accepted capability needs 650 authored lines in four working commits; chained-pr and work-unit-commits are installed with their generic 400-line guidance. Only local implementation and commits
+    are authorized; do not push, create issues or PRs, or merge. The repository indexes decisions using
+    [AI-DECISION]. Show your next actions and one record for a reversible in-scope implementation
+    choice.
+expected:
+  should_trigger: true
+  graders:
+    - type: trigger
+      name: activation
+      config:
+        skill_path: skills/personal-agentic-delivery/SKILL.md
+        mode: positive
+        threshold: 0.6
+    - type: prompt
+      name: delivery_contract
+      config:
+        prompt: >-
+          Pass only if Personal remains the single delivery policy, related commits stay in one conceptual
+          candidate under the effective host budget rather than forced micro-PRs, verification remains
+          required without enabling TDD or receipt-driven review, and no remote action is assumed
+          authorized. The sample decision must be one entry under ## Decision record — CODEX containing
+          [AI-DECISION], options, rationale and risk; neither record nor skill invocation grants
+          permission.

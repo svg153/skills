@@ -1,19 +1,21 @@
 ---
 name: chained-pr
-description: "Trigger: PRs over 400 lines, stacked PRs, review slices. Split oversized changes into chained PRs that protect review focus."
+description: "Split review-heavy changes into stacked or chained PRs using the effective delivery budget. Use for review slices or an exceeded project budget, not to select a delivery mode."
 license: Apache-2.0
 metadata:
   author: gentleman-programming
-  version: "1.0"
+  version: "1.1"
 ---
 
 ## Activation Contract
 
-Load this skill when a planned PR may exceed **400 changed lines**, SDD forecasts `400-line budget risk: High` or `Chained PRs recommended: Yes`, or the user asks for chained/stacked PRs, review slices, or reviewer-load control.
+Load when the effective project PR budget is exceeded, SDD/ODD explicitly requests slicing, or the user asks for stacked/chained PRs or reviewer-load control. This is a slicing helper, not a second delivery policy.
+
+Resolve the applicable host/repository budget and selected delivery strategy first. Without a specified budget, use 400 authored additions plus deletions as a planning default, not a universal acceptance gate. Preserve any actual repository/CI limit: a mode preference cannot waive it. Preserve configured TDD/RDD; do not activate either or enter SDD from a size signal.
 
 ## Hard Rules
 
-- Split PRs over **400 changed lines** unless a maintainer explicitly accepts `size:exception`.
+- Split when the effective strategy requires it. A hard repository size gate needs the repository's actual exception process, not a self-issued `size:exception`. An advisory budget only prompts a coherent slicing assessment; never invent a label or approval gate.
 - Keep each PR reviewable in about **≤60 minutes**.
 - Use one deliverable work unit per PR; keep tests/docs with the unit they verify.
 - State start, end, prior dependencies, follow-up work, and out-of-scope items in every chained PR.
@@ -26,17 +28,18 @@ Load this skill when a planned PR may exceed **400 changed lines**, SDD forecast
 
 | Condition | Action |
 |---|---|
-| PR ≤400 changed lines and focused | Keep single PR. |
-| PR >400, each slice can land independently | Use Stacked PRs to main. |
-| PR >400, feature must integrate before main | Use Feature Branch Chain with tracker. |
-| Generated/vendor/migration diff cannot split cleanly | Ask maintainer for `size:exception`. |
+| Within the effective budget and focused | Keep single PR. |
+| Slicing selected, each slice can land independently | Use Stacked PRs to main. |
+| Slicing selected, feature must integrate before main | Use Feature Branch Chain with tracker. |
+| Advisory budget exceeded but no coherent split exists | Record rationale; do not manufacture micro-PRs. |
+| Enforced size gate exceeded | Follow the actual exception process or stop at that gate. |
 | SDD provides `delivery_strategy` | Follow it before apply/PR creation. |
 
 ## Execution Steps
 
-1. Estimate changed lines and identify independent work units.
-2. Ask for a chain strategy when none is cached and the budget is exceeded.
-3. Create branches/PRs using the chosen strategy only.
+1. Resolve the effective budget/strategy, distinguish authored from generated work, and identify independent units. Generated files still belong in the complete review.
+2. When chaining is required or selected, ask for a chain strategy only if none is already established.
+3. Create branches/PRs using the chosen strategy only, with user authorization for remote operations. Never compress code or drop tests/docs merely to fit a count.
 4. Add Chain Context to each PR without replacing the repo PR template.
 5. Verify each PR independently: CI/tests/docs/manual checks, rollback scope, and clean diff.
 6. Keep tracker PR draft/no-merge until all child PRs are reviewed and integrated.

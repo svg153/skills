@@ -9,7 +9,9 @@ metadata:
 
 ## When to Use
 
-Use this skill when:
+The label/template rules below apply only to Gentle AI repositories or repositories that explicitly adopted them. Elsewhere use the target repository's real conventions, not these source-project defaults. Host instructions and the selected delivery mode remain authoritative. Confirm authorization for the remote issue/PR/push operations; invoking this helper grants none.
+
+Use this skill within that scope when:
 - Creating a pull request for any change
 - Preparing a branch for submission
 - Helping a contributor open a PR

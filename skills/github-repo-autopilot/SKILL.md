@@ -1,9 +1,15 @@
 ---
 name: github-repo-autopilot
-description: "Assess and maintain GitHub repositories through prioritized issues, implementation, tests, pull requests, documentation, review, merge, and releases. Use when the user asks to continue a repository, clear a backlog, work through issues, improve a project autonomously, plan phases, coordinate authorized agents, or create an ongoing repository-maintenance workflow."
+description: "Maintain a GitHub repository through authorized backlog, implementation, PR and release work when no Personal or Enterprise delivery policy is selected. Defer to an explicitly selected delivery mode instead of running a parallel loop."
 ---
 
 # GitHub Repository Autopilot
+
+## Activation and precedence
+
+Use as the generic repository-maintenance policy only when no Personal or Enterprise delivery policy is selected. If one is selected, leave its delivery loop in control; do not load both or choose Enterprise from codebase size. If none is selected, use these generic defaults without forcing a mode question.
+
+Applicable host/repository instructions and actual gates govern workflow, budgets, TDD and user-owned RDD settings. Do not select SDD or enable reviews by invoking this skill. Local implementation approval does not authorize issue mutations, push, PR creation, merge or release; confirm the operation and destination are in the user's authorized scope.
 
 ## Safety and authority
 
@@ -21,10 +27,11 @@ When the user has authorized autonomous repository work, keep moving unless a de
 
 1. Classify the decision. If it is reversible, bounded in impact, and already inside the authorized problem scope, treat it as non-blocking.
 2. Research proportionally using repository precedent, upstream documentation, existing implementations, and relevant evidence. Avoid analysis that is much larger than the decision warrants.
-3. Record the decision in the active issue or PR with the common marker `[AI-DECISION]`. Prefer the artifact already carrying the work instead of creating a separate decision-only issue.
+3. Record the decision in the active issue or PR under the exact heading `## Decision record — CODEX`, retaining `[AI-DECISION]` inside the same entry for existing searches. Prefer the artifact already carrying the work instead of creating a separate decision-only issue.
 4. Use this compact contract:
 
    ```text
+   ## Decision record — CODEX
    [AI-DECISION] <short title>
    Question: <what had to be decided>
    Options: <viable alternatives considered>
@@ -78,7 +85,7 @@ Classify CI state before acting. Do not treat every red or missing check as the 
 - **Genuine code or test failure:** fix the regression before merge. Do not merge a known failing behavior merely to keep the backlog moving.
 - **Flaky check:** use a small bounded retry and reproduction budget, inspect evidence, and document why the failure is considered flaky before proceeding.
 - **Infrastructure, unavailable runner, credits, or time limit:** retry only while useful, then run equivalent local checks where feasible. If merge is already authorized and repository safeguards permit it, the PR may be merged with an explicit record that CI did not pass or could not run, which local checks were executed, and what residual risk remains.
-- **Unknown cause:** keep diagnosing until it can be classified. Do not merge solely to preserve momentum while the unknown failure could still be a product regression.
+- **Unknown cause:** use bounded diagnosis; if still unknown, report a blocker and resume condition. Do not merge solely to preserve momentum while the unknown failure could still be a product regression.
 
 Never disable or bypass required branch protection or required checks. Never report CI as green when it did not run. Keep retry and repair loops bounded so unavailable infrastructure does not turn into indefinite CI churn.
 

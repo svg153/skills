@@ -1,0 +1,16 @@
+id: personal-enterprise-boundary
+name: Personal stays inactive for explicit enterprise delivery
+inputs:
+  prompt: >-
+    Use $enterprise-agentic-delivery explicitly for this audited enterprise repository. Do not change
+    delivery modes. Prepare the next independently reviewable issue with its audit trail; personal
+    batching is not selected.
+expected:
+  should_trigger: false
+  graders:
+    - type: trigger
+      name: activation
+      config:
+        skill_path: skills/personal-agentic-delivery/SKILL.md
+        mode: negative
+        threshold: 0.6
