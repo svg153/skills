@@ -1,0 +1,23 @@
+id: svg153-writing-dictation-order
+name: dictation order
+inputs:
+  prompt: 'Como si hablara yo, ordéname este dictado para un correo breve: "bueno
+    pues el jueves no, espera, el viernes podría, pero tengo que confirmarlo, y también
+    quería saber si sería online, bueno eso, antes de fijar nada dime si sería online
+    o presencial".'
+expected:
+  should_trigger: true
+  graders:
+  - type: trigger
+    name: activation
+    config:
+      skill_path: skills/svg153-writing-style/SKILL.md
+      mode: positive
+      threshold: 0.6
+  - type: prompt
+    name: context_and_fidelity
+    config:
+      prompt: 'Pass only if: Lead with the question about online versus in-person
+        before fixing a date, retain Friday only as tentative, remove the abandoned
+        Thursday option and empty repeated starts. Do not confirm availability or
+        preserve transcript order mechanically.'

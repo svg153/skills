@@ -1,56 +1,53 @@
 ---
 name: svg153-writing-style
-description: "Trigger: write like me, my style, my voice, LinkedIn post. Rewrite Spanish text in svg153's natural technical-conversational voice."
+description: "Trigger: como si hablara yo, ordéname este mensaje, para copiar y pegar en WhatsApp, que no suene a IA, write like me. Preserve svg153's Spanish voice across messages, emails and technical posts."
 license: MIT
 metadata:
   author: svg153
-  version: "1.0.0"
+  version: "1.1.0"
 ---
 
 # SVG153 Writing Style
 
 ## Activation Contract
 
-Use when writing or rewriting publishable text that should sound like svg153, especially LinkedIn posts, technical reflections, community content, emails, and long-form explanations. Combine with `social-publishing` when platform, fact-checking, attribution, or publishing strategy also matters.
-
-Do not use merely for factual answers where voice imitation is irrelevant.
+Use for drafting or rewriting text in svg153's voice, including requests for `mi estilo` or `mi voz`. Do not activate for ordinary factual answers, literal transcription, or someone else's voice. Combine with `social-publishing` only for relevant platform, evidence or attribution work; drafting never authorizes publishing.
 
 ## Hard Rules
 
-- Treat current user-provided writing samples as the highest-priority style evidence.
-- Write primarily in Spanish unless the user asks otherwise.
-- Prefer medium or long paragraphs that connect ideas naturally instead of stacked one-line punchlines.
-- Preserve exploratory reasoning, qualifications, side thoughts, rhetorical questions, and transitions such as `al final`, `de hecho`, `pero`, `y ahí`, `a lo mejor`, `lo mismo`, or `es por ello` when they fit naturally. Do not insert them mechanically.
-- Keep vocabulary direct and technical when needed; avoid grandiloquent language, marketing slogans, corporate filler, generic engagement bait, and AI-sounding copy.
-- Do not over-polish the prose into a different voice. Natural repetition or a slightly oral cadence is acceptable when it helps authenticity.
-- Keep product names, technologies, dates, links, and technical claims correctly spelled and factually precise.
-- Correct accidental spelling and grammar errors. Never add fake typos, missing letters, swapped vowels, or other artificial mistakes to simulate human authorship.
-- Never add invisible characters, watermark-like markers, or provenance tricks to the text.
-- For text intended for another application, do not use em dashes.
-- When a character limit exists, remove repetition and secondary detail before shortening sentence structure so aggressively that the author's cadence disappears.
+- Honor the requested purpose, audience, language, format and length before stylistic defaults. Default to Spanish.
+- Prefer a designated style sample; otherwise select user-authored examples matching channel, audience and purpose before recency. Treat dictation as intent evidence, not automatically as polished prose. Never treat assistant drafts as approved user writing without explicit confirmation.
+- If references are available, inspect the actual writing. Without suitable evidence, follow explicit preferences, avoid claiming a verified match, and ask for a sample when close imitation depends on it.
+- Preserve direct technical vocabulary, connected reasoning, useful qualifications and natural connectors. Do not insert signature phrases mechanically or equate authenticity with fillers, emojis or long paragraphs.
+- Preserve intent and nuance; reorder ideas when clarification or structure is requested. Remove abandoned starts, accidental repetitions and transcription noise without deleting substantive alternatives.
+- Correct spelling and grammar; preserve exact technical names. Never invent typos, invisible markers, facts, opinions, commitments, availability, intimacy or certainty.
+- Avoid corporate filler, slogans, generic engagement bait and unnecessary superlatives. Use emojis or humor only when audience and relevant samples support them, never as a quota.
+- Do not use em dashes in text intended for another application.
+- Under hard length limits, cut duplication and secondary detail first; count the final text without sacrificing its main purpose.
 
 ## Decision Gates
 
-| Situation | Action |
+| Context | Action |
 | --- | --- |
-| Current user sample exists | Mirror its paragraph length, connectors, vocabulary, and degree of informality first. |
-| No current sample | Use the defaults in this skill without inventing quirks. |
-| Social post | Keep the tone conversational, reflective, technical, and slightly oral. |
-| Formal document | Reduce fillers and repetition, but preserve the author's reasoning cadence. |
-| Hard character limit | Count characters and leave practical headroom when possible. |
+| WhatsApp or close contact | Use short natural paragraphs and a direct ask; allow warmth supported by matching samples. |
+| Professional email | State context and request clearly, with concise paragraphs and a natural closing; do not import casual humor. |
+| Technical post or reflection | Connect explanation, tradeoffs and examples; allow longer paragraphs when useful, without forced hooks or closing questions. |
+| Disordered dictation | Group ideas by purpose and expose the requested action; preserve meaningful uncertainty rather than every spoken hesitation. |
+| Conflicting samples | Follow the designated target or the closest communication context, not simply the latest message. |
 
 ## Execution Steps
 
-1. Extract recurring sentence length, paragraph rhythm, connectors, technical vocabulary, and how the author introduces uncertainty or alternatives.
-2. Draft the text preserving the author's reasoning order instead of converting it into marketing copy.
-3. Remove slogan-like lines, excessive micro-paragraphs, generic hooks, and unnecessary superlatives.
-4. Compare the result against the user's latest sample and restore any cadence lost during editing.
-5. Enforce platform constraints such as character limits, links, and formatting.
+1. Identify channel, recipient, purpose, constraints and factual boundaries from context; ask only for material missing information.
+2. Select matching evidence. Consult [examples](references/style-examples.md) for provenance limits and editing contrasts, not a phrase bank.
+3. Draft using the appropriate register and reorganize where requested.
+4. Compare with evidence: check rhythm, directness, reasoning, uncertainty and degree of familiarity; remove unsupported additions.
+5. Verify final facts, format, length and external-text punctuation. Return the draft without sending or modifying external content unless separately authorized.
 
 ## Output Contract
 
-Return one ready-to-paste version by default. If a hard character limit applies, verify it before returning and state the approximate character count outside the artifact when useful.
+Return one ready-to-paste draft by default. Keep explanations and any verified character count outside it. Do not claim user approval or a measured style match without evidence.
 
 ## References
 
-- `../social-publishing/SKILL.md` - complementary workflow for evidence, attribution, platform adaptation, and publishing quality.
+- [Style examples](references/style-examples.md): short source excerpts and proposed edits with provenance labels.
+- `../social-publishing/SKILL.md`: optional complementary workflow; if unavailable, continue drafting without assuming its capabilities.

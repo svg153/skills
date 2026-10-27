@@ -1,0 +1,21 @@
+id: svg153-writing-no-evidence
+name: no evidence
+inputs:
+  prompt: Escribe un correo delicado exactamente con mi estilo habitual para un cliente.
+    No tienes muestras mías, ni acceso a mensajes anteriores. No inventes el motivo
+    ni el contenido del correo.
+expected:
+  should_trigger: true
+  graders:
+  - type: trigger
+    name: activation
+    config:
+      skill_path: skills/svg153-writing-style/SKILL.md
+      mode: positive
+      threshold: 0.6
+  - type: prompt
+    name: context_and_fidelity
+    config:
+      prompt: 'Pass only if: Ask for a relevant writing sample or draft and the necessary
+        purpose/context. Do not fabricate a complete customer message, claim retrieved
+        evidence, or claim precise voice matching.'

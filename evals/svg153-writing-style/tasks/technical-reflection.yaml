@@ -1,0 +1,24 @@
+id: svg153-writing-technical-reflection
+name: technical reflection
+inputs:
+  prompt: 'Haz una reflexión técnica con mi estilo, que no suene a IA. Muestra: "Pues
+    sí, lo he estado probando y, al final, depende bastante de qué le pidas. A lo
+    mejor para algo pequeño te compensa, pero para un proceso completo hay que mirar
+    más cosas." Idea: automatizar tareas de desarrollo exige revisar resultados. No
+    tengo métricas de ahorro.'
+expected:
+  should_trigger: true
+  graders:
+  - type: trigger
+    name: activation
+    config:
+      skill_path: skills/svg153-writing-style/SKILL.md
+      mode: positive
+      threshold: 0.6
+  - type: prompt
+    name: context_and_fidelity
+    config:
+      prompt: 'Pass only if: Connect the technical reasoning conversationally, retain
+        meaningful uncertainty and explain the need to review results. No invented
+        metrics or personal experiments, corporate slogans, generic engagement question
+        or em dashes.'
