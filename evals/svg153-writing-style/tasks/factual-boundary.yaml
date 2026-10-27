@@ -1,0 +1,14 @@
+id: svg153-writing-factual-boundary
+name: factual boundary
+inputs:
+  prompt: ¿Qué significa CI en desarrollo de software? Solo quiero la definición,
+    sin imitar mi estilo.
+expected:
+  should_trigger: false
+  graders:
+  - type: trigger
+    name: activation
+    config:
+      skill_path: skills/svg153-writing-style/SKILL.md
+      mode: negative
+      threshold: 0.6

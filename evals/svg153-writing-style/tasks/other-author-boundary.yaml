@@ -1,0 +1,14 @@
+id: svg153-writing-other-author-boundary
+name: other author boundary
+inputs:
+  prompt: 'Reescribe este anuncio con la voz formal de nuestra directora, no con la
+    mía: "La reunión será el lunes".'
+expected:
+  should_trigger: false
+  graders:
+  - type: trigger
+    name: activation
+    config:
+      skill_path: skills/svg153-writing-style/SKILL.md
+      mode: negative
+      threshold: 0.6

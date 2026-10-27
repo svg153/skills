@@ -1,0 +1,14 @@
+id: svg153-writing-literal-boundary
+name: literal boundary
+inputs:
+  prompt: 'Transcribe literalmente, sin corregir, este texto: "pues bueno qeu no se".
+    No lo adaptes a mi voz.'
+expected:
+  should_trigger: false
+  graders:
+  - type: trigger
+    name: activation
+    config:
+      skill_path: skills/svg153-writing-style/SKILL.md
+      mode: negative
+      threshold: 0.6

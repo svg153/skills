@@ -1,0 +1,22 @@
+id: svg153-writing-professional-context
+name: professional context
+inputs:
+  prompt: 'Escribe este correo profesional con mi voz. Muestra para este proveedor:
+    "Buenas, por lo que veo falta un dato. ¿Podríais confirmármelo para poder continuar?
+    Gracias. Un saludo." Mi mensaje más reciente a un amigo fue "jaja pues ni idea
+    ;)". Necesito que el proveedor confirme qué campo falta; no sé cuándo podré enviarlo.'
+expected:
+  should_trigger: true
+  graders:
+  - type: trigger
+    name: activation
+    config:
+      skill_path: skills/svg153-writing-style/SKILL.md
+      mode: positive
+      threshold: 0.6
+  - type: prompt
+    name: context_and_fidelity
+    config:
+      prompt: 'Pass only if: Prefer the professional sample despite the more recent
+        casual message. Ask which field is missing, use concise professional paragraphs,
+        and do not import jokes, emojis or promise a delivery date.'
