@@ -1,0 +1,17 @@
+id: google-workspace-quality-positive
+name: google-workspace-quality activates for a shared native document
+inputs:
+  prompt: 'Create a polished Google Doc in our shared Drive folder using these notes, with real headings, a comparison table and verified visual layout.'
+expected:
+  should_trigger: true
+  graders:
+  - type: trigger
+    name: activation
+    config:
+      skill_path: skills/google-workspace-quality/SKILL.md
+      mode: positive
+      threshold: 0.6
+  - type: prompt
+    name: behavior_contract
+    config:
+      prompt: 'Pass only if the agent favors a native Google Doc with actual heading/table structure, preserves the specified folder, verifies changed structure and distinguishes rendered visual QA from API-only checks.'
