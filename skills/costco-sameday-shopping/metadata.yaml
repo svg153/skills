@@ -1,0 +1,21 @@
+name: costco-sameday-shopping
+origin: https://github.com/svg153/skills
+origin_path: skills/costco-sameday-shopping
+category: research
+status: active
+sync:
+  enabled: false
+  interval: manual
+  strategy: local
+  authoritative: local
+tags:
+  - agent-skills
+  - shopping
+  - grocery
+  - costco
+  - instacart
+  - same-day
+  - price-comparison
+  - spain
+  - offers
+  - delivery
