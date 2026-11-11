@@ -1,0 +1,9 @@
+name: motion-content-production
+version: "1.0.0"
+description: Review-gated production of motion graphics, explainer videos, event promos and GIF/WebM loops.
+license: MIT
+includes: auto
+dependencies:
+  apm: []
+  mcp: []
+scripts: {}
