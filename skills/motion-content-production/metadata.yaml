@@ -1,0 +1,20 @@
+name: motion-content-production
+origin: https://github.com/svg153/skills
+origin_path: skills/motion-content-production
+category: creative
+status: active
+sync:
+  enabled: false
+  interval: manual
+  strategy: local
+  authoritative: local
+tags:
+  - agent-skills
+  - motion-graphics
+  - remotion
+  - video
+  - gif
+  - storyboard
+  - content-factory
+  - creative-production
+  - review-gates
