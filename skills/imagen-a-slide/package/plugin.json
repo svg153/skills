@@ -1,0 +1,9 @@
+{
+  "name": "imagen-a-slide",
+  "version": "__VERSION__",
+  "displayName": "Imagen a slide (PPTX editable o HTML)",
+  "description": "Rebuilds slide images (PNG/JPG/WEBP, PDF or flat PPTX) as editable slides with the same design: a native PowerPoint (desktop PowerPoint on Windows) and/or a single self-contained HTML presentation, from one shared JSON spec. Includes the build engines, local Windows OCR, background-plate cleaning, cropping, a numeric source-vs-render comparison (Podman or local Python, optional), a regression bench, and two subagents (Sonnet spec writer, Haiku visual QA).",
+  "author": { "name": "__AUTHOR__" },
+  "keywords": ["powerpoint", "pptx", "html", "slides", "diapositivas", "windows", "ocr"],
+  "license": "MIT"
+}

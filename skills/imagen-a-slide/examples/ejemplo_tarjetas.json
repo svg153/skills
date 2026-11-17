@@ -1,0 +1,29 @@
+{
+  "sourceWidth": 2000,
+  "output": "ejemplo_tarjetas.pptx",
+  "png": "ejemplo_tarjetas.png",
+  "font": "Segoe UI",
+  "background": { "color": "FFFFFF" },
+  "elements": [
+    { "type": "text", "name": "Etiqueta seccion", "x": 65, "y": 31, "w": 625, "h": 33, "text": "03 / SECCIÓN DE EJEMPLO", "size": 12, "bold": true, "color": "2563EB" },
+    { "type": "text", "name": "Titulo", "x": 62, "y": 58, "w": 833, "h": 92, "text": "Título de ejemplo", "size": 27, "bold": true, "color": "1F2937" },
+    { "type": "rect", "name": "Subrayado titulo", "x": 65, "y": 136, "w": 110, "h": 9, "radius": 0.5, "fill": "60A5FA" },
+    { "type": "text", "name": "Subtitulo", "x": 65, "y": 158, "w": 1250, "h": 38, "text": "Subtítulo de una línea que explica de qué trata esta diapositiva de ejemplo.", "size": 12, "color": "2563EB" },
+
+    { "type": "picture", "name": "Logo cliente", "path": "@logos/ejemplo_cliente.svg", "x": 1795, "y": 31, "w": 145 },
+
+    { "type": "rect", "name": "Tarjeta 1", "x": 575, "y": 218, "w": 1379, "h": 119, "radius": 0.14, "fill": "F3F4F6", "shadow": true },
+    { "type": "svg", "name": "Icono 1", "x": 612, "y": 240, "w": 75,
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><g fill='none' stroke='#3B82F6' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'><polyline points='8 6 2 12 8 18'/><polyline points='16 6 22 12 16 18'/><line x1='14' y1='3.5' x2='10' y2='20.5'/></g></svg>" },
+    { "type": "line", "name": "Separador 1", "x1": 728, "y1": 235, "x2": 728, "y2": 320 },
+    { "type": "text", "name": "Texto 1", "x": 769, "y": 218, "w": 1179, "h": 119, "anchor": "middle", "size": 13.2, "lineSpacing": 16, "color": "374151",
+      "text": "Texto de ejemplo de una tarjeta: la primera parte va en negrita y el resto en normal,\ncon una segunda línea que termina en una palabra en cursiva (p. ej. un término técnico).",
+      "runs": [ { "match": "Texto de ejemplo de una tarjeta", "bold": true, "color": "1F2937" }, { "match": "técnico", "italic": true } ] },
+
+    { "type": "rect", "name": "Caja centrada", "x": 575, "y": 380, "w": 300, "h": 150, "radius": 0.12, "fill": "FFFFFF", "line": "60A5FA", "lineWidth": 1.5 },
+    { "type": "text", "name": "Texto caja", "x": 575, "y": 395, "w": 300, "h": 120, "align": "center",
+      "paragraphs": [ { "text": "Usuarios", "size": 9, "bold": true }, { "text": "≈ 1.250", "size": 12, "bold": true }, { "text": "activos", "size": 8 } ], "color": "1F2937" },
+    { "type": "text", "name": "Texto degradado", "x": 950, "y": 400, "w": 900, "h": 100, "size": 34, "bold": true, "color": "111827",
+      "text": "Una palabra en degradado", "runs": [ { "match": "degradado", "gradient": ["14B8A6", "2563EB"] } ] }
+  ]
+}

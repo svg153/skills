@@ -1,0 +1,14 @@
+id: imagen-a-slide-vs-deck-design-system
+name: imagen-a-slide does not take design-system extraction from editable decks
+inputs:
+  prompt: Here are three editable .pptx decks from an event; extract their design
+    system into design.md and build a reusable Slidev template.
+expected:
+  should_trigger: false
+  graders:
+  - type: trigger
+    name: boundary
+    config:
+      skill_path: skills/imagen-a-slide/SKILL.md
+      mode: negative
+      threshold: 0.6

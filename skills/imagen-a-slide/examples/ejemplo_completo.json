@@ -1,0 +1,36 @@
+{
+  "sourceWidth": 2000,
+  "output": "ejemplo_completo.pptx",
+  "theme": { "font": "Segoe UI", "headFont": "Segoe UI", "text": "374151", "bg": "FFFFFF" },
+  "slides": [
+    {
+      "notes": "Diapositiva de prueba: diagrama, tabla y viñetas.",
+      "elements": [
+        { "type": "text", "role": "title", "name": "Titulo", "x": 65, "y": 50, "w": 1500, "h": 90, "text": "Diagrama, tabla y viñetas", "size": 27, "bold": true, "color": "1F2937" },
+        { "type": "shape", "shape": "roundRect", "radius": 0.2, "name": "Paso 1", "group": "Flujo", "x": 65, "y": 200, "w": 320, "h": 140, "fill": "3B82F6",
+          "text": "Análisis", "size": 16, "bold": true, "color": "FFFFFF", "align": "center", "anchor": "middle" },
+        { "type": "line", "name": "Flecha 1", "group": "Flujo", "x1": 395, "y1": 270, "x2": 515, "y2": 270, "color": "64748B", "width": 2, "endArrow": "triangle" },
+        { "type": "shape", "shape": "chevron", "name": "Paso 2", "group": "Flujo", "x": 525, "y": 200, "w": 320, "h": 140, "fill": "60A5FA",
+          "text": "Diseño", "size": 16, "bold": true, "color": "FFFFFF", "align": "center", "anchor": "middle" },
+        { "type": "shape", "shape": "ellipse", "name": "Paso 3", "group": "Flujo", "x": 900, "y": 200, "w": 200, "h": 140, "fill": null, "line": { "color": "3B82F6", "width": 2, "dash": "dash" },
+          "text": "Fin", "size": 16, "color": "3B82F6", "align": "center", "anchor": "middle" },
+        { "type": "table", "name": "Tabla resumen", "x": 65, "y": 420, "w": 1000, "h": 300, "colW": [400, 300, 300], "size": 12,
+          "header": { "fill": "1F2937", "color": "FFFFFF", "bold": true }, "border": { "color": "CBD5E1", "width": 1 },
+          "rows": [ ["Producto", "Hoy", "Objetivo"], ["Producto A", "1.200", { "text": "800", "bold": true, "fill": "EFF6FF" }], ["Producto B", "500", "650"] ] },
+        { "type": "text", "name": "Vinetas", "x": 1150, "y": 420, "w": 800, "h": 300, "size": 14, "lineSpacing": 22,
+          "paragraphs": [ { "text": "Puntos clave", "bold": true }, { "text": "Primer punto del resumen", "bullet": true }, { "text": "Segundo punto del resumen", "bullet": true }, { "text": "Detalle del segundo punto", "bullet": true, "level": 1 } ] }
+      ]
+    },
+    {
+      "doubts": [ "Cifra de Q4 ilegible en la imagen" ],
+      "elements": [
+        { "type": "text", "role": "title", "name": "Titulo", "x": 65, "y": 50, "w": 1500, "h": 90, "text": "Gráfico nativo", "size": 27, "bold": true, "color": "1F2937" },
+        { "type": "chart", "name": "Grafico trimestral", "chartType": "bar", "dir": "col", "x": 65, "y": 180, "w": 1100, "h": 800,
+          "title": "Usuarios por trimestre", "series": [ { "name": "Producto A", "labels": ["Q1", "Q2", "Q3", "Q4"], "values": [12, 10, 9, 8] }, { "name": "Producto B", "labels": ["Q1", "Q2", "Q3", "Q4"], "values": [5, 6, 6, 7] } ],
+          "colors": ["3B82F6", "60A5FA"], "showValue": true, "estimated": true },
+        { "type": "chart", "name": "Grafico reparto", "chartType": "doughnut", "x": 1250, "y": 250, "w": 650, "h": 650,
+          "series": [ { "name": "Reparto", "labels": ["Producto A", "Producto B"], "values": [8, 7] } ], "colors": ["3B82F6", "60A5FA"], "showLegend": true, "confidence": 0.5 }
+      ]
+    }
+  ]
+}
