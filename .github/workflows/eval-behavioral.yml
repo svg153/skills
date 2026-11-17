@@ -8,6 +8,20 @@ on:
         required: false
         default: ''
         type: string
+      force_all:
+        description: 'Ignore `suite` and run every suite. Manual runs already run every suite when `suite` is empty; this is the explicit override. Scheduled runs only evaluate suites changed since the last successful model-backed run (docs/evals.md).'
+        required: false
+        default: false
+        type: boolean
+      model:
+        description: 'Optional model override for every selected suite (allowlisted). `default` keeps each suite''s config.model (routing suites: claude-haiku-4.5; others: Copilot default).'
+        required: false
+        default: 'default'
+        type: choice
+        options:
+          - default
+          - claude-haiku-4.5
+          - claude-sonnet-4.6
   schedule:
     - cron: '17 4 * * 1'
 
@@ -15,6 +29,7 @@ on:
 # repositories when the organization enables Copilot CLI billing/policy. Personal
 # repositories fall back to an optional user token exposed as COPILOT_GITHUB_TOKEN.
 permissions:
+  actions: read # list the baseline marker artifact (scheduled change detection)
   contents: read
   copilot-requests: write
 
@@ -32,6 +47,8 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
+          # Full history: scheduled runs diff the last successful model-backed run's SHA against HEAD.
+          fetch-depth: 0
 
       - name: Detect supported Copilot authentication
         id: credentials
@@ -83,8 +100,54 @@ jobs:
           bash scripts/install-waza-ci.sh "$RUNNER_TEMP/waza"
           echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
 
-      - name: Run behavioral suites
+      - name: Select suites to evaluate
+        id: select
         if: steps.credentials.outputs.available == 'true'
+        shell: bash
+        env:
+          # Only this step sees a GitHub token (read-only artifact listing); the step
+          # that runs the model-driven agent never does in user-token mode.
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          REF_NAME: ${{ github.ref_name }}
+          SUITE_INPUT: ${{ inputs.suite }}
+          FORCE_ALL: ${{ inputs.force_all }}
+          MODEL_INPUT: ${{ inputs.model }}
+        run: |
+          set -euo pipefail
+          artifacts="$RUNNER_TEMP/baseline-artifacts.json"
+          echo '{}' > "$artifacts"
+          if [[ "$GITHUB_EVENT_NAME" == schedule ]]; then
+            gh api "repos/$REPO/actions/artifacts?name=waza-eval-baseline&per_page=30" > "$artifacts" \
+              || { echo '::warning::could not list baseline artifacts; treating as no baseline'; echo '{}' > "$artifacts"; }
+          fi
+          python3 scripts/eval_cost.py select \
+            --event "$GITHUB_EVENT_NAME" --suite "${SUITE_INPUT:-}" --force-all "${FORCE_ALL:-false}" \
+            --default-branch "$DEFAULT_BRANCH" --artifacts-json "$artifacts" > "$RUNNER_TEMP/selection.txt"
+          cat "$RUNNER_TEMP/selection.txt" >> "$GITHUB_OUTPUT"
+          # A baseline marker certifies every suite, so only runs that covered every
+          # suite on the default branch with each suite's own model may write one.
+          marker=false
+          if [[ "$REF_NAME" == "$DEFAULT_BRANCH" ]] && grep -q '^run=true$' "$RUNNER_TEMP/selection.txt"; then
+            if [[ "$GITHUB_EVENT_NAME" == schedule ]] || { [[ -z "${SUITE_INPUT:-}" || "${FORCE_ALL:-}" == true ]] && [[ "${MODEL_INPUT:-default}" == default ]]; }; then
+              marker=true
+            fi
+          fi
+          echo "marker=$marker" >> "$GITHUB_OUTPUT"
+          reason="$(sed -n 's/^reason=//p' "$RUNNER_TEMP/selection.txt")"
+          baseline="$(sed -n 's/^baseline=//p' "$RUNNER_TEMP/selection.txt")"
+          {
+            echo '## Suite selection'
+            echo
+            echo "- Event: \"$GITHUB_EVENT_NAME\""
+            echo "- Baseline SHA: \"${baseline:-none}\""
+            echo "- Decision: $reason"
+          } >> "$GITHUB_STEP_SUMMARY"
+          cat "$RUNNER_TEMP/selection.txt"
+
+      - name: Run behavioral suites
+        if: steps.credentials.outputs.available == 'true' && steps.select.outputs.run == 'true'
         shell: bash
         env:
           # The agent's environment must not carry a GitHub token when the explicit
@@ -92,17 +155,53 @@ jobs:
           # organization actions-token mode, where the Copilot SDK needs it.
           GITHUB_TOKEN: ${{ steps.credentials.outputs.mode == 'actions-token' && github.token || '' }}
           AUTH_MODE: ${{ steps.credentials.outputs.mode }}
-          SUITE_INPUT: ${{ inputs.suite }}
+          SUITES: ${{ steps.select.outputs.suites }}
+          WAZA_MODEL: ${{ inputs.model }}
         run: |
           set -uo pipefail
           echo "Copilot auth mode: ${AUTH_MODE}"
-          bash scripts/run-behavioral-suites.sh "$GITHUB_WORKSPACE/eval-results" "${SUITE_INPUT:-}"
+          bash scripts/run-behavioral-suites.sh "$GITHUB_WORKSPACE/eval-results" "${SUITES:-}"
+
+      - name: Summarize premium requests
+        if: always() && steps.credentials.outputs.available == 'true' && steps.select.outputs.run == 'true'
+        shell: bash
+        env:
+          WAZA_MODEL: ${{ inputs.model }}
+        run: |
+          python3 scripts/eval_cost.py summary eval-results --model "${WAZA_MODEL:-}" >> "$GITHUB_STEP_SUMMARY" || echo '::warning::could not render premium-request summary'
+
+      - name: Summarize skipped scheduled evaluation (nothing changed)
+        if: steps.credentials.outputs.available == 'true' && steps.select.outputs.run != 'true'
+        shell: bash
+        run: |
+          {
+            echo
+            echo '**Status: no model-backed evaluation executed; zero premium requests spent.**'
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload behavioral evidence
-        if: always() && steps.credentials.outputs.available == 'true'
+        if: always() && steps.credentials.outputs.available == 'true' && steps.select.outputs.run == 'true'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: waza-behavioral-results-${{ github.run_id }}
           path: eval-results/
           if-no-files-found: warn
           retention-days: 14
+
+      # Written last and only on success: its existence means "a model-backed run
+      # executed suites and passed". The next scheduled run diffs against its SHA.
+      - name: Record baseline marker
+        if: success() && steps.select.outputs.marker == 'true'
+        shell: bash
+        run: |
+          mkdir -p baseline-marker
+          printf '{"sha":"%s","run_id":"%s","event":"%s"}\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" "$GITHUB_EVENT_NAME" > baseline-marker/baseline.json
+
+      - name: Upload baseline marker
+        if: success() && steps.select.outputs.marker == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: waza-eval-baseline
+          path: baseline-marker/baseline.json
+          if-no-files-found: error
+          retention-days: 90
