@@ -14,7 +14,7 @@ Adjacent capability evaluations discovered during execution are tracked separate
 
 ## Phases
 
-- [ ] **Phase 1: Prove APM/Renovate Update Gate** - BLOCKED externally until a genuine stable release newer than `github-build-or-reuse v1.2.3` is processed by hosted Renovate.
+- [ ] **Phase 1: Prove APM/Renovate Update Gate** - UNBLOCKED 2026-11-17: genuine stable `github-build-or-reuse` v1.2.4 is published; waiting for the hosted Renovate APM update PR and trusted completion tracked in #46.
 - [x] **Phase 2: Establish Design Engineering Capability** - registered and cross-agent validated the package using the generic capability contract landed in #55.
 - [x] **Phase 3: External Skill Components** - capability publishing now materializes reviewed APM-lock-backed specialist skills without introducing a second lock or dependency authority.
 - [x] **Phase 4: Design Engineering Orchestrator** - broad UI requests now route through recon/reuse, polish/prototype/audit selection, bounded verification and human review boundaries.
@@ -35,6 +35,7 @@ Adjacent capability evaluations discovered during execution are tracked separate
 These are intentionally outside the 15 design-engineering phases and do not change current phase counts or dependencies.
 
 - [ ] **#90 Marketing Skills / growth-marketing evaluation** - selectively benchmark `coreyhaines31/marketingskills`, define overlap and a single product-context authority, audit evidence/partner boundaries, and end with per-skill ADOPT/ADAPT/REFERENCE/SKIP decisions. No wholesale bundle import.
+- [ ] **#81 UI Skills registry as governed discovery source** - compare `create-design-md` URL reconstruction against the local `references/design-md.md` contract (actionable now, no dependency needed) and benchmark `anthropics/skills` `frontend-design` as a Foundation specialist in Phase 12 after the Phase 10 pilot. The registry and its MCP are never runtime authority; no enrollment before the external dependency gate.
 - [ ] **#91 Watch Skill / media-understanding evaluation** - benchmark `oxbshw/watch-skill` against lighter/direct video-analysis paths, model skill instructions separately from runtime/binaries/models, and decide whether persistent indexed media understanding justifies a separate capability. This is explicitly distinct from Phase 14 media generation.
 
 Neither evaluation may add production external dependencies before the repository external dependency gate permits enrollment.
@@ -43,7 +44,7 @@ Neither evaluation may add production external dependencies before the repositor
 
 ### Phase 1: Prove APM/Renovate Update Gate
 **Goal**: Complete the first genuine Renovate-driven external skill update from #46 and make it the accepted dependency path for this initiative.
-**Depends on**: External genuine upstream release and hosted Renovate processing.
+**Depends on**: External genuine upstream release and hosted Renovate processing. Status 2026-11-17: v1.2.4 published; hosted Renovate activation already verified via #75; awaiting the Renovate PR.
 **Requirements**: SUPPLY-01
 **Success Criteria**:
 1. A real stable upstream release is detected by Renovate and proposed as a normal reviewed PR.
@@ -197,7 +198,7 @@ Neither evaluation may add production external dependencies before the repositor
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 1. Prove APM/Renovate Update Gate | v1.0 | 0/1 | Blocked - external release/Renovate condition | - |
+| 1. Prove APM/Renovate Update Gate | v1.0 | 0/1 | Unblocked 2026-11-17 (v1.2.4 published) - awaiting hosted Renovate PR + trusted completion | - |
 | 2. Establish Design Engineering Capability | v1.0 | 1/1 | Complete | 2026-09-12 |
 | 3. External Skill Components | v1.0 | 1/1 | Complete | 2026-09-12 |
 | 4. Design Engineering Orchestrator | v1.0 | 1/1 | Complete | 2026-09-12 |
