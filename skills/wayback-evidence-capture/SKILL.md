@@ -47,5 +47,5 @@ Report captured and failed counts, snapshot vs. render dates, paths to PDF/PNG/r
 ## References
 
 - `references/manifest_example.json`: synthetic public example
-- `README.md`: CLI and local tests
+- `references/usage.md`: CLI options and local tests
 - Internet Archive Save Page Now: https://web.archive.org/save

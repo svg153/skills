@@ -9,6 +9,7 @@ sync:
   strategy: local
   authoritative: local
 tags:
+  - agent-skills
   - archiving
   - evidence
   - playwright
