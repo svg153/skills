@@ -4,7 +4,7 @@ Store profile for `smart-shopping-advisor`. It records stable structure only; ve
 
 ## Scope
 
-- Channels: warehouse visit, Costco Same-Day delivery (Costco-branded storefront operated on Instacart Storefront Pro, launched in Spain in 2026), and third-party delivery apps that may list Costco warehouses.
+- Channels: warehouse visit, Costco Same-Day delivery (verify current channel availability on costco.es), and third-party delivery apps that may list Costco warehouses.
 - Same-Day prices are based on warehouse prices but the site warns they can differ slightly; delivery-app prices are a separate channel.
 
 ## Official sources
