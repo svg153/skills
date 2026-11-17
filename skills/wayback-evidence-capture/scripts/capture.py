@@ -15,9 +15,7 @@ import re
 import sys
 import unicodedata
 from urllib.parse import urlparse
-
-from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
-from playwright.sync_api import sync_playwright
+from urllib.request import url2pathname
 
 
 def now_utc() -> str:
@@ -36,6 +34,22 @@ def sha256(path: Path) -> str:
     return h.hexdigest()
 
 
+WAYBACK_PATH = re.compile(r"^/web/(\d{14})(?:[a-z]{2}_)?/https?://")
+
+
+def expected_stamp(snapshot_utc: str) -> str:
+    stamp = snapshot_utc.replace("-", "").replace(":", "").replace("T", "")[:14]
+    if not re.fullmatch(r"\d{14}", stamp):
+        raise ValueError("snapshot_utc must be an ISO-8601 UTC timestamp (YYYY-MM-DDTHH:MM:SSZ)")
+    return stamp
+
+
+def wayback_stamp(path: str) -> str | None:
+    """Return the exact 14-digit timestamp segment of a /web/<ts>/<url> path."""
+    match = WAYBACK_PATH.match(path)
+    return match.group(1) if match else None
+
+
 def validate_capture(capture: dict, allow_fixtures: bool) -> None:
     for key in ("id", "original_url", "snapshot_url", "snapshot_utc"):
         if not isinstance(capture.get(key), str) or not capture[key]:
@@ -43,7 +57,7 @@ def validate_capture(capture: dict, allow_fixtures: bool) -> None:
     if not re.fullmatch(r"[a-zA-Z0-9_-]+", capture["id"]):
         raise ValueError("capture id must be alphanumeric/hyphen/underscore")
     url = capture["snapshot_url"]
-    expected_time = capture["snapshot_utc"].replace("-", "").replace(":", "").replace("T", "")[:14]
+    expected_time = expected_stamp(capture["snapshot_utc"])
     parsed = urlparse(url)
     if parsed.scheme == "file" and allow_fixtures:
         return
@@ -55,13 +69,16 @@ def validate_capture(capture: dict, allow_fixtures: bool) -> None:
         raise ValueError("expected_phrases must contain meaningful non-empty strings")
     if parsed.scheme != "https" or parsed.hostname != "web.archive.org":
         raise ValueError("snapshot URL must be https://web.archive.org/web/<YYYYMMDDHHMMSS>/...")
-    if not re.search(r"/web/\d{14}(?:id_|if_|im_)?/https?://", url):
+    stamp = wayback_stamp(parsed.path)
+    if stamp is None:
         raise ValueError("snapshot URL must include a 14-digit timestamp and original URL")
-    if expected_time not in url:
+    if stamp != expected_time:
         raise ValueError("snapshot timestamp does not match snapshot URL")
 
 
 def capture_one(browser, item: dict, output_dir: Path, timeout_ms: int) -> dict:
+    from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
+
     name = item["id"]
     page = browser.new_page(viewport={"width": 1400, "height": 900}, device_scale_factor=1)
     meta = {
@@ -75,8 +92,7 @@ def capture_one(browser, item: dict, output_dir: Path, timeout_ms: int) -> dict:
     try:
         if item["snapshot_url"].startswith("file://"):
             # Offline smoke test only, never allowed for real evidence manifests.
-            from urllib.parse import unquote
-            file_path = Path(unquote(urlparse(item["snapshot_url"]).path))
+            file_path = Path(url2pathname(urlparse(item["snapshot_url"]).path))
             page.set_content(file_path.read_text(encoding="utf-8"), wait_until="load")
             status = 200
         else:
@@ -89,8 +105,8 @@ def capture_one(browser, item: dict, output_dir: Path, timeout_ms: int) -> dict:
         # Refuse redirects to the live site or another archive timestamp.
         if not item["snapshot_url"].startswith("file://"):
             resolved = urlparse(page.url)
-            expected_stamp = item["snapshot_utc"].replace("-", "").replace(":", "").replace("T", "")[:14]
-            if resolved.scheme != "https" or resolved.hostname != "web.archive.org" or f"/web/{expected_stamp}" not in resolved.path:
+            if (resolved.scheme != "https" or resolved.hostname != "web.archive.org"
+                    or wayback_stamp(resolved.path) != expected_stamp(item["snapshot_utc"])):
                 raise RuntimeError("resolved URL is not the requested Wayback snapshot")
         title = page.title()
         text = page.locator("body").inner_text(timeout=timeout_ms)
@@ -126,7 +142,8 @@ def main() -> int:
     a = argparse.ArgumentParser(description=__doc__)
     a.add_argument("--manifest", type=Path, required=True)
     a.add_argument("--output-dir", type=Path, required=True)
-    a.add_argument("--chromium-executable", default=None)
+    a.add_argument("--chromium-executable", default=None,
+                   help="Optional Chromium binary; defaults to the Playwright-managed browser")
     a.add_argument("--timeout-ms", type=int, default=45000)
     a.add_argument("--no-sandbox", action="store_true")
     a.add_argument("--allow-file-fixtures", action="store_true", help="Only for local tests")
@@ -140,6 +157,8 @@ def main() -> int:
     for x in captures:
         validate_capture(x, args.allow_file_fixtures)
     args.output_dir.mkdir(parents=True, exist_ok=True)
+    from playwright.sync_api import sync_playwright
+
     records = []
     with sync_playwright() as p:
         launch_args = ["--no-sandbox"] if args.no_sandbox else []
