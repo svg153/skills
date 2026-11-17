@@ -10,6 +10,7 @@ sync:
   strategy: download
   authoritative: upstream
   channel: stable
+  managed_by: apm
 tags:
   - github
   - open-source

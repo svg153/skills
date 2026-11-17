@@ -35,7 +35,7 @@ The pilot uses Renovate's native APM `pinDigests` support. A dependency is decla
 ```yaml
 dependencies:
   apm:
-    - ghspain/github-build-or-reuse/skills/github-build-or-reuse#24af1931681bb03b0282472c4d4b6900359418c7 # v1.2.3
+    - ghspain/github-build-or-reuse/skills/github-build-or-reuse#5cae7fc94f87dd015be0427a5f5c3f7456ad26d5 # v1.2.4
 ```
 
 Renovate's APM manager understands this form and tracks the tag comment while updating the commit digest, analogous to SHA-pinned GitHub Actions. This gives us an immutable manifest pin without inventing a second catalog lock format.

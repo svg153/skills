@@ -2,6 +2,7 @@
 """Real APM CLI regression for the resolver-only catalog (requires APM + network)."""
 
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import tempfile
@@ -10,8 +11,18 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 PROJECT = ROOT / "dependencies" / "external-skills"
+# A real, older immutable release (v1.2.2) used to rehearse a reviewed downgrade.
 PREVIOUS_SHA = "74f8cfeca5c0ed5799a0ab71be88d06fc9e2afb1"
-CURRENT_SHA = "24af1931681bb03b0282472c4d4b6900359418c7"
+PREVIOUS_TAG = "v1.2.2"
+PIN = re.compile(r"#(?P<sha>[0-9a-f]{40}) # (?P<tag>v\d+\.\d+\.\d+)")
+
+
+def current_pin() -> tuple[str, str]:
+    """Read the reviewed pin from apm.yml so Renovate updates do not need test edits."""
+    match = PIN.search((PROJECT / "apm.yml").read_text())
+    assert match, "apm.yml must pin github-build-or-reuse as #<sha> # vX.Y.Z"
+    assert match["sha"] != PREVIOUS_SHA, "current pin must differ from the rehearsal release"
+    return match["sha"], match["tag"]
 
 
 def run(project: Path, *args: str) -> subprocess.CompletedProcess:
@@ -37,6 +48,7 @@ def check_lock(project: Path, expected_sha: str) -> None:
 
 def main() -> None:
     assert shutil.which("apm"), "install scripts/install-apm-ci.sh first"
+    current_sha, current_tag = current_pin()
     with tempfile.TemporaryDirectory(prefix="apm-resolver-refresh-") as temporary:
         project = Path(temporary)
         for name in ("apm.yml", "apm.lock.yaml", "apm-policy.yml"):
@@ -47,12 +59,12 @@ def main() -> None:
         assert run(project, "lock", "--update").returncode == 0
         assert (project / "apm.yml").read_bytes() == manifest
         assert (project / "apm.lock.yaml").read_bytes() == locked
-        check_lock(project, CURRENT_SHA)
+        check_lock(project, current_sha)
 
         # This simulates a reviewed Renovate manifest change using real releases,
         # rather than allowing maintenance to independently advance a SHA pin.
-        previous_manifest = manifest.decode().replace(CURRENT_SHA, PREVIOUS_SHA)
-        previous_manifest = previous_manifest.replace("# v1.2.3", "# v1.2.2")
+        previous_manifest = manifest.decode().replace(current_sha, PREVIOUS_SHA)
+        previous_manifest = previous_manifest.replace(f"# {current_tag}", f"# {PREVIOUS_TAG}")
         (project / "apm.yml").write_text(previous_manifest)
         assert run(project, "lock").returncode == 0
         assert (project / "apm.yml").read_text() == previous_manifest
@@ -66,7 +78,7 @@ def main() -> None:
         assert run(project, "lock").returncode == 0
         assert (project / "apm.yml").read_bytes() == manifest
         assert (project / "apm.lock.yaml").read_bytes() == locked
-        check_lock(project, CURRENT_SHA)
+        check_lock(project, current_sha)
         assert run(project, "deps", "clean", "--yes").returncode == 0
         assert not (project / "apm_modules").exists()
     print("OK: immutable maintenance and real-release round trip preserve resolver-only state")
