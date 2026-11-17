@@ -14,7 +14,7 @@ Adjacent capability evaluations discovered during execution are tracked separate
 
 ## Phases
 
-- [ ] **Phase 1: Prove APM/Renovate Update Gate** - UNBLOCKED 2026-11-17: genuine stable `github-build-or-reuse` v1.2.4 is published; waiting for the hosted Renovate APM update PR and trusted completion tracked in #46.
+- [x] **Phase 1: Prove APM/Renovate Update Gate** - COMPLETE 2026-11-17: hosted Renovate detected genuine `github-build-or-reuse` v1.2.4 and opened real update PR #105 (merged, no automerge); trusted completion pinned the APM lock (5cae7fc, deployments: []); cutover #107 set `sync.managed_by: apm` and the legacy sync was verified to skip the migrated mirror (#46).
 - [x] **Phase 2: Establish Design Engineering Capability** - registered and cross-agent validated the package using the generic capability contract landed in #55.
 - [x] **Phase 3: External Skill Components** - capability publishing now materializes reviewed APM-lock-backed specialist skills without introducing a second lock or dependency authority.
 - [x] **Phase 4: Design Engineering Orchestrator** - broad UI requests now route through recon/reuse, polish/prototype/audit selection, bounded verification and human review boundaries.
@@ -44,13 +44,13 @@ Neither evaluation may add production external dependencies before the repositor
 
 ### Phase 1: Prove APM/Renovate Update Gate
 **Goal**: Complete the first genuine Renovate-driven external skill update from #46 and make it the accepted dependency path for this initiative.
-**Depends on**: External genuine upstream release and hosted Renovate processing. Status 2026-11-17: v1.2.4 published; hosted Renovate activation already verified via #75; awaiting the Renovate PR.
+**Depends on**: External genuine upstream release and hosted Renovate processing. Status 2026-11-17: COMPLETE - v1.2.4 detected by hosted Renovate, real update PR #105 merged, trusted completion + cutover #107 done (#46).
 **Requirements**: SUPPLY-01
 **Success Criteria**:
 1. A real stable upstream release is detected by Renovate and proposed as a normal reviewed PR.
 2. Trusted completion produces immutable APM lock/integrity, materializes the mirror, runs policy/SBOM/evals, and rollback remains deterministic.
 3. Legacy direct-to-main synchronization stops owning the migrated mirror only after parity is proven.
-**Plans**: 1 plan - `01-01-PLAN.md`
+**Plans**: 1 plan - `01-01-PLAN.md` - COMPLETE 2026-11-17
 
 ### Phase 2: Establish Design Engineering Capability
 **Goal**: Create a minimal governed `plugins/design-engineering` package with a local orchestrator placeholder and deterministic generated manifests.
@@ -84,7 +84,7 @@ Neither evaluation may add production external dependencies before the repositor
 
 ### Phase 5: Emil Specialist Skills
 **Goal**: Integrate selected narrow specialist skills without installing another competing broad router.
-**Depends on**: Phases 3 and 4; enrollment additionally waits for the Phase 1 hosted Renovate/APM proof.
+**Depends on**: Phases 3 and 4. Phase 1 hosted Renovate/APM proof satisfied 2026-11-17 (#105/#107); enrollment readiness planning underway in #56.
 **Requirements**: EMIL-01
 **Success Criteria**:
 1. `prototype`, `pick-ui-library`, `animate`, and `review-animations` are pinned, provenance-governed and packaged.
@@ -95,7 +95,7 @@ Neither evaluation may add production external dependencies before the repositor
 
 ### Phase 6: Web Quality Skills
 **Goal**: Add evidence-led quality auditing as a normal post-implementation capability.
-**Depends on**: Phases 3 and 4; enrollment additionally waits for the Phase 1 hosted Renovate/APM proof.
+**Depends on**: Phases 3 and 4. Phase 1 hosted Renovate/APM proof satisfied 2026-11-17 (#105/#107); enrollment readiness planning underway in #56.
 **Requirements**: QUAL-01
 **Success Criteria**:
 1. The required Addy Osmani skill set is packaged with relative references intact.
@@ -198,16 +198,16 @@ Neither evaluation may add production external dependencies before the repositor
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 1. Prove APM/Renovate Update Gate | v1.0 | 0/1 | Unblocked 2026-11-17 (v1.2.4 published) - awaiting hosted Renovate PR + trusted completion | - |
+| 1. Prove APM/Renovate Update Gate | v1.0 | 1/1 | Complete - real Renovate update #105 + cutover #107 (#46) | 2026-11-17 |
 | 2. Establish Design Engineering Capability | v1.0 | 1/1 | Complete | 2026-09-12 |
 | 3. External Skill Components | v1.0 | 1/1 | Complete | 2026-09-12 |
 | 4. Design Engineering Orchestrator | v1.0 | 1/1 | Complete | 2026-09-12 |
-| 5. Emil Specialist Skills | v1.0 | 0/1 | Blocked by Phase 1 external release/Renovate proof; mobile-native queued for evidence-based re-evaluation | - |
-| 6. Web Quality Skills | v1.0 | 0/1 | Blocked by Phase 1 external release/Renovate proof | - |
+| 5. Emil Specialist Skills | v1.0 | 0/1 | Unblocked 2026-11-17 (Phase 1 proven); enrollment readiness planning in #56; mobile-native queued for evidence-based re-evaluation | - |
+| 6. Web Quality Skills | v1.0 | 0/1 | Unblocked 2026-11-17 (Phase 1 proven); enrollment readiness planning in #56 | - |
 | 7. DESIGN.md Contract | v1.0 | 1/1 | Complete | 2026-09-12 |
 | 8. Playwright Visual Loop | v1.0 | 1/1 | Complete | 2026-09-12 |
 | 9. Behavioral Evals and Fixtures | v1.0 | 1/1 | Complete | 2026-09-13 |
-| 10. Real Application Pilot | v1.0 | 0/1 | Blocked by Phases 5/6 (and transitively Phase 1) | - |
+| 10. Real Application Pilot | v1.0 | 0/1 | Blocked by Phases 5/6 (Phase 1 gate now cleared) | - |
 | 11. Optional Figma MCP | v1.1 | 0/1 | Blocked by Phase 10 | - |
 | 12. Impeccable Benchmark | v1.1 | 0/1 | Blocked by Phase 10 | - |
 | 13. Advanced Browser and Component Integrations | v1.1 | 0/1 | Blocked by Phase 10 | - |
