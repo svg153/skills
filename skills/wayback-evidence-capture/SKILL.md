@@ -35,7 +35,7 @@ Do not use for screenshots of live websites, for fabricating a snapshot, or as a
 ## Execution Steps
 
 1. Copy `references/manifest_example.json` outside this repository and populate it with case-specific data. Require at least one meaningful `expected_phrases` check for each page.
-2. Run `python -m pip install playwright` and `python -m playwright install chromium`.
+2. Run `python -m pip install 'playwright==1.65.2'` and `python -m playwright install chromium`.
 3. Execute `python scripts/capture.py --manifest /private/path/manifest.json --output-dir /private/path/captures`.
 4. Inspect `capture_results.json` and renderings. A nonzero exit code or an error record means the capture is not validated.
 5. Store private results in access-controlled storage, keeping the untouched Wayback URLs and independent archiving confirmations.

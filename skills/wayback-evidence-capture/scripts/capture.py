@@ -34,14 +34,21 @@ def sha256(path: Path) -> str:
     return h.hexdigest()
 
 
+TOOL_VERSION = "1.0"  # keep aligned with metadata.version in SKILL.md
+
+# Intentionally fail-closed: the original URL after the timestamp must start with http(s)://.
 WAYBACK_PATH = re.compile(r"^/web/(\d{14})(?:[a-z]{2}_)?/https?://")
 
 
 def expected_stamp(snapshot_utc: str) -> str:
-    stamp = snapshot_utc.replace("-", "").replace(":", "").replace("T", "")[:14]
-    if not re.fullmatch(r"\d{14}", stamp):
-        raise ValueError("snapshot_utc must be an ISO-8601 UTC timestamp (YYYY-MM-DDTHH:MM:SSZ)")
-    return stamp
+    message = "snapshot_utc must be an ISO-8601 UTC timestamp (YYYY-MM-DDTHH:MM:SSZ or ...+00:00)"
+    if not re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(Z|\+00:00)", snapshot_utc):
+        raise ValueError(message)
+    try:
+        parsed = datetime.fromisoformat(snapshot_utc[:-1] + "+00:00" if snapshot_utc.endswith("Z") else snapshot_utc)
+    except ValueError as ex:
+        raise ValueError(f"{message}: {ex}") from None
+    return parsed.astimezone(timezone.utc).strftime("%Y%m%d%H%M%S")
 
 
 def wayback_stamp(path: str) -> str | None:
@@ -80,7 +87,10 @@ def capture_one(browser, item: dict, output_dir: Path, timeout_ms: int) -> dict:
     from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 
     name = item["id"]
-    page = browser.new_page(viewport={"width": 1400, "height": 900}, device_scale_factor=1)
+    # Remove stale renderings from a previous run so a failure never leaves old evidence behind.
+    for stale in (output_dir / f"{name}.pdf", output_dir / f"{name}.png"):
+        stale.unlink(missing_ok=True)
+    page = None
     meta = {
         "id": name,
         "original_url": item["original_url"],
@@ -90,6 +100,7 @@ def capture_one(browser, item: dict, output_dir: Path, timeout_ms: int) -> dict:
         "status": "error",
     }
     try:
+        page = browser.new_page(viewport={"width": 1400, "height": 900}, device_scale_factor=1)
         if item["snapshot_url"].startswith("file://"):
             # Offline smoke test only, never allowed for real evidence manifests.
             file_path = Path(url2pathname(urlparse(item["snapshot_url"]).path))
@@ -109,7 +120,11 @@ def capture_one(browser, item: dict, output_dir: Path, timeout_ms: int) -> dict:
                     or wayback_stamp(resolved.path) != expected_stamp(item["snapshot_utc"])):
                 raise RuntimeError("resolved URL is not the requested Wayback snapshot")
         title = page.title()
-        text = page.locator("body").inner_text(timeout=timeout_ms)
+        # Exclude the Wayback toolbar so its text cannot satisfy length or phrase checks.
+        text = page.evaluate(
+            """() => { const b = document.body.cloneNode(true);
+                       b.querySelectorAll('#wm-ipp, #wm-ipp-base').forEach(e => e.remove());
+                       return b.innerText || b.textContent || ''; }""")
         matches = [q for q in item.get("expected_phrases", []) if norm(q) in norm(text)]
         meta.update({"http_status": status, "title": title, "body_chars": len(text),
                      "expected_matches": matches, "expected_total": len(item.get("expected_phrases", [])),
@@ -134,7 +149,11 @@ def capture_one(browser, item: dict, output_dir: Path, timeout_ms: int) -> dict:
     except Exception as ex:
         meta["error"] = f"{type(ex).__name__}: {ex}"
     finally:
-        page.close()
+        if page is not None:
+            try:
+                page.close()
+            except Exception:
+                pass
     return meta
 
 
@@ -148,17 +167,33 @@ def main() -> int:
     a.add_argument("--no-sandbox", action="store_true")
     a.add_argument("--allow-file-fixtures", action="store_true", help="Only for local tests")
     args = a.parse_args()
-    manifest = json.loads(args.manifest.read_text(encoding="utf-8"))
+    try:
+        manifest = json.loads(args.manifest.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as ex:
+        raise SystemExit(f"Cannot read manifest {args.manifest}: {ex}") from None
+    if not isinstance(manifest, dict):
+        raise SystemExit("Manifest must be a JSON object with a 'captures' list")
     captures = manifest.get("captures", [])
     if not captures:
         raise SystemExit("Manifest has no captures")
+    if not isinstance(captures, list) or not all(isinstance(x, dict) for x in captures):
+        raise SystemExit("Manifest 'captures' must be a list of objects")
+    for index, x in enumerate(captures, 1):
+        try:
+            validate_capture(x, args.allow_file_fixtures)
+        except (KeyError, ValueError) as ex:
+            raise SystemExit(f"Invalid manifest entry #{index} (id={x.get('id')!r}): {ex}") from None
     if len({x["id"] for x in captures}) != len(captures):
         raise SystemExit("Duplicate IDs")
-    for x in captures:
-        validate_capture(x, args.allow_file_fixtures)
     args.output_dir.mkdir(parents=True, exist_ok=True)
     from playwright.sync_api import sync_playwright
 
+    try:
+        from importlib.metadata import version as pkg_version
+        playwright_version = pkg_version("playwright")
+    except Exception:
+        playwright_version = "unknown"
+    browser_version = "unknown"
     records = []
     with sync_playwright() as p:
         launch_args = ["--no-sandbox"] if args.no_sandbox else []
@@ -166,6 +201,7 @@ def main() -> int:
         if args.chromium_executable:
             kw["executable_path"] = args.chromium_executable
         browser = p.chromium.launch(**kw)
+        browser_version = browser.version
         try:
             for item in captures:
                 record = capture_one(browser, item, args.output_dir, args.timeout_ms)
@@ -174,7 +210,9 @@ def main() -> int:
         finally:
             browser.close()
     summary = {
-        "tool": "wayback-evidence-capture", "tool_version": "0.1.0",
+        "tool": "wayback-evidence-capture", "tool_version": TOOL_VERSION,
+        "playwright_version": playwright_version, "browser_version": browser_version,
+        "manifest_sha256": sha256(args.manifest),
         "run_utc": now_utc(), "requested": len(records),
         "successes": sum(x["status"] == "success" for x in records), "records": records,
         "warning": "PDF/PNG are later browser renderings of archived URLs, not independently certified captures."

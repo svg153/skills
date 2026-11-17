@@ -7,7 +7,7 @@
 Run from the skill directory:
 
 ```bash
-python -m pip install playwright
+python -m pip install 'playwright==1.65.2'
 python -m playwright install chromium
 python scripts/capture.py --manifest /path/to/private-manifest.json --output-dir /path/to/private-evidence
 ```
@@ -16,7 +16,11 @@ Create the input from [`manifest_example.json`](manifest_example.json). Input ma
 
 `--chromium-executable` is optional; without it the Playwright-managed Chromium is used. `--no-sandbox` is only needed in some containerized Linux environments.
 
-`capture_results.json` includes source/archive/render metadata and per-file SHA-256. Errors are recorded and cause a nonzero exit status. The `snapshot_utc` timestamp must match the exact `/web/<YYYYMMDDHHMMSS>/` segment of both the requested and the resolved snapshot URL. Inspect each PDF and screenshot; automation cannot prove the full text was captured correctly. This utility does not initiate archiving or issue certified timestamps.
+`capture_results.json` includes source/archive/render metadata and per-file SHA-256. Errors are recorded and cause a nonzero exit status. The `snapshot_utc` timestamp must match the exact `/web/<YYYYMMDDHHMMSS>/` segment of both the requested and the resolved snapshot URL. `snapshot_utc` must be ISO-8601 UTC (`Z` or `+00:00`); other offsets and impossible dates are rejected. Results also record `tool_version`, `playwright_version`, `browser_version` and `manifest_sha256`. Stale `<id>.pdf`/`<id>.png` files from an earlier run are deleted before each capture, and the Wayback toolbar (`#wm-ipp`) is excluded from the text used for length and phrase checks.
+
+The snapshot URL must have `http://` or `https://` right after the timestamp (`/web/<ts>/https://...`). Timestamp-only forms such as `/web/<ts>/example.com/` are rejected on purpose: this is intentional fail-closed behavior, so write the full original URL in the manifest.
+
+Inspect each PDF and screenshot; automation cannot prove the full text was captured correctly. This utility does not initiate archiving or issue certified timestamps.
 
 ## Tests
 

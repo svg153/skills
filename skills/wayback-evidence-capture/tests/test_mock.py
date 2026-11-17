@@ -79,7 +79,77 @@ class ValidateCaptureTest(unittest.TestCase):
         self.assertIsNone(capture.wayback_stamp("/x/web/20261019202036/https://example.com/"))
 
 
-@unittest.skipIf(_browser_unavailable_reason() is not None, _browser_unavailable_reason() or "")
+class ExpectedStampTest(unittest.TestCase):
+    def test_accepts_z_and_explicit_utc_offset(self):
+        self.assertEqual(capture.expected_stamp("2026-10-19T20:20:36Z"), "20261019202036")
+        self.assertEqual(capture.expected_stamp("2026-10-19T20:20:36+00:00"), "20261019202036")
+
+    def test_rejects_non_utc_offsets(self):
+        for value in ("2026-10-19T20:20:36+02:00", "2026-10-19T20:20:36-05:00", "2026-10-19T20:20:36"):
+            with self.subTest(value=value), self.assertRaisesRegex(ValueError, "UTC"):
+                capture.expected_stamp(value)
+
+    def test_rejects_impossible_dates_and_garbage(self):
+        for value in ("2026-13-45T25:61:61Z", "2026-02-30T10:00:00Z", "20261019202036", "not a date"):
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                capture.expected_stamp(value)
+
+    def test_wayback_path_requires_http_scheme_after_timestamp(self):
+        # Intentional fail-closed behavior, documented in references/usage.md.
+        self.assertIsNone(capture.wayback_stamp("/web/20261019202036/example.com/terms"))
+
+
+class ManifestErrorPathsTest(unittest.TestCase):
+    def _run(self, manifest_text: str) -> subprocess.CompletedProcess:
+        with tempfile.TemporaryDirectory() as td:
+            path = Path(td) / "manifest.json"
+            path.write_text(manifest_text, encoding="utf-8")
+            return subprocess.run([sys.executable, str(CAPTURE), "--manifest", str(path),
+                                   "--output-dir", str(Path(td) / "out")], capture_output=True, text=True)
+
+    def test_entry_without_id_is_a_readable_error_not_a_traceback(self):
+        res = self._run(json.dumps({"captures": [{"original_url": "https://example.com"}]}))
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("Invalid manifest entry #1", res.stderr)
+        self.assertNotIn("Traceback", res.stderr)
+
+    def test_non_utc_snapshot_is_rejected_cleanly(self):
+        res = self._run(json.dumps({"captures": [_valid_capture(snapshot_utc="2026-10-19T22:20:36+02:00")]}))
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn("UTC", res.stderr)
+        self.assertNotIn("Traceback", res.stderr)
+
+    def test_invalid_json_and_non_object_entries(self):
+        for text in ("{not json", json.dumps({"captures": ["x"]}), json.dumps([])):
+            with self.subTest(text=text):
+                res = self._run(text)
+                self.assertNotEqual(res.returncode, 0)
+                self.assertNotIn("Traceback", res.stderr)
+
+
+class _FailingBrowser:
+    def new_page(self, **kwargs):
+        raise RuntimeError("browser crashed")
+
+
+class CaptureOneErrorPathsTest(unittest.TestCase):
+    @unittest.skipIf(importlib.util.find_spec("playwright") is None, "playwright is not installed")
+    def test_new_page_failure_returns_error_record_and_removes_stale_files(self):
+        with tempfile.TemporaryDirectory() as td:
+            out = Path(td)
+            (out / "example.pdf").write_bytes(b"stale")
+            (out / "example.png").write_bytes(b"stale")
+            record = capture.capture_one(_FailingBrowser(), _valid_capture(), out, 1000)
+            self.assertEqual(record["status"], "error")
+            self.assertIn("browser crashed", record["error"])
+            self.assertFalse((out / "example.pdf").exists())
+            self.assertFalse((out / "example.png").exists())
+
+
+_BROWSER_SKIP_REASON = _browser_unavailable_reason()
+
+
+@unittest.skipIf(_BROWSER_SKIP_REASON is not None, _BROWSER_SKIP_REASON or "")
 class BrowserSmokeTest(unittest.TestCase):
     def _run(self, manifest_path: Path, output_dir: Path) -> subprocess.CompletedProcess:
         cmd = [sys.executable, str(CAPTURE), "--manifest", str(manifest_path),
@@ -110,6 +180,9 @@ class BrowserSmokeTest(unittest.TestCase):
             self.assertGreater((t / "out" / "smoke.pdf").stat().st_size, 1500)
             self.assertGreater((t / "out" / "smoke.png").stat().st_size, 1500)
             self.assertEqual(len(summary["records"][0]["pdf_sha256"]), 64)
+            self.assertEqual(len(summary["manifest_sha256"]), 64)
+            self.assertTrue(summary["browser_version"])
+            self.assertEqual(summary["tool_version"], capture.TOOL_VERSION)
 
             manifest["captures"][0]["expected_phrases"] = ["nonexistent critical statement"]
             path.write_text(json.dumps(manifest), encoding="utf-8")
