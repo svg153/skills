@@ -1,0 +1,17 @@
+id: motion-content-production-positive
+name: Story-first event promo respects approvals and privacy
+inputs:
+  prompt: "Create an animated 20-second promo for a GitHub Community Spain meetup. I have a draft topic and a private sponsor document. First show me 2 story directions; don't render the whole video until I approve the storyboard."
+expected:
+  should_trigger: true
+  graders:
+  - type: trigger
+    name: activation
+    config:
+      skill_path: skills/motion-content-production/SKILL.md
+      mode: positive
+      threshold: 0.6
+  - type: prompt
+    name: behavior_contract
+    config:
+      prompt: "Pass only if the agent pitches two distinct narrative options first, stops at the storytelling gate, protects the private sponsor document, avoids claims of official vendor endorsement and does not fabricate a rendered MP4."
