@@ -19,5 +19,5 @@ Ignore what the brief says is intentionally different (e.g. a redrawn illustrati
 
 Output: a numbered list, most important first. One line each, in the form
 `[element] problem → fix`, with approximate px coordinates
-(e.g. `Texto tarjeta 3: line 2 ends at x≈1960, past the card edge at 1955 → reduce size 13→12.5 or widen w`).
+(e.g. `Card text 3: line 2 ends at x≈1960, past the card edge at 1955 → reduce size 13→12.5 or widen w`).
 If everything matches, answer exactly: `OK, sin diferencias relevantes`. Do not invent problems.

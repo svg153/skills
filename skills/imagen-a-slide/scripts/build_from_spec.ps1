@@ -206,7 +206,7 @@ function Add-Chart($sl, $e, $name) {
     if (Prop $e 'showValue' $false) { $se.HasDataLabels = $true; $nf = Prop $e 'valueFormat'; if ($nf) { $se.DataLabels().NumberFormat = [string]$nf } }
   }
   try { $ch.ChartArea.Format.TextFrame2.TextRange.Font.Name = $FONT } catch { }
-  if (Prop $e 'estimated' $false) { $doubts.Add("$name : valores estimados midiendo el grafico, revisar cifras") }
+  if (Prop $e 'estimated' $false) { $doubts.Add("$name : values estimated by measuring the chart, check the figures") }
 }
 
 function Build-Slide($pres, $idx, $SD) {
@@ -257,12 +257,12 @@ function Build-Slide($pres, $idx, $SD) {
     if ($t -in 'text', 'rect', 'shape') { $sh.Top = (U $e.y); $sh.Height = (U $e.h) }
     $rot = Prop $e 'rotate'; if ($rot) { $sh.Rotation = [single]$rot }
     $alt = Prop $e 'alt'; if ($alt) { $sh.AlternativeText = [string]$alt }
-    $conf = Prop $e 'confidence'; if ($null -ne $conf -and [double]$conf -lt 0.7) { $doubts.Add("diapositiva $idx / $name : confianza $conf") }
+    $conf = Prop $e 'confidence'; if ($null -ne $conf -and [double]$conf -lt 0.7) { $doubts.Add("slide $idx / $name : confidence $conf") }
     $g = Prop $e 'group'; if ($g) { if (-not $groups.ContainsKey($g)) { $groups[$g] = New-Object System.Collections.Generic.List[string] }; $groups[$g].Add($name) }
   }
   foreach ($g in $groups.Keys) { if ($groups[$g].Count -gt 1) { $grp = $sl.Shapes.Range([string[]]$groups[$g].ToArray()).Group(); $grp.Name = [string]$g } }
   $notes = Prop $SD 'notes'; if ($notes) { $sl.NotesPage.Shapes.Placeholders(2).TextFrame.TextRange.Text = [string]$notes }
-  foreach ($d in @(Prop $SD 'doubts' @())) { $doubts.Add("diapositiva $idx : $d") }
+  foreach ($d in @(Prop $SD 'doubts' @())) { $doubts.Add("slide $idx : $d") }
   return $sl
 }
 
@@ -302,9 +302,9 @@ while (-not $saved) {
   Remove-Item -Recurse -Force $tmp -ErrorAction SilentlyContinue
   if (-not $saved) { Write-Host "presentaciones abiertas antes=$before despues=$($ppt.Presentations.Count)" }
 }
-if ($doubts.Count -gt 0) { $dm = [IO.Path]::ChangeExtension($saved, $null).TrimEnd('.') + '_dudas.md'; [IO.File]::WriteAllText($dm, "# Dudas a revisar`r`n`r`n" + (($doubts | ForEach-Object { "- $_" }) -join "`r`n"), $utf8) }
+if ($doubts.Count -gt 0) { $dm = [IO.Path]::ChangeExtension($saved, $null).TrimEnd('.') + '_dudas.md'; [IO.File]::WriteAllText($dm, "# Doubts to review`r`n`r`n" + (($doubts | ForEach-Object { "- $_" }) -join "`r`n"), $utf8) }
 foreach ($w in $warnings) { Write-Warning $w }
 "OK pptx=$saved"
 "png=" + ($pngs -join ' ; ')
-if ($doubts.Count -gt 0) { "dudas=$($doubts.Count) (ver _dudas.md)" }
+if ($doubts.Count -gt 0) { "dudas=$($doubts.Count) (see _dudas.md)" }
 "presentaciones abiertas antes=$before despues=$($ppt.Presentations.Count)"

@@ -1,9 +1,9 @@
-/* imagen-a-slide: renderiza la MISMA spec JSON que build_from_spec.ps1 (PowerPoint) como diapositivas HTML.
-   Sin dependencias. build_html.ps1 lo incrusta en un unico .html junto con la spec y los recursos (data URIs).
-   Lienzo: 960 x 540 (1 unidad CSS = 1 pt de PowerPoint), coordenadas de la spec en px de la fuente (sourceWidth).
-   Teclas: flechas / espacio / PgUp-PgDn = navegar, F = pantalla completa, N = notas, E = editar textos,
-           P = imprimir / PDF (una diapositiva por pagina). Hash #3 = ir a la diapositiva 3.
-   Modo captura: #export=1&slide=N muestra solo esa diapositiva, sin interfaz, escalada al ancho de la ventana. */
+/* imagen-a-slide: renders the SAME JSON spec as build_from_spec.ps1 (PowerPoint) as HTML slides.
+   No dependencies. build_html.ps1 embeds it in a single .html together with the spec and the resources (data URIs).
+   Canvas: 960 x 540 (1 CSS unit = 1 PowerPoint pt), spec coordinates in source px (sourceWidth).
+   Keys: arrows / space / PgUp-PgDn = navigate, F = fullscreen, N = notes, E = edit texts,
+           P = print / PDF (one slide per page). Hash #3 = go to slide 3.
+   Capture mode: #export=1&slide=N shows only that slide, no UI, scaled to the window width. */
 (function () {
   'use strict';
   var W = 960, H = 540;
@@ -26,7 +26,7 @@
   function get(o, k, d) { return o && o[k] !== undefined && o[k] !== null ? o[k] : d; }
   var DASH = { solid: null, dot: '1 2', squareDot: '1 1', dash: '4 3', dashDot: '4 2 1 2', longDash: '8 3' };
 
-  /* ---------- texto ---------- */
+  /* ---------- text ---------- */
   function fontStack(f) { return "'" + f + "', 'Segoe UI', -apple-system, 'Helvetica Neue', Arial, sans-serif"; }
   function renderText(box, e, ctx) {
     var role = get(e, 'role');
@@ -49,7 +49,7 @@
     if (e.charSpacing) inner.style.letterSpacing = e.charSpacing + 'px';
 
     var paras = e.paragraphs || [{ text: e.text || '' }];
-    // Texto completo como en PowerPoint (parrafos unidos por \r) para aplicar los runs por posicion.
+    // Full text as in PowerPoint (paragraphs joined by \r) to apply the runs by position.
     var full = paras.map(function (p) { return String(p.text || ''); }).join('\r');
     var styles = new Array(full.length);
     (e.runs || []).forEach(function (run) {
@@ -79,7 +79,7 @@
         var b = el('span', 'bullet', pd); b.textContent = p.bullet === 'number' ? num + '. ' : '• ';
         b.style.display = 'inline-block'; b.style.width = '14px'; b.style.textIndent = '0';
       } else num = 0;
-      // agrupa caracteres consecutivos con el mismo estilo en spans
+      // groups consecutive characters with the same style into spans
       var cur = null, buf = '', curKey = null;
       function flush() {
         if (!buf) return;
@@ -109,8 +109,8 @@
     return inner;
   }
 
-  /* ---------- formas ---------- */
-  // Formas no rectangulares: poligonos en un cuadro 0..100 (se estiran a la caja).
+  /* ---------- shapes ---------- */
+  // Non-rectangular shapes: polygons in a 0..100 box (stretched to the bounding box).
   var POLY = {
     triangle: '50,0 100,100 0,100', rtTriangle: '0,0 100,100 0,100', diamond: '50,0 100,50 50,100 0,50',
     parallelogram: '25,0 100,0 75,100 0,100', trapezoid: '25,0 75,0 100,100 0,100',
@@ -159,7 +159,7 @@
     }
   }
 
-  /* ---------- lineas ---------- */
+  /* ---------- lines ---------- */
   var mid = 0;
   function renderLine(slide, e, ctx, k) {
     var x1 = e.x1 * k, y1 = e.y1 * k, x2 = e.x2 * k, y2 = e.y2 * k, pad = 12;
@@ -183,7 +183,7 @@
     return s;
   }
 
-  /* ---------- tablas ---------- */
+  /* ---------- tables ---------- */
   function renderTable(box, e, ctx, k) {
     var t = el('table', 'tbl', box), rows = e.rows, nr = rows.length, hdr = e.header, bd = e.border;
     t.style.width = '100%'; t.style.height = '100%';
@@ -206,7 +206,7 @@
     });
   }
 
-  /* ---------- graficos (SVG propio, sin librerias) ---------- */
+  /* ---------- charts (custom SVG, no libraries) ---------- */
   var PALETTE = ['2563EB', '60A5FA', '1F2937', 'F59E0B', '10B981', 'EF4444', '8B5CF6', '64748B'];
   function fmt(v, f) {
     if (!f) return String(Math.round(v * 100) / 100);
@@ -295,7 +295,7 @@
     }
   }
 
-  /* ---------- diapositiva ---------- */
+  /* ---------- slide ---------- */
   function buildSlide(spec, idx) {
     var k = W / get(spec, 'sourceWidth', 2000), th = spec.theme || {};
     var ctx = { font: get(spec, 'font', get(th, 'font', 'Segoe UI')), headFont: get(th, 'headFont', get(spec, 'font', get(th, 'font', 'Segoe UI'))), text: get(th, 'text', '374151') };
@@ -331,7 +331,7 @@
     return slide;
   }
 
-  /* ---------- presentacion ---------- */
+  /* ---------- presentation ---------- */
   var stage = el('div', 'stage', document.body);
   var slides = DECK.slides.map(function (s, i) { var n = buildSlide(s, i); stage.appendChild(n); return n; });
   var cur = Math.max(0, Math.min(slides.length - 1, (parseInt(params.slide || location.hash.replace(/^#/, ''), 10) || 1) - 1));

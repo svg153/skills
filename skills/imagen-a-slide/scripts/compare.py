@@ -1,19 +1,19 @@
-"""Comparacion numerica imagen fuente vs render de build_from_spec.ps1.
+"""Numeric comparison of source image vs. build_from_spec.ps1 render.
 
-Por cada elemento de la spec (coordenadas en px de la fuente):
-  ssim    similitud estructural de su caja (1 = identico)
-  dx, dy  desplazamiento del render respecto a la fuente, en px de la fuente
-          (busqueda por plantilla en un margen de +-MAX_SHIFT px)
-  wratio  solo text: anchura de la tinta en el render / en la fuente.
-          > 1 = el texto sale mas ancho (baja el tamano), < 1 = mas estrecho.
-          sugerencia de tamano = size / wratio
+For each spec element (coordinates in source px):
+  ssim    structural similarity of its box (1 = identical)
+  dx, dy  render offset relative to the source, in source px
+          (template search within a margin of +-MAX_SHIFT px)
+  wratio  text only: ink width in the render / in the source.
+          > 1 = text comes out wider (lower the size), < 1 = narrower.
+          suggested size = size / wratio
 
-Salidas (junto al render):
-  <render>.compare.json   todos los datos
-  <render>.compare.md     resumen ordenado por gravedad, listo para corregir la spec
-  <render>.compare.png    fuente | render | mapa de diferencias, con los peores marcados
+Outputs (next to the render):
+  <render>.compare.json   all the data
+  <render>.compare.md     summary sorted by severity, ready to fix the spec
+  <render>.compare.png    source | render | difference map, worst ones marked
 
-Uso:
+Usage:
   python compare.py --src fuente.png --render render.png [--spec spec.json] [--slide 1]
                     [--threshold 0.80] [--shift 15]
 """
@@ -25,7 +25,7 @@ import cv2
 import numpy as np
 from skimage.metrics import structural_similarity as ssim
 
-MAX_SHIFT = 40  # px de la fuente
+MAX_SHIFT = 40  # source px
 
 
 def load_elements(spec_path, slide):
@@ -50,12 +50,12 @@ def el_box(e):
     if not all(c in e for c in ("x", "y", "w")):
         return None
     if "h" not in e:
-        return e["x"], e["y"], e["w"], None  # picture/svg sin h: se estima con la fuente
+        return e["x"], e["y"], e["w"], None  # picture/svg without h: estimated from the source
     return e["x"], e["y"], e["w"], e["h"]
 
 
 def estimate_h(src, x, y, w, k):
-    """Alto de un picture/svg sin h: caja de tinta en la fuente debajo de (x, y)."""
+    """Height of a picture/svg without h: ink box in the source below (x, y)."""
     H, W = src.shape[:2]
     x0, y0, x1, y1 = clip(x * k, y * k, w * k, min(w, 600) * k, W, H)
     bb = ink_bbox(src, max(0, x0 - 4), max(0, y0 - 4), min(W, x1 + 4), y1)
@@ -71,10 +71,10 @@ def clip(x, y, w, h, W, H):
 
 
 def ink_bbox(img, x0, y0, x1, y1, exclude=(), core=None):
-    """Caja de la 'tinta' (pixeles distintos del fondo) dentro de una region.
-    `exclude`: cajas (px) de otros elementos que no cuentan como tinta.
-    `core`: caja propia del elemento; solo cuentan los trazos (componentes
-    conexos) cuyo centro cae dentro, para no atrapar textos vecinos."""
+    """Box of the 'ink' (pixels different from the background) within a region.
+    `exclude`: boxes (px) of other elements that do not count as ink.
+    `core`: the element's own box; only strokes (connected components)
+    whose center falls inside it count, to avoid catching neighboring text."""
     reg = img[y0:y1, x0:x1].astype(np.int16)
     if reg.size == 0:
         return None
@@ -98,7 +98,7 @@ def ink_bbox(img, x0, y0, x1, y1, exclude=(), core=None):
 
 
 def shift_of(gs, gr, x0, y0, x1, y1, pad):
-    """Desplazamiento (dx, dy) del contenido de la caja de la fuente dentro del render."""
+    """Offset (dx, dy) of the source box's content within the render."""
     tpl = gs[y0:y1, x0:x1]
     if tpl.shape[0] < 6 or tpl.shape[1] < 6 or float(tpl.std()) < 4:
         return None, None, 0.0
@@ -114,8 +114,8 @@ def shift_of(gs, gr, x0, y0, x1, y1, pad):
 
 
 def detect_zones(smap, k, max_zones=15):
-    """Sin spec: zonas donde fuente y render difieren (manchas del mapa SSIM),
-    devueltas como pseudo-elementos en px de la fuente."""
+    """Without a spec: zones where source and render differ (blobs of the SSIM map),
+    returned as pseudo-elements in source px."""
     d = np.clip(1 - smap, 0, 1).astype(np.float32)
     d = cv2.GaussianBlur(d, (0, 0), 3)
     mask = (d > 0.35).astype(np.uint8) * 255
@@ -136,8 +136,8 @@ def detect_zones(smap, k, max_zones=15):
 
 
 def make_demo(d):
-    """Genera fuente.png, render.png y spec.json con dos fallos conocidos:
-    titulo desplazado +20 px y cuerpo un 10 % mas grande."""
+    """Generates fuente.png, render.png and spec.json with two known faults:
+    title shifted +20 px and body 10 % larger."""
     os.makedirs(d, exist_ok=True)
     W, H = 2000, 1125
 
@@ -166,28 +166,28 @@ def make_demo(d):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--make-demo", default="", help="solo genera los archivos de demo en esta carpeta")
+    ap.add_argument("--make-demo", default="", help="only generates the demo files in this folder")
     ap.add_argument("--src")
     ap.add_argument("--render")
     ap.add_argument("--spec", default="")
     ap.add_argument("--slide", type=int, default=1)
     ap.add_argument("--threshold", type=float, default=0.80)
-    ap.add_argument("--shift", type=float, default=15, help="px de la fuente a partir de los que se avisa")
+    ap.add_argument("--shift", type=float, default=15, help="source px from which to warn")
     a = ap.parse_args()
     if a.make_demo:
         make_demo(a.make_demo)
         return
     if not a.src or not a.render:
-        ap.error("--src y --render son obligatorios")
+        ap.error("--src and --render are required")
 
     elements, sw = load_elements(a.spec, a.slide)
     rend = cv2.imread(a.render)
     src = cv2.imread(a.src)
     if rend is None or src is None:
-        raise SystemExit(f"No se pudo leer {'el render' if rend is None else 'la fuente'}")
+        raise SystemExit(f"Could not read {'the render' if rend is None else 'the source'}")
     H, W = rend.shape[:2]
     src = cv2.resize(src, (W, H), interpolation=cv2.INTER_AREA)
-    k = W / sw  # px de la fuente -> px del render
+    k = W / sw  # source px -> render px
     gs = cv2.cvtColor(src, cv2.COLOR_BGR2GRAY)
     gr = cv2.cvtColor(rend, cv2.COLOR_BGR2GRAY)
     g_score, smap = ssim(gs, gr, full=True, data_range=255)
@@ -211,8 +211,8 @@ def main():
         is_text = kind == "text" or ("text" in e and kind in ("shape", "rect"))
         container = kind in ("shape", "rect") and not is_text and (x1 - x0) > 100 and (y1 - y0) > 50
         if container:
-            # Tarjetas y cajas: se mide su contorno (borde, sombra, esquinas), no lo
-            # que llevan dentro, que ya se mide en sus propios elementos.
+            # Cards and boxes: their outline is measured (border, shadow, corners), not
+            # what they contain, which is already measured in their own elements.
             t = max(4, int(10 * k))
             ring = np.ones((y1 - y0, x1 - x0), bool)
             ring[t:-t, t:-t] = False
@@ -225,15 +225,15 @@ def main():
             r["dx"], r["dy"] = round(dx / k, 1), round(dy / k, 1)
             r["match"] = round(mscore, 2)
         if is_text or kind == "zona":
-            # Caja de tinta: robusta a fuentes y suavizado distintos (fuente rasterizada).
-            # Margen amplio en horizontal (el texto puede desbordar a lo ancho) y
-            # pequeno en vertical, para no atrapar la linea o el texto vecino.
+            # Ink box: robust to different fonts and anti-aliasing (rasterized source).
+            # Wide horizontal margin (text may overflow sideways) and
+            # small vertical margin, to avoid catching the neighboring line or text.
             pxp = 0 if kind == "zona" else int(30 * k)
             pyp = 0 if kind == "zona" else int(6 * k)
             px0, py0, px1, py1 = clip(x0 - pxp, y0 - pyp, (x1 - x0) + 2 * pxp, (y1 - y0) + 2 * pyp, W, H)
-            # Fuera de la medida: formas, lineas e imagenes que se cruzan con la region
-            # (un subrayado dentro de la caja del titulo), salvo las que la contienen
-            # (la tarjeta en la que va el texto).
+            # Excluded from the measurement: shapes, lines and images that cross the region
+            # (an underline inside the title box), except those that contain it
+            # (the card the text sits on).
             excl = []
             if kind != "zona":
                 for j, o in enumerate(elements):
@@ -244,14 +244,14 @@ def main():
                     ox0, oy0, ox1, oy1 = clip(ob[0] * k, ob[1] * k, ob[2] * k, ob[3] * k, W, H)
                     contains = ox0 <= x0 + 2 and oy0 <= y0 + 2 and ox1 >= x1 - 2 and oy1 >= y1 - 2
                     if not contains and ox0 < px1 and ox1 > px0 and oy0 < py1 and oy1 > py0:
-                        m = max(3, int(4 * k))  # borde suavizado y sombra
+                        m = max(3, int(4 * k))  # anti-aliased edge and shadow
                         excl.append((ox0 - m, oy0 - m, ox1 + m, oy1 + m))
-            # Filtro por centro solo en vertical (vecinos de arriba/abajo); en horizontal
-            # se deja toda la region, que es por donde se desborda el texto.
+            # Center filter only vertically (neighbors above/below); horizontally
+            # the whole region is kept, which is where text overflows.
             core = None if kind == "zona" else (px0, y0, px1, y1)
-            # En la fuente, la caja se mira donde estaba el contenido (deshaciendo
-            # el desplazamiento medido); si no, las letras del original quedan fuera.
-            # Solo si la plantilla es fiable (>= 0.8); una coincidencia floja da dx falsos.
+            # In the source, the box is looked at where the content was (undoing
+            # the measured offset); otherwise the original's letters fall outside.
+            # Only if the template is reliable (>= 0.8); a weak match gives false dx.
             score_core, sdx, sdy = core, 0, 0
             if core is not None and dx is not None and mscore >= 0.8:
                 sdx, sdy = dx, dy
@@ -266,43 +266,43 @@ def main():
                 r["ink_h_render"] = int(br[3] - br[1])
                 r["ink_dx"], r["ink_dy"] = round((br[0] - bs[0]) / k, 1), round((br[1] - bs[1]) / k, 1)
                 if kind != "zona":
-                    # Desbordamiento: la tinta del render se sale de la caja del texto.
+                    # Overflow: the render's ink goes outside the text box.
                     over = max(br[2] - x1, x0 - br[0], 0) / k
                     if over > 4:
                         r["desborda_px"] = round(over)
                 size = e.get("size")
                 if isinstance(size, (int, float)) and abs(wr - 1) > 0.03:
                     r["size_sugerido"] = round(size / wr * 2) / 2
-                # Con texto, el borde de la tinta es mas fiable que la plantilla
-                # (la plantilla falla si cambia la fuente o el corte de lineas).
+                # With text, the ink edge is more reliable than the template
+                # (the template fails if the font or line breaks change).
                 if "dx" not in r or r.get("match", 0) < 0.8:
                     r["dx"], r["dy"] = r["ink_dx"], r["ink_dy"]
         issues = []
-        # Texto y zonas: el SSIM cae solo por fuente/suavizado distintos; avisar
-        # por SSIM solo si es muy bajo. El resto lo dicen dx/dy y la anchura.
-        # Iconos e imagenes redibujados: mismo criterio laxo. Lineas finas: el SSIM
-        # de una caja de 1-2 px no significa nada; solo cuenta el desplazamiento.
+        # Text and zones: SSIM drops just from different font/anti-aliasing; warn
+        # on SSIM only if it is very low. The rest is covered by dx/dy and the width.
+        # Redrawn icons and images: same lenient criterion. Thin lines: the SSIM
+        # of a 1-2 px box means nothing; only the offset counts.
         if is_text or kind in ("zona", "svg", "picture"):
             ssim_min = min(a.threshold, 0.45)
         elif kind == "line" or min(x1 - x0, y1 - y0) < 20 * k:
-            ssim_min = -1  # lineas y formas muy finas (subrayados): solo cuenta dx/dy
+            ssim_min = -1  # lines and very thin shapes (underlines): only dx/dy counts
         else:
             ssim_min = a.threshold
         if r["ssim"] < ssim_min:
             issues.append(f"ssim {r['ssim']:.2f}")
         if "dx" in r and max(abs(r["dx"]), abs(r["dy"])) > a.shift:
-            issues.append(f"desplazado dx={r['dx']:+.0f} dy={r['dy']:+.0f} px")
+            issues.append(f"shifted dx={r['dx']:+.0f} dy={r['dy']:+.0f} px")
         if "wratio" in r and abs(r["wratio"] - 1) > 0.05:
-            issues.append(f"anchura x{r['wratio']:.2f}" + (f" -> size {r['size_sugerido']}" if "size_sugerido" in r else ""))
+            issues.append(f"width x{r['wratio']:.2f}" + (f" -> size {r['size_sugerido']}" if "size_sugerido" in r else ""))
         if "desborda_px" in r:
-            issues.append(f"DESBORDA su caja {r['desborda_px']} px" +
-                          (f" -> size {r['size_sugerido']}" if "size_sugerido" in r else " (reduce size o ensancha)"))
-        # Linea de mas: solo si la tinta del render ademas no cabe en la altura de su caja.
+            issues.append(f"OVERFLOWS its box by {r['desborda_px']} px" +
+                          (f" -> size {r['size_sugerido']}" if "size_sugerido" in r else " (reduce size or widen)"))
+        # Extra line: only if the render's ink also does not fit the height of its box.
         if "hratio" in r and r["hratio"] > 1.2 and r.get("ink_h_render", 0) > (y1 - y0) + 4:
-            issues.append(f"altura x{r['hratio']:.2f} (¿una linea de mas?)")
+            issues.append(f"height x{r['hratio']:.2f} (one line too many?)")
         if kind == "zona" and issues:
             bx = r["box_src"]
-            issues.insert(0, f"en x={bx[0]} y={bx[1]} ({bx[2]}x{bx[3]})")
+            issues.insert(0, f"at x={bx[0]} y={bx[1]} ({bx[2]}x{bx[3]})")
         r["issues"] = issues
         r["_px"] = (x0, y0, x1, y1)
         rows.append(r)
@@ -315,8 +315,8 @@ def main():
             s += abs(r["wratio"] - 1) * 5
         return s
 
-    # Un contenedor (tarjeta, caja) con SSIM bajo pero sin desplazamiento propio
-    # suele estar "contaminado" por un hijo mal: se informa aparte, sin aviso.
+    # A container (card, box) with low SSIM but no offset of its own
+    # is usually "contaminated" by a faulty child: reported separately, without a warning.
     def inside(c, p):
         return c[0] >= p[0] - 2 and c[1] >= p[1] - 2 and c[2] <= p[2] + 2 and c[3] <= p[3] + 2
 
@@ -351,21 +351,21 @@ def main():
     with open(base + ".compare.json", "w", encoding="utf-8") as fh:
         json.dump({"ssim_global": round(float(g_score), 3), "elements": rows}, fh, ensure_ascii=False, indent=2)
 
-    md = [f"# Comparacion: {os.path.basename(a.render)}", "",
-          f"SSIM global: **{g_score:.3f}** · {'zonas detectadas (sin spec)' if auto else 'elementos medidos'}: {len(rows)} · con avisos: {len(bad)}", ""]
+    md = [f"# Comparison: {os.path.basename(a.render)}", "",
+          f"Global SSIM: **{g_score:.3f}** · {'zones detected (no spec)' if auto else 'elements measured'}: {len(rows)} · with warnings: {len(bad)}", ""]
     if auto:
-        md += ["Modo sin spec: las zonas son manchas de diferencia, no elementos. Las coordenadas "
-               "(`box_src` en el .json) están en px de la fuente; búscalas en la hoja por su número.", ""]
+        md += ["No-spec mode: zones are difference blobs, not elements. The coordinates "
+               "(`box_src` in the .json) are in source px; find them on the sheet by their number.", ""]
     if bad:
-        md += ["| # | Elemento | Tipo | Avisos |", "|---|---|---|---|"]
+        md += ["| # | Element | Type | Warnings |", "|---|---|---|---|"]
         md += [f"| {n} | `{r['name']}` | {r['kind']} | {'; '.join(r['issues'])} |" for n, r in enumerate(bad, 1)]
     else:
-        md.append("Sin avisos.")
+        md.append("No warnings.")
     if affected:
-        md += ["", "Sin aviso propio (SSIM bajo por un elemento de dentro): " +
+        md += ["", "No warning of its own (low SSIM due to an inner element): " +
                ", ".join(f"`{r['name']}` ← {', '.join(r['afectado_por'])}" for r in affected)]
-    md += ["", "Los numeros coinciden con los recuadros de la hoja .compare.png. "
-           "El SSIM orienta pero no manda: revisa la hoja antes de corregir."]
+    md += ["", "The numbers match the boxes on the .compare.png sheet. "
+           "SSIM is a guide, not the final word: check the sheet before fixing."]
     with open(base + ".compare.md", "w", encoding="utf-8") as fh:
         fh.write("\n".join(md) + "\n")
 

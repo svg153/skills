@@ -89,7 +89,7 @@ $safeTitle = [Net.WebUtility]::HtmlEncode($Title)
 $html = "<!DOCTYPE html>`n<html lang=`"es`">`n<head>`n<meta charset=`"utf-8`">`n<meta name=`"viewport`" content=`"width=device-width, initial-scale=1`">`n<title>$safeTitle</title>`n<style>`n$css`n</style>`n</head>`n<body>`n<script type=`"application/json`" id=`"deck-data`">$json</script>`n<script>`n$js`n</script>`n</body>`n</html>`n"
 $outFull = [IO.Path]::GetFullPath($(if ([IO.Path]::IsPathRooted($Out)) { $Out } else { Join-Path (Get-Location).Path $Out }))
 [IO.File]::WriteAllText($outFull, $html, $utf8)
-"OK html=$outFull ($($slides.Count) diapositivas, $([Math]::Round((Get-Item $outFull).Length / 1KB)) KB)"
+"OK html=$outFull ($($slides.Count) slides, $([Math]::Round((Get-Item $outFull).Length / 1KB)) KB)"
 
 if (-not $NoPng) {
   $edge = @("${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe", "$env:ProgramFiles\Microsoft\Edge\Application\msedge.exe") | Where-Object { Test-Path $_ } | Select-Object -First 1

@@ -22,4 +22,4 @@ try {
   }
 } finally { $pres.Close(); Remove-Item $copy -Force -ErrorAction SilentlyContinue }
 [IO.File]::WriteAllText((Join-Path $OutDir 'manifest.json'), ([ordered]@{ source = $Src; pages = $pages } | ConvertTo-Json -Depth 4), (New-Object Text.UTF8Encoding($false)))
-"OK $($pages.Count) diapositivas -> $OutDir  (presentaciones abiertas antes=$before despues=$($ppt.Presentations.Count))"
+"OK $($pages.Count) slides -> $OutDir  (presentaciones abiertas antes=$before despues=$($ppt.Presentations.Count))"
