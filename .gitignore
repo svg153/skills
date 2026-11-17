@@ -9,6 +9,10 @@ hosts.yml
 __pycache__/
 *.pyc
 venv/
+.venv/
+
+# Local agent session/recovery notes (never commit)
+odd/
 
 # Generated site
 _site/

@@ -195,8 +195,8 @@ See [docs/evals.md](docs/evals.md) and [ADR 0001](docs/adr/0001-behavioral-skill
 The GitHub Pages site is generated from canonical metadata, not maintained separately:
 
 ```bash
-python scripts/generate-catalog.py --output /tmp/skills-catalog --base-path /skills
-python scripts/validate-catalog.py --site-dir /tmp/skills-catalog --base-path /skills
+python scripts/generate-catalog.py --output /tmp/skills-catalog
+python scripts/generate-catalog.py --check
 ```
 
 Published at https://svg153.github.io/skills/.

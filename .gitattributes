@@ -1,0 +1,19 @@
+# Normalize text to LF in the index and working tree.
+* text=auto eol=lf
+
+# Binary assets (none tracked today; keep them byte-exact if added).
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.pdf binary
+*.pptx binary
+*.docx binary
+*.xlsx binary
+*.zip binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary

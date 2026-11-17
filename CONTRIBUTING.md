@@ -110,7 +110,7 @@ Imported or synchronized skills retain their real license; a public repository i
 Before merging:
 
 ```bash
-python -m pip install 'PyYAML>=6,<7'
+python -m pip install -r requirements-dev.txt   # PyYAML>=6,<7, same pin as CI
 python scripts/validate-workflow-security.py
 python scripts/validate-skills.py
 python scripts/validate-metadata-lifecycle.py

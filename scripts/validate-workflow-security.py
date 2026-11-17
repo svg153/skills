@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -55,6 +56,38 @@ def iter_steps(data: dict):
                 yield str(job_name), index, step
 
 
+def git_index_mode(path: Path, root: Path = ROOT) -> str | None:
+    """Return the Git index mode (for example ``100755``) of ``path``, if tracked.
+
+    Returns ``None`` when Git is unavailable, ``root`` is not inside a work tree,
+    or the path is not tracked, so callers can fall back to filesystem bits.
+    """
+    try:
+        relative = path.relative_to(root).as_posix()
+        result = subprocess.run(
+            ["git", "-C", str(root), "ls-files", "-s", "--", relative],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except (OSError, ValueError):
+        return None
+    if result.returncode != 0:
+        return None
+    lines = result.stdout.strip().splitlines()
+    if not lines:
+        return None
+    return lines[0].split(maxsplit=1)[0]
+
+
+def is_executable(path: Path, root: Path = ROOT) -> bool:
+    """Prefer the committed Git mode; filesystem bits are unreliable on Windows/NTFS."""
+    mode = git_index_mode(path, root)
+    if mode is not None:
+        return mode == "100755"
+    return path.stat().st_mode & 0o111 != 0
+
+
 def validate_direct_local_command(location: str, stripped: str, errors: list[str]) -> None:
     """Require workflow-local commands invoked as ./path to be executable in Git."""
     if not stripped.startswith("./"):
@@ -70,7 +103,7 @@ def validate_direct_local_command(location: str, stripped: str, errors: list[str
     if not target.is_file():
         errors.append(f"{location}: direct local command {command!r} does not exist")
         return
-    if target.stat().st_mode & 0o111 == 0:
+    if not is_executable(target):
         errors.append(
             f"{location}: direct local command {command!r} is not executable; "
             "commit the executable bit or invoke it explicitly through its interpreter"
