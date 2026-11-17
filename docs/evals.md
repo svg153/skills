@@ -103,6 +103,12 @@ Waza gives each task an empty temp workspace, but the agent is an ordinary proce
 
 The script refuses to start when the checkout is not clean.
 
+### Token exposure and single-suite runs
+
+- When `COPILOT_GITHUB_TOKEN` is present (`user-token` mode) the agent environment contains no `GITHUB_TOKEN` or `GH_TOKEN`: the workflow does not export it and `scripts/run-behavioral-suites.sh` unsets any ambient one. The Copilot SDK only needs `COPILOT_GITHUB_TOKEN`, and a model-driven agent then cannot call `gh` against the live repository. `GITHUB_TOKEN` (`github.token`) is passed only in `actions-token` mode.
+- Tasks that need repository state must provide it as inline `inputs.files` fixtures and set a task-level `timeout_seconds`, instead of relying on the live repository (see `autopilot-maintain-repo-no-merge`).
+- `workflow_dispatch` accepts an optional `suite` input to run a single suite. It is passed through an environment variable, must match `[a-z0-9-]+` and must exist as `evals/<suite>/eval.yaml`; empty runs every suite. Scheduled runs always run every suite.
+
 Each model-backed run retains for 14 days Waza JSON, JUnit XML and per-task transcripts where available. Treat those artifacts as diagnostic evidence, not as a one-dimensional public quality score.
 
 ## Interpreting workflow status

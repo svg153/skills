@@ -9,7 +9,9 @@ set -uo pipefail
 # real checkout via ~/work, ran `git init` in its parent directory and then
 # `git clean -ffd`, which deleted evals/ for every later suite.
 #
-# Usage: scripts/run-behavioral-suites.sh [results-dir]   (default: <repo>/eval-results)
+# Usage: scripts/run-behavioral-suites.sh [results-dir [suite]]
+#   results-dir default: <repo>/eval-results; suite default (empty): every suite.
+#   suite must match [a-z0-9-]+ and exist as evals/<suite>/eval.yaml.
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
 parent="$(dirname "$root")"
@@ -18,11 +20,31 @@ results_root="$(cd "${1:-$root/eval-results}" && pwd -P)"
 results_rel=""
 [[ "$results_root" == "$root"/* ]] && results_rel="${results_root#"$root"/}"
 
+suite_filter="${2:-}"
+if [[ -n "$suite_filter" && ! "$suite_filter" =~ ^[a-z0-9-]+$ ]]; then
+  echo "::error::invalid suite name (allowed: [a-z0-9-]+)" >&2
+  exit 2
+fi
+
+# With an explicit Copilot user token the agent needs no GitHub token: drop any
+# ambient one so a model-driven agent cannot use gh/git with repository credentials.
+if [[ -n "${COPILOT_GITHUB_TOKEN:-}" ]]; then
+  unset GITHUB_TOKEN GH_TOKEN
+fi
+
 command -v waza >/dev/null || { echo "::error::waza is not on PATH" >&2; exit 2; }
 git -C "$root" rev-parse --git-dir >/dev/null 2>&1 || { echo "::error::$root is not a git checkout" >&2; exit 2; }
 
 # Resolve the suite list to absolute paths once, before anything can change the tree.
 mapfile -t suites < <(find "$root/evals" -mindepth 2 -maxdepth 2 -name eval.yaml -print | sort)
+if [[ -n "$suite_filter" ]]; then
+  want="$root/evals/$suite_filter/eval.yaml"
+  if [[ ! -f "$want" ]]; then
+    echo "::error::unknown suite '$suite_filter': evals/$suite_filter/eval.yaml does not exist" >&2
+    exit 2
+  fi
+  suites=("$want")
+fi
 if [[ ${#suites[@]} -eq 0 ]]; then
   echo "::error::no evals/*/eval.yaml suites found under $root" >&2
   exit 2

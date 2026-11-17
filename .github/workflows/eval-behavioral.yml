@@ -2,6 +2,12 @@ name: Trusted Behavioral Skill Evaluations
 
 on:
   workflow_dispatch:
+    inputs:
+      suite:
+        description: 'Optional single suite name under evals/ (lowercase letters, digits, hyphens). Empty runs all suites.'
+        required: false
+        default: ''
+        type: string
   schedule:
     - cron: '17 4 * * 1'
 
@@ -19,7 +25,6 @@ jobs:
     env:
       WAZA_NO_UPDATE_CHECK: '1'
       COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
-      GITHUB_TOKEN: ${{ github.token }}
       REPOSITORY_OWNER_TYPE: ${{ github.event.repository.owner.type }}
       GITHUB_EVENT_NAME: ${{ github.event_name }}
     steps:
@@ -81,10 +86,17 @@ jobs:
       - name: Run behavioral suites
         if: steps.credentials.outputs.available == 'true'
         shell: bash
+        env:
+          # The agent's environment must not carry a GitHub token when the explicit
+          # Copilot user token is used; the built-in token is exposed only for the
+          # organization actions-token mode, where the Copilot SDK needs it.
+          GITHUB_TOKEN: ${{ steps.credentials.outputs.mode == 'actions-token' && github.token || '' }}
+          AUTH_MODE: ${{ steps.credentials.outputs.mode }}
+          SUITE_INPUT: ${{ inputs.suite }}
         run: |
           set -uo pipefail
-          echo "Copilot auth mode: ${{ steps.credentials.outputs.mode }}"
-          bash scripts/run-behavioral-suites.sh "$GITHUB_WORKSPACE/eval-results"
+          echo "Copilot auth mode: ${AUTH_MODE}"
+          bash scripts/run-behavioral-suites.sh "$GITHUB_WORKSPACE/eval-results" "${SUITE_INPUT:-}"
 
       - name: Upload behavioral evidence
         if: always() && steps.credentials.outputs.available == 'true'

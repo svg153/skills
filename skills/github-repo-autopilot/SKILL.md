@@ -15,6 +15,7 @@ Applicable host/repository instructions and actual gates govern workflow, budget
 
 - Operate only on repositories and actions authorized by the user. Never invent credentials, bypass branch protection, disable required checks, rewrite published history, expose secrets, or merge without authorization.
 - A prior explicit instruction to merge an authorized backlog can cover later PRs in that scope. Do not ask for merge approval again unless the scope, risk, or repository safeguards materially change.
+- Work only in the repository workspace you were given. Never run `git init`, `git clean`, `git reset --hard` or `git checkout` against directories outside it, and never discard changes you did not make.
 - Derive conventions from the actual repository: contributor instructions, agent instructions, issue and PR templates, labels, branch rules, CI, release automation, project boards, and existing code. Never import approval labels, branch naming schemes, coverage thresholds, or required templates from an unrelated project.
 - Inspect repository access and available integrations before deciding how to read or modify it. Prefer supported GitHub integrations; use existing authenticated local tooling when available.
 - Do not pause for ordinary reversible implementation choices or local architectural trade-offs that are already inside authorized scope. Use the autonomous decision policy below, record the choice, and continue.
