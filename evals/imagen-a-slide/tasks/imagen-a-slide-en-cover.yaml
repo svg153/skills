@@ -1,0 +1,17 @@
+id: imagen-a-slide-en-cover
+name: 'imagen-a-slide activates for a photo cover with a clean background (English)'
+inputs:
+  prompt: 'Clean the background of a cover slide: remove its texts from the photo, and replace drawn logos with official ones placed on top.'
+expected:
+  should_trigger: true
+  graders:
+  - type: trigger
+    name: activation
+    config:
+      skill_path: skills/imagen-a-slide/SKILL.md
+      mode: positive
+      threshold: 0.6
+  - type: prompt
+    name: behavior_contract
+    config:
+      prompt: 'Pass only if the response cleans the original image into a background plate instead of cropping or redrawing the photo, and places editable texts and official logo files on top.'
