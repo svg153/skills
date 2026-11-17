@@ -181,9 +181,9 @@ def write(package_root: Path, outputs: dict[Path, str]) -> int:
     changed = 0
     for relative, content in outputs.items():
         path = package_root / relative
-        if path.exists() and path.read_text(encoding="utf-8") == content:
+        if path.exists() and path.read_bytes().decode("utf-8") == content:
             continue
-        path.write_text(content, encoding="utf-8")
+        path.write_text(content, encoding="utf-8", newline="\n")
         print(f"WROTE: {path}")
         changed += 1
     mcp_path = package_root / "mcp.json"

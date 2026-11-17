@@ -409,6 +409,6 @@ def sync_external_components(
         elif manifest_path.read_text(encoding="utf-8") != expected_manifest:
             drift.append(f"{MANIFEST_NAME}: stale")
     else:
-        manifest_path.write_text(expected_manifest, encoding="utf-8")
+        manifest_path.write_text(expected_manifest, encoding="utf-8", newline="\n")
 
     return drift

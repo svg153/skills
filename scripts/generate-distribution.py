@@ -426,10 +426,10 @@ def write(outputs: dict[Path, str]) -> int:
     for relative, content in outputs.items():
         target = ROOT / relative
         target.parent.mkdir(parents=True, exist_ok=True)
-        previous = target.read_text(encoding="utf-8") if target.exists() else None
+        previous = target.read_bytes().decode("utf-8") if target.exists() else None
         if previous == content:
             continue
-        target.write_text(content, encoding="utf-8")
+        target.write_text(content, encoding="utf-8", newline="\n")
         print(f"WROTE: {relative}")
         changed += 1
     for relative in OPTIONAL_GENERATED_PATHS:

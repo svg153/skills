@@ -1,0 +1,25 @@
+id: shopping-membership-break-even
+name: Warehouse-club membership is amortized against expected savings
+inputs:
+  prompt: >-
+    I'm not a Costco member. We spend about 400 EUR a month on groceries for a family of four.
+    Is getting a membership worth it compared with our usual supermarket, given that some packs
+    are huge?
+expected:
+  should_trigger: true
+  graders:
+    - type: trigger
+      name: activation
+      config:
+        skill_path: skills/smart-shopping-advisor/SKILL.md
+        mode: positive
+        threshold: 0.6
+    - type: prompt
+      name: amortization_and_unit_price
+      config:
+        prompt: >-
+          Pass only if the answer computes or frames a break-even (annual fee divided by the
+          saving rate versus the alternative, or fee per visit) using a membership fee it says to
+          verify on the official site, compares per-unit prices of equivalent products rather
+          than pack prices, accounts for waste risk or storage of large formats, and includes
+          travel or delivery costs in the comparison.
