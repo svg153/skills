@@ -1,9 +1,7 @@
 id: imagen-a-slide-positive
-name: imagen-a-slide activates for rebuilding slide images as editable slides
+name: 'imagen-a-slide activates for rebuilding slide images as editable slides'
 inputs:
-  prompt: 'Te paso dos capturas de diapositivas que solo tengo como imagen. Hazme
-    un pptx editable de cada una con el mismo diseño, y la portada con la foto de
-    fondo limpia y los textos editables encima.'
+  prompt: 'Reconstruye estas imágenes de diapositivas (PNG, JPG, un PDF y dos capturas) como diapositivas editables con el mismo diseño, en PPTX o en HTML de un solo archivo. Empieza por la primera: hazme un pptx editable de esta imagen.'
 expected:
   should_trigger: true
   graders:
@@ -17,7 +15,6 @@ expected:
     name: behavior_contract
     config:
       prompt: 'Pass only if the response classifies each slide as native or hybrid,
-        uses a clean background plate (texts and company logos removed) for the photo
-        cover instead of cropping it, writes a JSON spec rendered by the engine rather
-        than hand-written PowerPoint code, never closes the user''s PowerPoint, and
-        delivers one editable file per slide.'
+        writes a JSON spec rendered by the engine rather than hand-written PowerPoint
+        or HTML code, never closes the user''s PowerPoint, and delivers one editable
+        file per slide.'

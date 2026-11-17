@@ -1,8 +1,7 @@
 id: imagen-a-slide-boundary
-name: imagen-a-slide stays out of from-scratch deck creation
+name: 'imagen-a-slide negative: from-scratch deck creation'
 inputs:
-  prompt: Create a brand-new five-slide presentation about our quarterly roadmap;
-    there are no existing slides or images to start from.
+  prompt: 'Quiero crear una presentación desde cero sobre el roadmap trimestral; no hay diapositivas ni imágenes de partida.'
 expected:
   should_trigger: false
   graders:

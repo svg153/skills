@@ -1,8 +1,7 @@
 id: imagen-a-slide-vs-deck-design-system
-name: imagen-a-slide does not take design-system extraction from editable decks
+name: 'imagen-a-slide negative: design-system extraction belongs to deck-design-system'
 inputs:
-  prompt: Here are three editable .pptx decks from an event; extract their design
-    system into design.md and build a reusable Slidev template.
+  prompt: 'Quiero extraer el sistema de diseño de estos tres decks .pptx editables a un design.md y montar una plantilla Slidev reutilizable.'
 expected:
   should_trigger: false
   graders:
