@@ -4,11 +4,11 @@ dependencies:
 - repo_url: ghspain/github-build-or-reuse
   name: github-build-or-reuse
   host: github.com
-  resolved_commit: 24af1931681bb03b0282472c4d4b6900359418c7
-  resolved_ref: 24af1931681bb03b0282472c4d4b6900359418c7
+  resolved_commit: 5cae7fc94f87dd015be0427a5f5c3f7456ad26d5
+  resolved_ref: 5cae7fc94f87dd015be0427a5f5c3f7456ad26d5
   version: unknown
   virtual_path: skills/github-build-or-reuse
   is_virtual: true
   package_type: claude_skill
-  content_hash: sha256:8dc26707612dcc8ab9cd34bae63bd662d05bfaeab764492ab8d79ef50137257d
+  content_hash: sha256:d2580f517adf914625599ef6553ac0a33d12f0099d62e259ef59ca1350bd62b4
 deployments: []
