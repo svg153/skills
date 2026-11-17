@@ -15,14 +15,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-09-11)
 
 **Core value:** A simple request produces a repeatable, rendered, evidence-backed UI improvement workflow while preserving reuse and human visual judgment.
-**Current focus:** External dependency gate - Phase 1/#46. Hosted Renovate activation is now verified through #75; the remaining gate is a genuine stable `github-build-or-reuse` release newer than v1.2.3 producing the real Renovate update PR. Phases 5/6 remain blocked by that genuine update proof, and Phase 10 deliberately waits for those specialists before the real-app baseline pilot.
+**Current focus:** External dependency gate - Phase 1/#46. As of 2026-11-17 the genuine stable `github-build-or-reuse` v1.2.4 release is published and hosted Renovate activation is verified through #75; the remaining step is the real Renovate update PR plus trusted completion and cutover. Phases 5/6 remain blocked by that genuine update proof, and Phase 10 deliberately waits for those specialists before the real-app baseline pilot.
 
 ## Current Position
 
 Phase: 9 of 15 (Behavioral Evals and Fixtures)
 Plan: 1 of 1
 Status: Complete; no further v1.0 implementation can truthfully complete until the Phase 1 external condition unlocks Phases 5/6.
-Last activity: 2026-09-28 - reviewed `emilkowalski/skills`, `coreyhaines31/marketingskills` and `oxbshw/watch-skill`. Phase 5 now explicitly re-evaluates `mobile-native` as an optional fifth specialist without weakening the original four-skill EMIL-01 baseline. Separate evaluations #90 and #91 were opened for growth-marketing and media-understanding so those ideas do not silently expand the design-engineering critical path or add dependencies before governance permits them.
+Last activity: 2026-11-17 - `ghspain/github-build-or-reuse` published v1.2.4, unblocking Phase 1; #44/#46 cutover tracking consolidated into #46; #81 registered as an adjacent evaluation. Previous: 2026-09-28 - reviewed `emilkowalski/skills`, `coreyhaines31/marketingskills` and `oxbshw/watch-skill`. Phase 5 now explicitly re-evaluates `mobile-native` as an optional fifth specialist without weakening the original four-skill EMIL-01 baseline. Separate evaluations #90 and #91 were opened for growth-marketing and media-understanding so those ideas do not silently expand the design-engineering critical path or add dependencies before governance permits them.
 
 Progress: [████░░░░░░] 40%
 
@@ -55,6 +55,8 @@ Progress: [████░░░░░░] 40%
 
 ### Pending Todos
 
+- Phase 1: as soon as hosted Renovate opens the v1.2.4 APM update PR, run the trusted completion workflow on it and record evidence in #46. **Complete it before Monday 2026-11-23 06:17 UTC**, or temporarily pause the legacy sync for `skills/github-build-or-reuse`: the mirror is still `legacy-sync`-owned (`interval: weekly`, `origin_ref: latest-release`) and `sync-upstream-skills.yml` would otherwise push v1.2.4 directly to `main`, desynchronizing the mirror from `apm.lock.yaml`.
+- #81: compare `create-design-md` URL reconstruction with the local DESIGN.md contract (no dependency needed); enrollment waits for Phase 1. Benchmark `frontend-design` vs local Foundation in Phase 12 after the Phase 10 pilot.
 - Revisit Phase 1 immediately when `ghspain/github-build-or-reuse` publishes a genuine stable release newer than v1.2.3 and hosted Renovate opens the required update PR.
 - After Phase 1 proof, re-verify the four selected Emil specialists plus `mobile-native`; adopt `mobile-native` only with an explicit evidence-based gap analysis, then execute Phase 5 and extend the Phase 9 suite for every enrolled specialist.
 - Execute Phase 6 web-quality skills next and extend the same suite with quality-specialist behavior/evidence cases.
@@ -64,7 +66,7 @@ Progress: [████░░░░░░] 40%
 
 ### Blockers/Concerns
 
-- Phase 1 intentionally cannot claim success until #46 observes a genuine newer upstream release and Renovate PR; latest checked 2026-09-16 remains v1.2.3.
+- Phase 1 intentionally cannot claim success until #46 completes the real Renovate PR for the genuine v1.2.4 release (published 2026-11-17).
 - Hosted Renovate activation/processing is already evidenced by #75, so installation/configuration is no longer the blocker; the missing external event is the next genuine stable upstream release.
 - The resolver-only upstream proposal remains unanswered; keep the current trusted local completion glue until a maintainer-backed alternative exists.
 - Exact Emil/Addy upstream versions/paths/licenses must be re-verified at enrollment time and pinned through APM.
@@ -75,6 +77,6 @@ Progress: [████░░░░░░] 40%
 
 ## Session Continuity
 
-Last session: 2026-09-28
+Last session: 2026-11-17
 Stopped at: Phases 2, 3, 4, 7, 8 and 9 remain complete/verified. Hosted Renovate activation remains verified; the remaining v1.0 chain is externally gated at the next genuine upstream release: Phase 1/#46 -> Phase 5/6 -> Phase 10. Phase 5 planning now includes an explicit optional `mobile-native` decision. Adjacent evaluations #90 and #91 are recorded but do not change phase counts or bypass dependency governance.
 Resume file: `.planning/phases/01-apm-renovate-proof/01-01-PLAN.md`
