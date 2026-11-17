@@ -1,0 +1,13 @@
+{
+  "captures": [
+    {
+      "id": "example",
+      "original_url": "https://example.org/terms",
+      "snapshot_url": "https://web.archive.org/web/20260101123456/https://example.org/terms",
+      "snapshot_utc": "2026-01-01T12:34:56Z",
+      "expected_phrases": [
+        "terms and conditions"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+id: wayback-evidence-capture-positive
+name: wayback-evidence-capture activates for its primary workflow
+inputs:
+  prompt: I have a fixed Wayback Machine snapshot URL and want an offline PDF and PNG with archive time, render time, and SHA-256 proof.
+expected:
+  should_trigger: true
+  graders:
+  - type: trigger
+    name: activation
+    config:
+      skill_path: skills/wayback-evidence-capture/SKILL.md
+      mode: positive
+      threshold: 0.6
+  - type: prompt
+    name: behavior_contract
+    config:
+      prompt: Pass only if the assistant requires a confirmed fixed Wayback URL, validates source text before capture, distinguishes archive from render timestamps, records hashes and failures, avoids private data in public repositories, and does not claim legal certification.
