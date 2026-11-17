@@ -8,7 +8,7 @@ expected:
   - type: trigger
     name: activation
     config:
-      skill_path: skills/image-to-slide/SKILL.md
+      skill_path: plugins/image-to-slide/skills/image-to-slide/SKILL.md
       mode: positive
       threshold: 0.6
   - type: prompt

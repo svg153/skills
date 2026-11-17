@@ -1,0 +1,25 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "image-to-slide",
+  "version": "2.2.0",
+  "description": "Rebuild slide images (PNG, JPG, PDF or screenshots) as editable slides with the same design: native PowerPoint on Windows and/or one self-contained HTML file, from one shared JSON spec.",
+  "author": {
+    "name": "svg153",
+    "url": "https://github.com/svg153"
+  },
+  "homepage": "https://github.com/svg153/skills/tree/main/plugins/image-to-slide",
+  "repository": "https://github.com/svg153/skills",
+  "license": "MIT",
+  "keywords": [
+    "agent-plugins",
+    "agent-skills",
+    "html",
+    "image-to-slide",
+    "ocr",
+    "powerpoint",
+    "pptx",
+    "presentations",
+    "slides",
+    "windows"
+  ]
+}
