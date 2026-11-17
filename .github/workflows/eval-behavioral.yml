@@ -83,21 +83,8 @@ jobs:
         shell: bash
         run: |
           set -uo pipefail
-          status=0
           echo "Copilot auth mode: ${{ steps.credentials.outputs.mode }}"
-          while IFS= read -r eval_file; do
-            skill="$(basename "$(dirname "$eval_file")")"
-            output_dir="eval-results/${skill}"
-            mkdir -p "$output_dir/transcripts"
-            echo "Evaluating ${skill}"
-            if ! waza run "$eval_file" \
-              --output "$output_dir/results.json" \
-              --reporter "junit:$output_dir/junit.xml" \
-              --transcript-dir "$output_dir/transcripts"; then
-              status=1
-            fi
-          done < <(find evals -mindepth 2 -maxdepth 2 -name eval.yaml -print | sort)
-          exit "$status"
+          bash scripts/run-behavioral-suites.sh "$GITHUB_WORKSPACE/eval-results"
 
       - name: Upload behavioral evidence
         if: always() && steps.credentials.outputs.available == 'true'
