@@ -403,9 +403,13 @@ def check(outputs: dict[Path, str]) -> int:
         if not target.is_file():
             drift.append(f"{relative}: missing")
             continue
-        actual = target.read_text(encoding="utf-8")
-        if actual != expected:
-            drift.append(f"{relative}: stale")
+        expected_bytes = expected.encode("utf-8")
+        actual_bytes = target.read_bytes()
+        if actual_bytes != expected_bytes:
+            if actual_bytes.replace(b"\r\n", b"\n") == expected_bytes:
+                drift.append(f"{relative}: line-ending drift (CRLF found, generated output uses LF)")
+            else:
+                drift.append(f"{relative}: stale")
     for relative in OPTIONAL_GENERATED_PATHS:
         if relative not in outputs and (ROOT / relative).exists():
             drift.append(f"{relative}: stale optional output; no MCP servers are configured")

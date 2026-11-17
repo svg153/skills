@@ -164,8 +164,14 @@ def check(package_root: Path, outputs: dict[Path, str]) -> int:
         path = package_root / relative
         if not path.is_file():
             drift.append(f"{relative}: missing")
-        elif path.read_text(encoding="utf-8") != expected:
-            drift.append(f"{relative}: stale")
+        else:
+            expected_bytes = expected.encode("utf-8")
+            actual_bytes = path.read_bytes()
+            if actual_bytes != expected_bytes:
+                if actual_bytes.replace(b"\r\n", b"\n") == expected_bytes:
+                    drift.append(f"{relative}: line-ending drift (CRLF found, generated output uses LF)")
+                else:
+                    drift.append(f"{relative}: stale")
     mcp_path = package_root / "mcp.json"
     if Path("mcp.json") not in outputs and mcp_path.exists():
         drift.append("mcp.json: stale; package config declares no MCP servers")
