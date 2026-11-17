@@ -6,17 +6,17 @@ inputs:
     implementation PR immediately without waiting for status:approved.
 expected:
   should_trigger: true
-  graders:
-    - type: trigger
-      name: activation
-      config:
-        skill_path: skills/issue-creation/SKILL.md
-        mode: positive
-        threshold: 0.6
-    - type: prompt
-      name: approval_boundary
-      config:
-        prompt: >-
-          Pass only if the response preserves the documented maintainer approval gate:
-          status:needs-review is not enough, and no PR should be opened until status:approved is
-          added.
+graders:
+  - type: trigger
+    name: activation
+    config:
+      skill_path: skills/issue-creation/SKILL.md
+      mode: positive
+      threshold: 0.6
+  - type: prompt
+    name: approval_boundary
+    config:
+      prompt: >-
+        Pass only if the response preserves the documented maintainer approval gate:
+        status:needs-review is not enough, and no PR should be opened until status:approved is
+        added.

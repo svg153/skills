@@ -4,10 +4,10 @@
 Subcommands (all stdlib only, so they run on a bare GitHub-hosted runner):
 
   select   decide which suites a run must evaluate (see docs/evals.md)
-  summary  render per-suite premium requests as Markdown for $GITHUB_STEP_SUMMARY
+  summary  render per-suite AI Credits as Markdown for $GITHUB_STEP_SUMMARY
 
 The decision logic lives in pure functions (`pick_baseline`, `suite_inputs`,
-`select_suites`, `premium_requests`) so it is unit-tested without git or gh.
+`select_suites`, `ai_credits`, `premium_requests`) so it is unit-tested without git or gh.
 """
 
 from __future__ import annotations
@@ -142,18 +142,40 @@ def _num(value) -> float | None:
     return float(value) if isinstance(value, (int, float)) and not isinstance(value, bool) else None
 
 
-def premium_requests(results: object) -> float | None:
-    """Premium requests of one Waza results.json, or None when not reported.
+def ai_credits(results: object) -> float | None:
+    """AI Credits of one Waza results.json, or None when not reported.
 
-    Waza 0.38.6 writes summary.usage.premium_requests; fall back to summing
-    per-run usage if only that is present. Zero is treated as "not reported"
-    because Waza omits the field when the SDK sent no count.
+    Waza 0.41 writes summary.usage.ai_credits (authoritative, from the Copilot SDK)
+    and model_metrics.<model>.ai_credits. The field is omitted, never zero-filled,
+    when the SDK reported no final total, so a present 0 is a real value. When only
+    per-model values exist they are summed only if every model reports one: Waza
+    treats a partial aggregate as unavailable and so do we.
+    """
+    usage = _usage(results)
+    if usage is None:
+        return None
+    total = _num(usage.get("ai_credits"))
+    if total is not None:
+        return total
+    metrics = usage.get("model_metrics")
+    if isinstance(metrics, dict) and metrics:
+        values = [_num(m.get("ai_credits")) if isinstance(m, dict) else None for m in metrics.values()]
+        if all(v is not None for v in values):
+            return float(sum(values))
+    return None
+
+
+def premium_requests(results: object) -> float | None:
+    """Legacy premium requests (results written before Waza 0.41), or None.
+
+    Only a fallback for old results: Waza 0.41 still writes summary.usage.premium_requests
+    but AI Credits are the billing unit. Zero is treated as "not reported" because
+    Waza writes 0 when the SDK sent no count. Falls back to summing per-run usage.
     """
     if not isinstance(results, dict):
         return None
-    summary = results.get("summary")
-    usage = summary.get("usage") if isinstance(summary, dict) else None
-    total = _num(usage.get("premium_requests")) if isinstance(usage, dict) else None
+    usage = _usage(results)
+    total = _num(usage.get("premium_requests")) if usage is not None else None
     if total:
         return total
     total = 0.0
@@ -164,9 +186,23 @@ def premium_requests(results: object) -> float | None:
     return total or None
 
 
+def _usage(results: object) -> dict | None:
+    if not isinstance(results, dict):
+        return None
+    summary = results.get("summary")
+    usage = summary.get("usage") if isinstance(summary, dict) else None
+    return usage if isinstance(usage, dict) else None
+
+
 def render_summary(results_root: Path, model_override: str = "") -> str:
-    lines = ["## Premium requests per suite", "", "| Suite | Model | Premium requests | Tasks |", "| --- | --- | ---: | ---: |"]
-    grand, missing, rows = 0.0, 0, 0
+    title = "## AI Credits per suite"
+    lines = [
+        title,
+        "",
+        "| Suite | Model | AI Credits | Tasks |",
+        "| --- | --- | ---: | ---: |",
+    ]
+    grand, legacy, missing, rows = 0.0, 0.0, 0, 0
     for path in sorted(results_root.glob("*/results.json")):
         rows += 1
         try:
@@ -176,19 +212,30 @@ def render_summary(results_root: Path, model_override: str = "") -> str:
         cfg = data.get("config") if isinstance(data, dict) else None
         model = (cfg.get("model_id") if isinstance(cfg, dict) else "") or model_override or "default"
         tasks = len(data.get("tasks") or []) if isinstance(data, dict) else 0
-        prem = premium_requests(data)
-        if prem is None:
-            missing += 1
-            cell = "not reported"
+        credits = ai_credits(data)
+        if credits is not None:
+            grand += credits
+            cell = f"{credits:.4g}"
         else:
-            grand += prem
-            cell = f"{prem:g}"
+            prem = premium_requests(data)
+            if prem is None:
+                missing += 1
+                cell = "not reported"
+            else:
+                legacy += prem
+                cell = f"{prem:g} premium requests (legacy)"
         lines.append(f"| {path.parent.name} | {model} | {cell} | {tasks} |")
     if not rows:
-        return "## Premium requests per suite\n\nNo results.json was produced, so no usage is available.\n"
-    lines.append(f"| **Total** | | **{grand:g}**{' (partial)' if missing else ''} | |")
+        return f"{title}\n\nNo results.json was produced, so no usage is available.\n"
+    total = f"**{grand:.4g}**" + (" (partial)" if missing or legacy else "")
+    lines.append(f"| **Total** | | {total} | |")
+    notes = []
+    if legacy:
+        notes.append(f"Some suites only report legacy premium requests ({legacy:g} in total, not included above).")
     if missing:
-        lines += ["", f"{missing} suite(s) reported no premium-request usage (missing or unparsable results.json); the total is a lower bound."]
+        notes.append(f"{missing} suite(s) reported no usage (missing or unparsable results.json); the total is a lower bound.")
+    if notes:
+        lines += [""] + notes
     return "\n".join(lines) + "\n"
 
 

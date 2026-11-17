@@ -7,10 +7,10 @@ inputs:
     whether to build, adopt, fork, or replace any software.
 expected:
   should_trigger: false
-  graders:
-    - type: trigger
-      name: generic_research_boundary
-      config:
-        skill_path: skills/github-build-or-reuse/SKILL.md
-        mode: negative
-        threshold: 0.6
+graders:
+  - type: trigger
+    name: generic_research_boundary
+    config:
+      skill_path: skills/github-build-or-reuse/SKILL.md
+      mode: negative
+      threshold: 0.6

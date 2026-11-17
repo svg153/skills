@@ -9,7 +9,7 @@ config:
   trials_per_task: 1
   # Routing-class suite (docs/evals.md): cheapest suitable model and a tight per-task
   # timeout, because the previous default-model run did 2-3 minutes of live research
-  # per task (34 premium requests for 3 tasks). Waza 0.38.6 has no max-turns setting;
+  # per task (34 premium requests for 3 tasks, Waza 0.38.6). Waza 0.41 still has no max-turns setting;
   # the timeout is the only hard cap.
   timeout_seconds: 150
   parallel: false

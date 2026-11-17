@@ -69,3 +69,21 @@ jobs:
               --eval "$eval_file" \
               --format github-actions
           done < <(find evals -mindepth 2 -maxdepth 2 -name eval.yaml -print | sort)
+
+      - name: Preflight evals without model calls
+        shell: bash
+        run: |
+          set -uo pipefail
+          # `waza preflight` starts no agent or model. Waza loads a task with unknown fields
+          # as a warning and ignores them (a grader nested under `expected:` never ran), so
+          # fail on that warning and on an invalid task. The exit code is deliberately not
+          # used: preflight also requires config.model, which only the routing suite sets.
+          status=0
+          while IFS= read -r eval_file; do
+            out="$(waza preflight "$eval_file" --no-update-check 2>&1)" || true
+            if grep -E 'unknown schema field ignored|^invalid task\.schema' <<<"$out"; then
+              echo "::error file=${eval_file}::waza preflight reports an ignored or invalid task field"
+              status=1
+            fi
+          done < <(find evals -mindepth 2 -maxdepth 2 -name eval.yaml -print | sort)
+          exit "$status"

@@ -7,17 +7,17 @@ inputs:
     that helps.
 expected:
   should_trigger: true
-  graders:
-    - type: trigger
-      name: activation
-      config:
-        skill_path: plugins/design-engineering/skills/design-engineering/SKILL.md
-        mode: positive
-        threshold: 0.6
-    - type: prompt
-      name: reuse_first
-      config:
-        prompt: >-
-          Pass only if the response inspects and prefers the existing shared components and installed
-          Radix primitives before considering a new library, and introduces a dependency only when
-          it identifies a concrete unmet need and explains the trade-off.
+graders:
+  - type: trigger
+    name: activation
+    config:
+      skill_path: plugins/design-engineering/skills/design-engineering/SKILL.md
+      mode: positive
+      threshold: 0.6
+  - type: prompt
+    name: reuse_first
+    config:
+      prompt: >-
+        Pass only if the response inspects and prefers the existing shared components and installed
+        Radix primitives before considering a new library, and introduces a dependency only when
+        it identifies a concrete unmet need and explains the trade-off.

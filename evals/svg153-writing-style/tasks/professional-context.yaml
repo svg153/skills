@@ -7,16 +7,16 @@ inputs:
     ;)". Necesito que el proveedor confirme qué campo falta; no sé cuándo podré enviarlo.'
 expected:
   should_trigger: true
-  graders:
-  - type: trigger
-    name: activation
-    config:
-      skill_path: skills/svg153-writing-style/SKILL.md
-      mode: positive
-      threshold: 0.6
-  - type: prompt
-    name: context_and_fidelity
-    config:
-      prompt: 'Pass only if: Prefer the professional sample despite the more recent
-        casual message. Ask which field is missing, use concise professional paragraphs,
-        and do not import jokes, emojis or promise a delivery date.'
+graders:
+- type: trigger
+  name: activation
+  config:
+    skill_path: skills/svg153-writing-style/SKILL.md
+    mode: positive
+    threshold: 0.6
+- type: prompt
+  name: context_and_fidelity
+  config:
+    prompt: 'Pass only if: Prefer the professional sample despite the more recent
+      casual message. Ask which field is missing, use concise professional paragraphs,
+      and do not import jokes, emojis or promise a delivery date.'

@@ -6,10 +6,10 @@ inputs:
     files, and I do not want a skills distribution layer. Focus only on the tool schema and transport.
 expected:
   should_trigger: false
-  graders:
-    - type: trigger
-      name: boundary
-      config:
-        skill_path: skills/mcp-skills-provider/SKILL.md
-        mode: negative
-        threshold: 0.6
+graders:
+  - type: trigger
+    name: boundary
+    config:
+      skill_path: skills/mcp-skills-provider/SKILL.md
+      mode: negative
+      threshold: 0.6

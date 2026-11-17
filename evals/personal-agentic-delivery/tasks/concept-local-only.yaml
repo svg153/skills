@@ -10,20 +10,20 @@ inputs:
     choice.
 expected:
   should_trigger: true
-  graders:
-    - type: trigger
-      name: activation
-      config:
-        skill_path: skills/personal-agentic-delivery/SKILL.md
-        mode: positive
-        threshold: 0.6
-    - type: prompt
-      name: delivery_contract
-      config:
-        prompt: >-
-          Pass only if Personal remains the single delivery policy, related commits stay in one conceptual
-          candidate under the effective host budget rather than forced micro-PRs, verification remains
-          required without enabling TDD or receipt-driven review, and no remote action is assumed
-          authorized. The sample decision must be one entry under ## Decision record — CODEX containing
-          [AI-DECISION], options, rationale and risk; neither record nor skill invocation grants
-          permission.
+graders:
+  - type: trigger
+    name: activation
+    config:
+      skill_path: skills/personal-agentic-delivery/SKILL.md
+      mode: positive
+      threshold: 0.6
+  - type: prompt
+    name: delivery_contract
+    config:
+      prompt: >-
+        Pass only if Personal remains the single delivery policy, related commits stay in one conceptual
+        candidate under the effective host budget rather than forced micro-PRs, verification remains
+        required without enabling TDD or receipt-driven review, and no remote action is assumed
+        authorized. The sample decision must be one entry under ## Decision record — CODEX containing
+        [AI-DECISION], options, rationale and risk; neither record nor skill invocation grants
+        permission.

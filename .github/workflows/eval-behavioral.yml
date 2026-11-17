@@ -162,13 +162,13 @@ jobs:
           echo "Copilot auth mode: ${AUTH_MODE}"
           bash scripts/run-behavioral-suites.sh "$GITHUB_WORKSPACE/eval-results" "${SUITES:-}"
 
-      - name: Summarize premium requests
+      - name: Summarize AI Credits
         if: always() && steps.credentials.outputs.available == 'true' && steps.select.outputs.run == 'true'
         shell: bash
         env:
           WAZA_MODEL: ${{ inputs.model }}
         run: |
-          python3 scripts/eval_cost.py summary eval-results --model "${WAZA_MODEL:-}" >> "$GITHUB_STEP_SUMMARY" || echo '::warning::could not render premium-request summary'
+          python3 scripts/eval_cost.py summary eval-results --model "${WAZA_MODEL:-}" >> "$GITHUB_STEP_SUMMARY" || echo '::warning::could not render AI Credits summary'
 
       - name: Summarize skipped scheduled evaluation (nothing changed)
         if: steps.credentials.outputs.available == 'true' && steps.select.outputs.run != 'true'
@@ -176,7 +176,7 @@ jobs:
         run: |
           {
             echo
-            echo '**Status: no model-backed evaluation executed; zero premium requests spent.**'
+            echo '**Status: no model-backed evaluation executed; zero AI Credits spent.**'
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload behavioral evidence

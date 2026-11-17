@@ -8,18 +8,18 @@ inputs:
     to do that research now.
 expected:
   should_trigger: true
-  graders:
-    - type: trigger
-      name: activation
-      config:
-        skill_path: skills/github-repo-autopilot/SKILL.md
-        mode: positive
-        threshold: 0.6
-    - type: prompt
-      name: deferred_decision
-      config:
-        prompt: >-
-          Pass only if the response creates or calls for a repository-native follow-up issue with
-          the deferred research scope, evidence needed, dependencies and acceptance criteria, links
-          it from the active work, records the deferral with [AI-DECISION], and continues the
-          current non-blocked delivery instead of pausing for a large side investigation.
+graders:
+  - type: trigger
+    name: activation
+    config:
+      skill_path: skills/github-repo-autopilot/SKILL.md
+      mode: positive
+      threshold: 0.6
+  - type: prompt
+    name: deferred_decision
+    config:
+      prompt: >-
+        Pass only if the response creates or calls for a repository-native follow-up issue with
+        the deferred research scope, evidence needed, dependencies and acceptance criteria, links
+        it from the active work, records the deferral with [AI-DECISION], and continues the
+        current non-blocked delivery instead of pausing for a large side investigation.

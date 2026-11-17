@@ -6,10 +6,10 @@ inputs:
     request, fix CI if needed, and merge it when the repository checks are green.
 expected:
   should_trigger: false
-  graders:
-    - type: trigger
-      name: boundary
-      config:
-        skill_path: plugins/planning/skills/planning/SKILL.md
-        mode: negative
-        threshold: 0.6
+graders:
+  - type: trigger
+    name: boundary
+    config:
+      skill_path: plugins/planning/skills/planning/SKILL.md
+      mode: negative
+      threshold: 0.6

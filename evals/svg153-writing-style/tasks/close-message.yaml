@@ -7,16 +7,16 @@ inputs:
     hacemos la sesión online o nos esperamos a tener fecha presencial".'
 expected:
   should_trigger: true
-  graders:
-  - type: trigger
-    name: activation
-    config:
-      skill_path: skills/svg153-writing-style/SKILL.md
-      mode: positive
-      threshold: 0.6
-  - type: prompt
-    name: context_and_fidelity
-    config:
-      prompt: 'Pass only if: Return a brief Spanish close-contact message with a clear
-        question and both alternatives. Keep natural warmth without forced marketing,
-        excessive emojis or a long essay. Do not invent dates or commitments.'
+graders:
+- type: trigger
+  name: activation
+  config:
+    skill_path: skills/svg153-writing-style/SKILL.md
+    mode: positive
+    threshold: 0.6
+- type: prompt
+  name: context_and_fidelity
+  config:
+    prompt: 'Pass only if: Return a brief Spanish close-contact message with a clear
+      question and both alternatives. Keep natural warmth without forced marketing,
+      excessive emojis or a long essay. Do not invent dates or commitments.'
