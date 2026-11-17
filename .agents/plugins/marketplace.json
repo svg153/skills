@@ -29,6 +29,18 @@
       "category": "Developer Tools"
     },
     {
+      "name": "image-to-slide",
+      "source": {
+        "source": "local",
+        "path": "./plugins/image-to-slide"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    },
+    {
       "name": "planning",
       "source": {
         "source": "local",

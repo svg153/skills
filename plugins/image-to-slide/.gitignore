@@ -1,0 +1,14 @@
+# Private material never goes into the repository: real slides, client profiles, real benches.
+local/
+
+# Outputs written when the examples or the self-test are built in place
+skills/image-to-slide/examples/*.pptx
+skills/image-to-slide/examples/*.png
+skills/image-to-slide/examples/*.html
+skills/image-to-slide/examples/*_dudas.md
+skills/image-to-slide/examples/*.compare.*
+skills/image-to-slide/examples/*.ocr.*
+
+# Client profiles if someone drops one next to the skill by mistake
+**/perfil*.json
+**/profile*.json

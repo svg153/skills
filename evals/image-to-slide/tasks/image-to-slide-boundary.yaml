@@ -1,0 +1,13 @@
+id: image-to-slide-boundary
+name: 'image-to-slide negative: from-scratch deck creation'
+inputs:
+  prompt: 'Quiero crear una presentación desde cero sobre el roadmap trimestral; no hay diapositivas ni imágenes de partida.'
+expected:
+  should_trigger: false
+  graders:
+  - type: trigger
+    name: boundary
+    config:
+      skill_path: plugins/image-to-slide/skills/image-to-slide/SKILL.md
+      mode: negative
+      threshold: 0.6
