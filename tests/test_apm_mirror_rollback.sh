@@ -11,6 +11,20 @@ PREVIOUS_COMMIT="74f8cfeca5c0ed5799a0ab71be88d06fc9e2afb1"
 PREVIOUS_TAG="v1.2.2"
 TMP="$(mktemp -d)"
 
+# The current (restore) target is whatever the reviewed checkout pins, so
+# Renovate pin updates need no edit here; only the v1.2.2 rollback target is fixed.
+CURRENT_PIN="$(grep -Eo '#[0-9a-f]{40} # v[0-9]+\.[0-9]+\.[0-9]+' "$APM_DIR/apm.yml" | head -n1)"
+CURRENT_COMMIT="$(printf '%s' "$CURRENT_PIN" | cut -c2-41)"
+if [ -z "$CURRENT_COMMIT" ] || [ "$CURRENT_COMMIT" = "$PREVIOUS_COMMIT" ]; then
+  echo 'ERROR: apm.yml must pin a current commit different from the rollback release' >&2
+  exit 1
+fi
+CURRENT_VERSION="$(sed -n 's/^[[:space:]]*version: "\([^"]*\)".*/\1/p' "$SKILL_DIR/SKILL.md" | head -n1)"
+if [ -z "$CURRENT_VERSION" ] || [ "$CURRENT_VERSION" = "1.2.2" ]; then
+  echo 'ERROR: checked-out mirror must be at a version different from the rollback release' >&2
+  exit 1
+fi
+
 cp "$APM_DIR/apm.yml" "$TMP/apm.yml.current"
 cp "$APM_DIR/apm.lock.yaml" "$TMP/apm.lock.yaml.current"
 
@@ -63,7 +77,7 @@ python "$ROOT/scripts/materialize-apm-mirror.py" "$SKILL" --apply
 python "$ROOT/scripts/generate-distribution.py"
 python "$ROOT/scripts/materialize-apm-mirror.py" "$SKILL" --check
 
-grep -q 'version: "1.2.3"' "$SKILL_DIR/SKILL.md"
+grep -q "version: \"${CURRENT_VERSION}\"" "$SKILL_DIR/SKILL.md"
 
 git -C "$ROOT" diff --exit-code -- \
   dependencies/external-skills/apm.yml \

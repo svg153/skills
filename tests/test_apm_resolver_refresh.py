@@ -49,7 +49,6 @@ def check_lock(project: Path, expected_sha: str) -> None:
 def main() -> None:
     assert shutil.which("apm"), "install scripts/install-apm-ci.sh first"
     current_sha, current_tag = current_pin()
-    current_sha, current_tag = current_pin()
     with tempfile.TemporaryDirectory(prefix="apm-resolver-refresh-") as temporary:
         project = Path(temporary)
         for name in ("apm.yml", "apm.lock.yaml", "apm-policy.yml"):
