@@ -14,6 +14,7 @@ Every workflow under `.github/workflows/` must satisfy these rules:
 6. Do not use `pull_request_target` for repository workflows.
 7. Use `npm ci --ignore-scripts` when npm dependencies are installed by workflows.
 8. Keep GitHub Actions dependencies covered by Dependabot.
+9. Invoke repository scripts as `./path` only when they are committed as executable (Git mode `100755`); otherwise call them through their interpreter. The validator reads the Git index mode, so the check is reliable on Windows checkouts too.
 
 Version comments should remain beside pinned SHAs for readability, for example:
 

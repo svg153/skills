@@ -71,7 +71,9 @@ jobs:
           python -m pip install 'PyYAML>=6,<7'
 
       - name: Validate workflow security baseline
-        run: python scripts/validate-workflow-security.py
+        run: |
+          python scripts/validate-workflow-security.py
+          python -m unittest discover -s tests -p 'test_validate_workflow_security.py' -v
 
       - name: Test public repository bootstrap executor
         run: node --test skills/open-source-repo-bootstrap/tests/*.test.mjs
