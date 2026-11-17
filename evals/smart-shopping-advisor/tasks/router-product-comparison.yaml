@@ -1,0 +1,24 @@
+id: shopping-router-product-comparison
+name: Generic product comparison still routes to the advisor with ownership cost
+inputs:
+  prompt: >-
+    I'm choosing between two Wi-Fi 7 mesh systems for a three-floor house. Here are the
+    product links from two shops. Which should I buy, and is upgrading from my Wi-Fi 6 router
+    even worth it?
+expected:
+  should_trigger: true
+  graders:
+    - type: trigger
+      name: activation
+      config:
+        skill_path: skills/smart-shopping-advisor/SKILL.md
+        mode: positive
+        threshold: 0.6
+    - type: prompt
+      name: premise_and_fit
+      config:
+        prompt: >-
+          Pass only if the answer challenges whether the upgrade is needed (including a
+          no-purchase or reconfiguration option), compares exact models and sellers with dated
+          prices, considers compatibility with existing devices and real-world performance rather
+          than theoretical throughput, and ends with one primary recommendation.

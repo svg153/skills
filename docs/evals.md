@@ -15,6 +15,7 @@ The representative set includes:
 - `personal-agentic-delivery` — selected-mode isolation, concept batching within effective budgets, local-only authorization and real size/correctness gates.
 - `issue-creation` — a compact issue-first/approval-gate workflow.
 - `planning` — new-work structuring, provider ownership, degraded GitHub/Jira operation, and the explicit mutation boundary of the planning capability plugin.
+- `smart-shopping-advisor` — Costco Same-Day basket routing via store profiles, live dated prices and offer validity, membership amortization, and corporate-analysis / recipe boundaries.
 - `backlog-management` — existing-backlog cleanup, cross-provider source-of-truth rules, degraded provider reads, and the boundary with greenfield planning.
 
 ## Canonical skill source

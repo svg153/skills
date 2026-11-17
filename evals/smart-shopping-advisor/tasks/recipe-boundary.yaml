@@ -1,0 +1,14 @@
+id: shopping-recipe-boundary
+name: A recipe request without a purchase decision does not trigger the advisor
+inputs:
+  prompt: >-
+    Give me a recipe for empanada gallega with tuna for six people.
+expected:
+  should_trigger: false
+  graders:
+    - type: trigger
+      name: boundary
+      config:
+        skill_path: skills/smart-shopping-advisor/SKILL.md
+        mode: negative
+        threshold: 0.6
