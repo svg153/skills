@@ -1,0 +1,13 @@
+id: image-to-slide-en-editable-pptx
+name: 'image-to-slide negative: editing an already editable deck (English)'
+inputs:
+  prompt: 'Edit an already editable pptx: change the theme colors and fix two typos.'
+expected:
+  should_trigger: false
+  graders:
+  - type: trigger
+    name: boundary
+    config:
+      skill_path: skills/image-to-slide/SKILL.md
+      mode: negative
+      threshold: 0.6

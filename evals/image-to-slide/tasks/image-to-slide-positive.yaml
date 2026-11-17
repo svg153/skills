@@ -1,0 +1,20 @@
+id: image-to-slide-positive
+name: 'image-to-slide activates for rebuilding slide images as editable slides'
+inputs:
+  prompt: 'Reconstruye estas imágenes de diapositivas (PNG, JPG, un PDF y dos capturas) como diapositivas editables con el mismo diseño, en PPTX o en HTML de un solo archivo. Empieza por la primera: hazme un pptx editable de esta imagen.'
+expected:
+  should_trigger: true
+  graders:
+  - type: trigger
+    name: activation
+    config:
+      skill_path: skills/image-to-slide/SKILL.md
+      mode: positive
+      threshold: 0.6
+  - type: prompt
+    name: behavior_contract
+    config:
+      prompt: 'Pass only if the response classifies each slide as native or hybrid,
+        writes a JSON spec rendered by the engine rather than hand-written PowerPoint
+        or HTML code, never closes the user''s PowerPoint, and delivers one editable
+        file per slide.'

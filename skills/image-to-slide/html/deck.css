@@ -1,0 +1,27 @@
+/* image-to-slide: estilos del visor HTML (lienzo 960 x 540, 1 px CSS = 1 pt de PowerPoint) */
+html, body { margin: 0; height: 100%; background: #111827; overflow: hidden; }
+.stage { position: absolute; left: 0; top: 0; width: 960px; height: 540px; transform-origin: 0 0; }
+.slide { position: absolute; inset: 0; width: 960px; height: 540px; overflow: hidden; display: none; background: #fff; }
+.slide.active { display: block; }
+.el { position: absolute; box-sizing: border-box; }
+.el.text, .shape-text { overflow: visible; }
+.txt { width: 100%; font-kerning: normal; text-rendering: geometricPrecision; }
+.para { min-height: 1em; }
+svg.line { position: absolute; overflow: visible; }
+.shape-svg { display: block; overflow: visible; }
+table.tbl { border-collapse: collapse; table-layout: fixed; }
+table.tbl td, table.tbl th { padding: 3.6px 7.2px; vertical-align: middle; font-weight: 400; overflow: hidden; }
+.notes { display: none; }
+body.show-notes .slide.active .notes { display: block; position: absolute; left: 0; right: 0; bottom: 0; max-height: 40%; overflow: auto;
+  background: rgba(15, 23, 42, .92); color: #fff; font: 12px/1.45 'Segoe UI', sans-serif; padding: 8px 12px; white-space: pre-wrap; }
+.counter { position: fixed; right: 14px; bottom: 10px; color: #9ca3af; font: 12px 'Segoe UI', sans-serif; user-select: none; }
+body.editing .txt, body.editing td, body.editing th { outline: 1px dashed rgba(31, 79, 224, .55); }
+body.editing::after { content: 'Modo edicion (E o Esc para salir)'; position: fixed; left: 14px; bottom: 10px; color: #93c5fd; font: 12px 'Segoe UI', sans-serif; }
+body.export { background: #fff; }
+@media print {
+  @page { size: 960px 540px; margin: 0; }
+  html, body { background: #fff; overflow: visible; height: auto; }
+  .stage { position: static; transform: none !important; width: auto; height: auto; }
+  .slide { display: block !important; position: relative; break-after: page; page-break-after: always; }
+  .counter, .notes { display: none !important; }
+}

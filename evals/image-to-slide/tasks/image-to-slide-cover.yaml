@@ -1,0 +1,19 @@
+id: image-to-slide-cover
+name: 'image-to-slide activates for a photo cover with a clean background'
+inputs:
+  prompt: 'Rehacer esta slide de portada: hay que limpiar el fondo de una portada con foto quitando los textos, y poner logos oficiales en vez de los dibujados.'
+expected:
+  should_trigger: true
+  graders:
+  - type: trigger
+    name: activation
+    config:
+      skill_path: skills/image-to-slide/SKILL.md
+      mode: positive
+      threshold: 0.6
+  - type: prompt
+    name: behavior_contract
+    config:
+      prompt: 'Pass only if the response cleans the original image into a background
+        plate (texts and company logos removed, gradient continued) instead of cropping
+        or redrawing the photo, and places editable texts and official logo files on top.'
