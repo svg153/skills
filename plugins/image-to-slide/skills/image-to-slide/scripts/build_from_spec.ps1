@@ -160,7 +160,7 @@ function Add-Chart($sl, $e, $name) {
   $key = [string](Prop $e 'chartType' 'bar'); if ($key -eq 'bar') { $key = 'bar-' + (Prop $e 'dir' 'col') + $(if (Prop $e 'stacked' $false) { '-stacked' } else { '' }) }
   if ($key -eq 'line' -and (Prop $e 'markers' $false)) { $key = 'line-markers' }
   $type = $CHARTS[$key]; if ($null -eq $type) { throw "chartType '$key' not supported" }
-  # AddChart2 started returning E_FAIL after the Office update of 2026-11-13 (16.0.20527); try the variants in order
+  # AddChart2 can return E_FAIL on some Office builds; try the variants in order
   $sh = $null; $errs = @()
   $tries = @(
     @{ n = 'AddChart2'; f = { $sl.Shapes.AddChart2(-1, $type, (U $e.x), (U $e.y), (U $e.w), (U $e.h), $true) } },
@@ -253,6 +253,7 @@ function Build-Slide($pres, $idx, $SD) {
       'chart' { Add-Chart $sl $e $name; $sh = $sl.Shapes.Item($name) }
       default { $warnings.Add("unknown element type '$t' ($name)"); continue }
     }
+    if ($null -eq $sh) { continue }
     $sh.Name = $name
     if ($t -in 'text', 'rect', 'shape') { $sh.Top = (U $e.y); $sh.Height = (U $e.h) }
     $rot = Prop $e 'rotate'; if ($rot) { $sh.Rotation = [single]$rot }
@@ -274,8 +275,9 @@ try {
 while (-not $saved) {
   $attempt++; $pres = $null
   try {
-    # Charts need a document window since Office 16.0.20527 (windowless -> AddChart2 E_FAIL): open it minimized
-    $hasChart = [bool](@($slidesSpec | ForEach-Object { @(Prop $_ 'elements' @()) } | Where-Object { (Prop $_ 'type') -eq 'chart' }).Count)
+    $doubts.Clear(); $warnings.Clear()   # each attempt starts clean: no duplicates after a retry
+    # Charts need a document window (windowless -> AddChart2 E_FAIL): open it minimized
+    $hasChart = [bool](@($slidesSpec | ForEach-Object { @(Prop $_ 'elements' @()) } | Where-Object { (Prop $_ 'type' (Prop $_ 'kind')) -eq 'chart' }).Count)
     if ($hasChart) { $pres = $ppt.Presentations.Add(-1); try { $pres.Windows(1).WindowState = 2 } catch { } } else { $pres = $ppt.Presentations.Add(0) }
     $pres.PageSetup.SlideWidth = 960; $pres.PageSetup.SlideHeight = 540
     $n = 0; foreach ($SD in @($slidesSpec)) { $n++; Build-Slide $pres $n $SD | Out-Null }
@@ -294,7 +296,7 @@ while (-not $saved) {
     }
   } catch {
     $hr = $_.Exception.HResult
-    if ($attempt -lt 4 -and ($hr -eq -2147418111 -or $hr -eq -2147417846)) { Write-Warning "PowerPoint ocupado, reintento $attempt"; Start-Sleep -Seconds (3 * $attempt); $saved = $null }
+    if ($attempt -lt 4 -and ($hr -eq -2147418111 -or $hr -eq -2147417846)) { Write-Warning "PowerPoint busy, retry $attempt"; Start-Sleep -Seconds (3 * $attempt); $saved = $null }
     else { throw }
   } finally { if ($pres) { $pres.Close() } }
 }

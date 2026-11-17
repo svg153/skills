@@ -20,6 +20,7 @@ Limitations of the HTML viewer (acceptable; warn the user if the slide uses them
   "output": "Nombre.pptx",           // if it exists and is open -> Nombre_v2.pptx
   "png": "Nombre.png",               // only with 1 slide; with several: Nombre_s1.png, Nombre_s2.png…
   "theme": { "font": "Segoe UI", "headFont": "Segoe UI", "text": "374151", "bg": "FFFFFF" },
+  "language": "en",                  // html only: <html lang> (BCP 47); default "en"
   "background": { "color": "FFFFFF" },   // or { "image": "fondo_limpio.png" }
   "profile": "C:/ruta/perfil.json",      // optional: client profile (logos + theme); also IMAGE_TO_SLIDE_PROFILE
   "elements": [ … ],

@@ -79,4 +79,4 @@ if (-not $NoOverlay) {
   $o = [IO.File]::Create($ovPath); $enc.Save($o); $o.Close()
   $ovNote = ", control: $ovPath"
 }
-"OK $Out ($($lines.Count) lineas, idioma $($doc.language)$ovNote)"
+"OK $Out ($($lines.Count) lines, language $($doc.language)$ovNote)"

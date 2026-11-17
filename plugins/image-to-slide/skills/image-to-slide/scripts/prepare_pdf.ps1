@@ -47,4 +47,4 @@ foreach ($p in (Parse-Pages $Pages ([int]$doc.PageCount))) {
   if ([Math]::Abs($ratio - 16.0 / 9.0) -gt 0.02) { Write-Host "  page $p is not 16:9 (ratio $([Math]::Round($ratio, 3))): set sourceWidth/layout accordingly" }
 }
 [IO.File]::WriteAllText((Join-Path $OutDir 'manifest.json'), ([ordered]@{ source = $Src; pages = $out } | ConvertTo-Json -Depth 4), (New-Object Text.UTF8Encoding($false)))
-"OK $($out.Count) paginas -> $OutDir"
+"OK $($out.Count) pages -> $OutDir"

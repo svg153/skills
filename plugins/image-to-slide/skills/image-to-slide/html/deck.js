@@ -13,6 +13,19 @@
   var EXPORT = params['export'] === '1';
 
   function el(tag, cls, parent) { var e = document.createElement(tag); if (cls) e.className = cls; if (parent) parent.appendChild(e); return e; }
+  // Parse the spec SVG and drop <script>, <foreignObject> and on* / javascript: attributes before inserting it.
+  function safeSvg(src) {
+    var doc = new DOMParser().parseFromString(String(src || ''), 'image/svg+xml');
+    var root = doc.documentElement;
+    if (!root || root.nodeName.toLowerCase() !== 'svg' || doc.getElementsByTagName('parsererror').length) return null;
+    Array.prototype.slice.call(root.querySelectorAll('script,foreignObject')).forEach(function (n) { n.parentNode.removeChild(n); });
+    [root].concat(Array.prototype.slice.call(root.querySelectorAll('*'))).forEach(function (n) {
+      Array.prototype.slice.call(n.attributes).forEach(function (a) {
+        if (/^on/i.test(a.name) || (/^(xlink:)?href$/i.test(a.name) && /^\s*javascript:/i.test(a.value))) n.removeAttribute(a.name);
+      });
+    });
+    return document.importNode(root, true);
+  }
   function svgEl(tag, attrs, parent) {
     var e = document.createElementNS('http://www.w3.org/2000/svg', tag);
     for (var a in attrs) if (attrs[a] !== undefined && attrs[a] !== null) e.setAttribute(a, attrs[a]);
@@ -317,11 +330,11 @@
           var img = el('img', null, node); img.src = e.path || e.src; img.alt = e.alt || '';
           img.style.width = '100%'; img.style.height = e.h !== undefined ? '100%' : 'auto'; img.style.display = 'block';
         } else if (t === 'svg') {
-          node.innerHTML = e.svg; var sv = node.querySelector('svg');
+          var sv = safeSvg(e.svg); if (sv) node.appendChild(sv);
           if (sv) { sv.style.width = '100%'; sv.style.height = e.h !== undefined ? '100%' : 'auto'; sv.style.display = 'block'; if (e.alt) { sv.setAttribute('role', 'img'); sv.setAttribute('aria-label', e.alt); } }
         } else if (t === 'table') renderTable(node, e, ctx, k);
         else if (t === 'chart') renderChart(node, e, ctx, k);
-        else console.warn('tipo no soportado:', t);
+        else console.warn('unsupported type:', t);
       }
       node.setAttribute('data-name', name);
       if (e.group) node.setAttribute('data-group', e.group);

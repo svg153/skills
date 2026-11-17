@@ -17,6 +17,8 @@ Rules that came out of real failures and still apply. They complement `SKILL.md`
 ## Native charts (pptx)
 - Some PowerPoint builds no longer insert charts into a windowless presentation: the engine opens it minimized when the spec has a `chart`. Do not change that without testing charts again.
 - With a cold Excel, the first chart can silently keep Excel's sample data: the engine re-reads series 1 and retries, and fails with a clear message if the values still do not match.
+- Charts need a document window: windowless presentations make `AddChart2` fail with E_FAIL on some Office builds.
+- `AddChart2` can fail with E_FAIL on some Office builds: the engine tries `AddChart2`, `AddChart2` without the layout argument, then `AddChart`, and warns about which one worked.
 - Future alternative if the window is a problem: write the chart XML (OpenXML) without Excel.
 
 ## Rules for editing the scripts (PowerShell 5.1)

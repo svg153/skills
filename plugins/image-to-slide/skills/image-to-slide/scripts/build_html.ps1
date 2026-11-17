@@ -58,10 +58,12 @@ function DataUri([string]$p, [string]$base, [bool]$isBg) {
 }
 
 $slides = New-Object System.Collections.Generic.List[object]
+$firstLang = $null
 foreach ($sp in ($Spec | ForEach-Object { $_.Split(',') } | Where-Object { $_.Trim() })) {
   $path = (Resolve-Path -LiteralPath $sp.Trim()).Path; $base = Split-Path -Parent $path
   $doc = [IO.File]::ReadAllText($path, [Text.Encoding]::UTF8) | ConvertFrom-Json
   Load-Profile $doc $base
+  if (-not $firstLang) { $firstLang = Prop $doc 'language' }
   $list = $(if (Prop $doc 'slides') { @($doc.slides) } else { @($doc) })
   foreach ($s in $list) {
     foreach ($inh in 'sourceWidth', 'theme', 'font') { if ($null -eq (Prop $s $inh) -and $null -ne (Prop $doc $inh)) { Set-Prop $s $inh $doc.$inh } }
@@ -86,7 +88,8 @@ $json = $deck | ConvertTo-Json -Depth 30 -Compress
 $css = [IO.File]::ReadAllText((Join-Path $skillDir 'html\deck.css'), [Text.Encoding]::UTF8)
 $js = [IO.File]::ReadAllText((Join-Path $skillDir 'html\deck.js'), [Text.Encoding]::UTF8)
 $safeTitle = [Net.WebUtility]::HtmlEncode($Title)
-$html = "<!DOCTYPE html>`n<html lang=`"es`">`n<head>`n<meta charset=`"utf-8`">`n<meta name=`"viewport`" content=`"width=device-width, initial-scale=1`">`n<title>$safeTitle</title>`n<style>`n$css`n</style>`n</head>`n<body>`n<script type=`"application/json`" id=`"deck-data`">$json</script>`n<script>`n$js`n</script>`n</body>`n</html>`n"
+$lang = [string]$firstLang; if ($lang -notmatch '^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})*$') { $lang = 'en' }
+$html = "<!DOCTYPE html>`n<html lang=`"$lang`">`n<head>`n<meta charset=`"utf-8`">`n<meta name=`"viewport`" content=`"width=device-width, initial-scale=1`">`n<title>$safeTitle</title>`n<style>`n$css`n</style>`n</head>`n<body>`n<script type=`"application/json`" id=`"deck-data`">$json</script>`n<script>`n$js`n</script>`n</body>`n</html>`n"
 $outFull = [IO.Path]::GetFullPath($(if ([IO.Path]::IsPathRooted($Out)) { $Out } else { Join-Path (Get-Location).Path $Out }))
 [IO.File]::WriteAllText($outFull, $html, $utf8)
 "OK html=$outFull ($($slides.Count) slides, $([Math]::Round((Get-Item $outFull).Length / 1KB)) KB)"
