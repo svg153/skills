@@ -4,17 +4,17 @@ inputs:
   prompt: 'Hazme un HTML de esta diapositiva para enviarlo por correo; tiene que abrirse en el navegador sin instalar nada.'
 expected:
   should_trigger: true
-  graders:
-  - type: trigger
-    name: activation
-    config:
-      skill_path: plugins/image-to-slide/skills/image-to-slide/SKILL.md
-      mode: positive
-      threshold: 0.6
-  - type: prompt
-    name: behavior_contract
-    config:
-      prompt: 'Pass only if the response chooses the html output, builds it from a JSON
-        spec with the HTML engine into one self-contained file (viewer, spec and images
-        embedded, no network), checks the rendered control PNG against the source, and
-        tells the user the viewer keys and the font fallback outside Windows.'
+graders:
+- type: trigger
+  name: activation
+  config:
+    skill_path: plugins/image-to-slide/skills/image-to-slide/SKILL.md
+    mode: positive
+    threshold: 0.6
+- type: prompt
+  name: behavior_contract
+  config:
+    prompt: 'Pass only if the response chooses the html output, builds it from a JSON
+      spec with the HTML engine into one self-contained file (viewer, spec and images
+      embedded, no network), checks the rendered control PNG against the source, and
+      tells the user the viewer keys and the font fallback outside Windows.'

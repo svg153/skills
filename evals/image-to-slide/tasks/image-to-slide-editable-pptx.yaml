@@ -4,10 +4,10 @@ inputs:
   prompt: 'Necesito editar un pptx que ya es editable: cambia los colores del tema y corrige dos erratas.'
 expected:
   should_trigger: false
-  graders:
-  - type: trigger
-    name: boundary
-    config:
-      skill_path: plugins/image-to-slide/skills/image-to-slide/SKILL.md
-      mode: negative
-      threshold: 0.6
+graders:
+- type: trigger
+  name: boundary
+  config:
+    skill_path: plugins/image-to-slide/skills/image-to-slide/SKILL.md
+    mode: negative
+    threshold: 0.6

@@ -4,17 +4,17 @@ inputs:
   prompt: 'Convertir esta imagen en diapositiva: es una captura de una página de un PDF y necesito poder editar los textos.'
 expected:
   should_trigger: true
-  graders:
-  - type: trigger
-    name: activation
-    config:
-      skill_path: plugins/image-to-slide/skills/image-to-slide/SKILL.md
-      mode: positive
-      threshold: 0.6
-  - type: prompt
-    name: behavior_contract
-    config:
-      prompt: 'Pass only if the response takes geometry from local OCR but transcribes
-        the final text (accents and line breaks) by reading the image, rebuilds the
-        slide as editable native elements from a JSON spec, and never pastes the whole
-        capture as a single picture.'
+graders:
+- type: trigger
+  name: activation
+  config:
+    skill_path: plugins/image-to-slide/skills/image-to-slide/SKILL.md
+    mode: positive
+    threshold: 0.6
+- type: prompt
+  name: behavior_contract
+  config:
+    prompt: 'Pass only if the response takes geometry from local OCR but transcribes
+      the final text (accents and line breaks) by reading the image, rebuilds the
+      slide as editable native elements from a JSON spec, and never pastes the whole
+      capture as a single picture.'
