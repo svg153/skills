@@ -7,17 +7,17 @@ inputs:
     Promote our repository while explaining that relationship.
 expected:
   should_trigger: true
-  graders:
-    - type: trigger
-      name: activation
-      config:
-        skill_path: skills/social-publishing/SKILL.md
-        mode: positive
-        threshold: 0.6
-    - type: prompt
-      name: attribution_and_scope
-      config:
-        prompt: >-
-          Pass only if the post credits the source project before promoting the independent
-          project, explains divergence without superiority claims, and does not imply official
-          endorsement or that the new project is an upstream continuation.
+graders:
+  - type: trigger
+    name: activation
+    config:
+      skill_path: skills/social-publishing/SKILL.md
+      mode: positive
+      threshold: 0.6
+  - type: prompt
+    name: attribution_and_scope
+    config:
+      prompt: >-
+        Pass only if the post credits the source project before promoting the independent
+        project, explains divergence without superiority claims, and does not imply official
+        endorsement or that the new project is an upstream continuation.

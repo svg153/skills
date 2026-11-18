@@ -3,8 +3,8 @@ set -euo pipefail
 
 # CI-only installer: pin both the Waza release and the release asset digest.
 # Local developers may use the upstream supported installation methods.
-WAZA_VERSION="0.38.6"
-WAZA_SHA256="a799587795fd462411ca7c7af5faccee7e24f08e41d152c10738d31334d1c063"
+WAZA_VERSION="0.41.0"
+WAZA_SHA256="9c7397d8d28127d7c99ec6ad1fab730cbd438174a3960afbc82c3a60dacccb74"
 WAZA_URL="https://github.com/microsoft/waza/releases/download/v${WAZA_VERSION}/waza-linux-amd64"
 DESTINATION="${1:-${RUNNER_TEMP:-/tmp}/waza}"
 

@@ -7,17 +7,17 @@ inputs:
     but preserve the product's current visual identity.
 expected:
   should_trigger: true
-  graders:
-    - type: trigger
-      name: activation
-      config:
-        skill_path: plugins/design-engineering/skills/design-engineering/SKILL.md
-        mode: positive
-        threshold: 0.6
-    - type: prompt
-      name: recon_reuse_mode
-      config:
-        prompt: >-
-          Pass only if the response first inspects existing product/design context and reusable
-          components/tokens, prefers those over inventing a new design system or dependency, chooses
-          a proportionate polish/prototype/audit mode, and does not impose an unrelated house style.
+graders:
+  - type: trigger
+    name: activation
+    config:
+      skill_path: plugins/design-engineering/skills/design-engineering/SKILL.md
+      mode: positive
+      threshold: 0.6
+  - type: prompt
+    name: recon_reuse_mode
+    config:
+      prompt: >-
+        Pass only if the response first inspects existing product/design context and reusable
+        components/tokens, prefers those over inventing a new design system or dependency, chooses
+        a proportionate polish/prototype/audit mode, and does not impose an unrelated house style.

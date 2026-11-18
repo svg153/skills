@@ -4,10 +4,10 @@ inputs:
   prompt: 'Quiero extraer el sistema de diseño de estos tres decks .pptx editables a un design.md y montar una plantilla Slidev reutilizable.'
 expected:
   should_trigger: false
-  graders:
-  - type: trigger
-    name: boundary
-    config:
-      skill_path: plugins/image-to-slide/skills/image-to-slide/SKILL.md
-      mode: negative
-      threshold: 0.6
+graders:
+- type: trigger
+  name: boundary
+  config:
+    skill_path: plugins/image-to-slide/skills/image-to-slide/SKILL.md
+    mode: negative
+    threshold: 0.6

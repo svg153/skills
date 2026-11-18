@@ -4,14 +4,14 @@ inputs:
   prompt: 'Make an HTML from this slide so I can email it; it has to open in any browser without installing anything.'
 expected:
   should_trigger: true
-  graders:
-  - type: trigger
-    name: activation
-    config:
-      skill_path: plugins/image-to-slide/skills/image-to-slide/SKILL.md
-      mode: positive
-      threshold: 0.6
-  - type: prompt
-    name: behavior_contract
-    config:
-      prompt: 'Pass only if the response chooses the html output and builds one self-contained file from a JSON spec with the HTML engine, checking the control PNG against the source.'
+graders:
+- type: trigger
+  name: activation
+  config:
+    skill_path: plugins/image-to-slide/skills/image-to-slide/SKILL.md
+    mode: positive
+    threshold: 0.6
+- type: prompt
+  name: behavior_contract
+  config:
+    prompt: 'Pass only if the response chooses the html output and builds one self-contained file from a JSON spec with the HTML engine, checking the control PNG against the source.'

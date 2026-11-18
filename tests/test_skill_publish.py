@@ -136,6 +136,16 @@ license: MIT
         self.assertIn("skills.sh.json", paths)
         self.assertRegex(plan.approval_hash, r"^[0-9a-f]{64}$")
 
+    def test_scaffolded_eval_tasks_use_top_level_graders(self) -> None:
+        plan = catalog_skill.plan_from_spec(self.write_spec(self.local_spec()), repo_root=self.root)
+        tasks = [file for file in plan.files if file.path.startswith("evals/new-skill/tasks/")]
+        self.assertEqual(len(tasks), 2)
+        for item in tasks:
+            task = yaml.safe_load(item.content.decode("utf-8"))
+            self.assertNotIn("graders", task["expected"])
+            self.assertTrue(task["graders"])
+            self.assertTrue(all(grader["type"] in {"trigger", "prompt"} for grader in task["graders"]))
+
     def test_description_longer_than_legacy_cap_is_accepted(self) -> None:
         value, plan = self.plan_with_description_length(251)
         description = self.description_from_plan(plan)

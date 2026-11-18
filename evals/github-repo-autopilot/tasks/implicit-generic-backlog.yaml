@@ -8,18 +8,18 @@ inputs:
     is authorized, but ask before publishing changes or releasing anything.
 expected:
   should_trigger: true
-  graders:
-    - type: trigger
-      name: activation
-      config:
-        skill_path: skills/github-repo-autopilot/SKILL.md
-        mode: positive
-        threshold: 0.6
-    - type: prompt
-      name: generic_policy_and_scope
-      config:
-        prompt: >-
-          Pass only if the response uses generic repository maintenance without
-          forcing an Enterprise or Personal mode, inspects current issues and PRs
-          before duplicate implementation, retains tests and CI investigation, and
-          does not assume authorization for push, PR creation, merge or release.
+graders:
+  - type: trigger
+    name: activation
+    config:
+      skill_path: skills/github-repo-autopilot/SKILL.md
+      mode: positive
+      threshold: 0.6
+  - type: prompt
+    name: generic_policy_and_scope
+    config:
+      prompt: >-
+        Pass only if the response uses generic repository maintenance without
+        forcing an Enterprise or Personal mode, inspects current issues and PRs
+        before duplicate implementation, retains tests and CI investigation, and
+        does not assume authorization for push, PR creation, merge or release.

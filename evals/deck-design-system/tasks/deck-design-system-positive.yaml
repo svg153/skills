@@ -6,17 +6,17 @@ inputs:
     GitHub Pages site.'
 expected:
   should_trigger: true
-  graders:
-  - type: trigger
-    name: activation
-    config:
-      skill_path: skills/deck-design-system/SKILL.md
-      mode: positive
-      threshold: 0.6
-  - type: prompt
-    name: behavior_contract
-    config:
-      prompt: 'Pass only if the response follows the phased pipeline: convert to PDF,
-        extract and dedupe assets, analyze usage, write design.md, build/verify a
-        Slidev template, publish with pinned release attribution and verified GitHub
-        Pages.'
+graders:
+- type: trigger
+  name: activation
+  config:
+    skill_path: skills/deck-design-system/SKILL.md
+    mode: positive
+    threshold: 0.6
+- type: prompt
+  name: behavior_contract
+  config:
+    prompt: 'Pass only if the response follows the phased pipeline: convert to PDF,
+      extract and dedupe assets, analyze usage, write design.md, build/verify a
+      Slidev template, publish with pinned release attribution and verified GitHub
+      Pages.'

@@ -6,10 +6,10 @@ inputs:
     partnership affects its stock valuation.
 expected:
   should_trigger: false
-  graders:
-    - type: trigger
-      name: boundary
-      config:
-        skill_path: skills/smart-shopping-advisor/SKILL.md
-        mode: negative
-        threshold: 0.6
+graders:
+  - type: trigger
+    name: boundary
+    config:
+      skill_path: skills/smart-shopping-advisor/SKILL.md
+      mode: negative
+      threshold: 0.6

@@ -6,10 +6,10 @@ inputs:
     lifecycle metadata, packaging, eval policy, or release state.
 expected:
   should_trigger: false
-  graders:
-    - type: trigger
-      name: boundary
-      config:
-        skill_path: skills/skill-publish/SKILL.md
-        mode: negative
-        threshold: 0.6
+graders:
+  - type: trigger
+    name: boundary
+    config:
+      skill_path: skills/skill-publish/SKILL.md
+      mode: negative
+      threshold: 0.6

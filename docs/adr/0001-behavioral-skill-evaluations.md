@@ -41,6 +41,7 @@ Evidence snapshot: 2026-09-02.
 - License: MIT.
 - Current repository version checked: `0.38.6`.
 - `v0.38.6` was published 2026-08-14 and ships checksum-addressed binaries.
+- Update (2026-11-17): the pin moved to `0.41.0` (Linux amd64 asset about 207 MB, SHA-256 verified against the release `checksums.txt`). The evidence snapshot above is kept as the original decision record.
 - Project mode explicitly supports `skills/` plus top-level `evals/`, matching this catalog.
 - Skill-specific capabilities include trigger grading, `skill_invocation` with required/forbidden skills, `spec verify` coverage against `SKILL.md`, skill discovery and skill-body injection controls.
 - Behavioral capabilities include text/code/file/diff/JSON-schema/prompt/behavior/action-sequence/tool-constraint/tool-call graders.

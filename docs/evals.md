@@ -62,7 +62,7 @@ skill_dir="$(python scripts/validate-evals.py --resolve-skill-dir <name>)"
 waza spec verify --skill "$skill_dir" --eval evals/<name>/eval.yaml
 ```
 
-`.github/workflows/eval-static.yml` runs the repository validator and a pinned, checksum-verified Waza `spec verify`. It does not call an LLM and receives no model secret. Invalid paths, ambiguous skill sources, duplicate task IDs, missing positive/negative coverage, mismatched trigger graders, malformed catalog ownership, and invalid capability-package ownership fail before behavioral execution.
+`.github/workflows/eval-static.yml` runs the repository validator, a pinned, checksum-verified Waza `spec verify` and `waza preflight` (local static inspection of task files and graders; it never starts an agent or model). The preflight step fails on `unknown schema field ignored` warnings and on an invalid task, because Waza loads a task with an unknown field as a warning and silently drops the field. It does not call an LLM and receives no model secret. Invalid paths, ambiguous skill sources, duplicate task IDs, missing positive/negative coverage, mismatched trigger graders, malformed catalog ownership, and invalid capability-package ownership fail before behavioral execution.
 
 The static workflow watches both root catalog skills and `plugins/**/skills/**/SKILL.md`, so changing an embedded planning skill cannot bypass its behavioral contract.
 
@@ -113,7 +113,7 @@ Each model-backed run retains for 14 days Waza JSON, JUnit XML and per-task tran
 
 ## Cost controls
 
-Model-backed runs spend Copilot premium requests. Three controls keep that bounded.
+Model-backed runs spend Copilot AI Credits (Waza 0.41 reports them; premium requests are the legacy unit). Three controls keep that bounded.
 
 ### Schedule policy: only changed suites
 
@@ -129,13 +129,13 @@ The schedule (`17 4 * * 1`, Mondays 04:17 UTC) no longer runs all suites. `scrip
 - it is written only by runs that covered every suite with each suite's own model: scheduled runs, or manual runs without `suite` and with `model: default`. Single-suite or model-override manual runs never advance it;
 - scheduled runs that selected nothing write no marker and keep the old one.
 
-**No baseline = run nothing.** If no unexpired marker exists (first run after this policy lands, or no model-backed run for 90 days) or the baseline commit is unreachable, the scheduled run evaluates nothing, spends zero premium requests and says so in the step summary. Create the baseline with one manual dispatch (empty `suite`, `model: default`); that run costs a full pass (see below).
+**No baseline = run nothing.** If no unexpired marker exists (first run after this policy lands, or no model-backed run for 90 days) or the baseline commit is unreachable, the scheduled run evaluates nothing, spends zero AI Credits and says so in the step summary. Create the baseline with one manual dispatch (empty `suite`, `model: default`); that run costs a full pass (see below).
 
 **Manual dispatch** keeps its previous behaviour: every suite, or the single `suite`. `force_all: true` ignores `suite` and runs everything; it never consults the baseline.
 
 ### Model and budget per suite class
 
-Waza 0.38.6 (the pin) supports `config.model`, `config.timeout_seconds` (and per-task `timeout_seconds`), `config.first_event_timeout_seconds` and a `--model` CLI override (checked against the source at tag `v0.38.6`). It has **no max-turns / turn-cap setting**: `max_iterations` and `max_tool_calls` exist only as `behavior` grader rules that fail a task after the fact and do not stop spending. The per-task timeout is therefore the only hard cap.
+Waza 0.41.0 (the pin) supports `config.model`, `config.timeout_seconds` (and per-task `timeout_seconds`), `config.first_event_timeout_seconds` and a `--model` CLI override (checked against the source at tag `v0.41.0`). It still has **no max-turns / turn-cap setting** and no hard spend cap in `waza run` (AI-credit budgets exist only in the opt-in `compare collect` flow and are documented there as not atomic spending caps): `max_iterations` and `max_tool_calls` exist only as `behavior` grader rules that fail a task after the fact and do not stop spending. The per-task timeout is therefore the only hard cap.
 
 | Class | Suites | Model | Timeout per task |
 | --- | --- | --- | --- |
@@ -148,13 +148,13 @@ Source for the choice (GitHub Docs, [model multipliers](https://docs.github.com/
 
 ### Cost reporting
 
-After each run the step summary has a `Premium requests per suite` table (suite, model, premium requests, tasks) built from `summary.usage.premium_requests` in each `results.json` (falling back to the sum of per-run usage). A suite whose usage is missing or unparsable shows `not reported` and the total is flagged as partial.
+After each run the step summary has an `AI Credits per suite` table (suite, model, AI Credits, tasks) built from `summary.usage.ai_credits` in each `results.json` (the authoritative total Waza reads from the Copilot SDK; if it is absent, the per-model `model_metrics.<model>.ai_credits` are summed only when every model reports one, because Waza treats a partial aggregate as unavailable). A suite with no AI Credits falls back to the legacy `summary.usage.premium_requests` (older results only), shown as `N premium requests (legacy)` and left out of the credit total, which is then flagged `(partial)`. A suite whose usage is missing or unparsable shows `not reported`. The totals cover the sessions Waza starts (tasks, triggers, prompt graders), not account-wide Copilot usage.
 
 ### Cost expectations
 
-Measured on the default model before this change (premium requests per suite per run): backlog-management 4, deck-design-system 1, design-engineering 14, evidence-based-decision-research 3, github-build-or-reuse 34 (3 routing tasks, 2-3 minutes each with live research), github-repo-autopilot 36-38. Those six are about 92-94 of the total; the other eleven suites were not measured.
+Measured on the default model with Waza 0.38.6, in the legacy premium-request unit and **before the graders were actually running** (see "Task graders" below; prompt graders add judge sessions, so expect higher numbers; first measurement in AI Credits comes from the next run's summary), premium requests per suite per run: backlog-management 4, deck-design-system 1, design-engineering 14, evidence-based-decision-research 3, github-build-or-reuse 34 (3 routing tasks, 2-3 minutes each with live research), github-repo-autopilot 36-38. Those six are about 92-94 of the total; the other eleven suites were not measured.
 
-| Scenario | Premium requests |
+| Scenario | Legacy premium requests (0.38.6, graders not running) |
 | --- | --- |
 | Old weekly schedule, those six suites only | about 92-94 per week |
 | Scheduled run, nothing changed (or no baseline) | 0 |
@@ -198,7 +198,26 @@ waza spec verify \
   --eval evals/planning/eval.yaml
 ```
 
-`./scripts/install-waza-ci.sh` is intentionally CI-specific: it pins Waza v0.38.6 and verifies the Linux x86_64 release SHA-256.
+`./scripts/install-waza-ci.sh` is intentionally CI-specific: it pins Waza v0.41.0 and verifies the Linux x86_64 release SHA-256.
+
+## Task graders
+
+A task file keeps `graders:` at the **top level**, next to `inputs:` and `expected:`. Under `expected:` Waza accepts only `should_trigger`, `output_contains`, `output_not_contains`, `output_contains_any`, `outcomes`, `tool_calls` and `behavior`. Before the Waza 0.41 upgrade every task here nested `graders:` under `expected:`; Waza logged `unknown schema field ignored for same-major compatibility` and ran those tasks with no grader at all, so neither the trigger check nor the prompt judges ever executed. `scripts/validate-evals.py` now rejects `expected.graders` and requires top-level graders, and the static workflow fails on the preflight warning.
+
+```yaml
+id: example
+name: Example
+inputs:
+  prompt: ...
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: activation
+    config: {skill_path: skills/example/SKILL.md, mode: positive, threshold: 0.6}
+```
+
+Consequence for cost: the prompt graders now run, each as a judge session counted in the task's AI Credits. Re-measure the per-suite cost from the first summary after this change.
 
 ## Adding or changing an eval
 
@@ -209,5 +228,5 @@ waza spec verify \
 5. Positive cases need a behavioral grader in addition to trigger accuracy.
 6. Prefer stable behavioral contracts over stylistic wording checks.
 7. Keep catalog evals outside upstream-authoritative mirrored payloads.
-8. Run `python scripts/validate-evals.py` and Waza `spec verify`.
+8. Run `python scripts/validate-evals.py`, Waza `spec verify` and `waza preflight evals/<name>/eval.yaml` (it prints a warning for any ignored field).
 9. Use a trusted behavioral run before treating a major behavior change as validated.

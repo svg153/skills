@@ -233,9 +233,16 @@ def main(argv: list[str] | None = None) -> None:
             positives += int(should_trigger)
             negatives += int(not should_trigger)
 
-            graders = expected.get("graders")
+            if "graders" in expected:
+                # Waza reads task graders only from the top-level `graders:` key; under
+                # `expected:` they are silently ignored (the task then runs with no grader).
+                errors.append(
+                    f"{task_path.relative_to(ROOT)}: graders must be a top-level task key, not under expected"
+                )
+                continue
+            graders = task.get("graders")
             if not isinstance(graders, list) or not graders:
-                errors.append(f"{task_path.relative_to(ROOT)}: at least one grader is required")
+                errors.append(f"{task_path.relative_to(ROOT)}: at least one top-level grader is required")
                 continue
 
             trigger_graders = [

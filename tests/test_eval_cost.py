@@ -117,6 +117,25 @@ class SuiteInputsTests(unittest.TestCase):
 
 
 class UsageTests(unittest.TestCase):
+    def test_ai_credits_summary(self):
+        self.assertEqual(ec.ai_credits({"summary": {"usage": {"ai_credits": 1.25}}}), 1.25)
+
+    def test_ai_credits_zero_is_a_real_value(self):
+        self.assertEqual(ec.ai_credits({"summary": {"usage": {"ai_credits": 0}}}), 0.0)
+
+    def test_ai_credits_sums_complete_model_metrics(self):
+        usage = {"model_metrics": {"a": {"ai_credits": 1.5}, "b": {"ai_credits": 0.5}}}
+        self.assertEqual(ec.ai_credits({"summary": {"usage": usage}}), 2.0)
+
+    def test_ai_credits_partial_model_metrics_is_unavailable(self):
+        usage = {"model_metrics": {"a": {"ai_credits": 1.5}, "b": {"input_tokens": 3}}}
+        self.assertIsNone(ec.ai_credits({"summary": {"usage": usage}}))
+
+    def test_ai_credits_missing_or_malformed_is_none(self):
+        for data in (None, [], {}, {"summary": {}}, {"summary": {"usage": {"ai_credits": "x"}}},
+                     {"summary": {"usage": {"ai_credits": True}}}, {"summary": {"usage": {"premium_requests": 4}}}):
+            self.assertIsNone(ec.ai_credits(data))
+
     def test_summary_usage(self):
         self.assertEqual(ec.premium_requests({"summary": {"usage": {"premium_requests": 4}}}), 4.0)
 
@@ -130,20 +149,24 @@ class UsageTests(unittest.TestCase):
             self.assertIsNone(ec.premium_requests(data))
 
     def test_render_summary(self):
+        def write(root, name, payload):
+            (root / name).mkdir()
+            (root / name / "results.json").write_text(payload if isinstance(payload, str) else json.dumps(payload), encoding="utf-8")
+
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            (root / "a").mkdir()
-            (root / "a/results.json").write_text(
-                json.dumps({"config": {"model_id": "claude-haiku-4.5"}, "tasks": [{}, {}], "summary": {"usage": {"premium_requests": 3}}}),
-                encoding="utf-8",
-            )
-            (root / "b").mkdir()
-            (root / "b/results.json").write_text("{not json", encoding="utf-8")
+            write(root, "a", {"config": {"model_id": "claude-haiku-4.5"}, "tasks": [{}, {}],
+                              "summary": {"usage": {"ai_credits": 3.5, "premium_requests": 9}}})
+            write(root, "b", "{not json")
+            write(root, "c", {"tasks": [{}], "summary": {"usage": {"premium_requests": 2}}})
             out = ec.render_summary(root)
             empty = ec.render_summary(root / "none")
-        self.assertIn("| a | claude-haiku-4.5 | 3 | 2 |", out)
+        self.assertIn("## AI Credits per suite", out)
+        self.assertIn("| a | claude-haiku-4.5 | 3.5 | 2 |", out)
         self.assertIn("| b | default | not reported | 0 |", out)
-        self.assertIn("(partial)", out)
+        self.assertIn("| c | default | 2 premium requests (legacy) | 1 |", out)
+        self.assertIn("| **Total** | | **3.5** (partial) | |", out)
+        self.assertIn("legacy premium requests (2 in total", out)
         self.assertIn("No results.json", empty)
 
 

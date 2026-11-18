@@ -7,20 +7,20 @@ inputs:
     o ir yo al almacén que elija? Compara también con Uber Eats.
 expected:
   should_trigger: true
-  graders:
-    - type: trigger
-      name: activation
-      config:
-        skill_path: skills/smart-shopping-advisor/SKILL.md
-        mode: positive
-        threshold: 0.6
-    - type: prompt
-      name: live_prices_and_channel_cost
-      config:
-        prompt: >-
-          Pass only if the answer treats prices, offers, minimum order, service fee, and stock as
-          values to verify live with a retrieval date (or marks them pending when a session or
-          postcode is required) instead of quoting remembered amounts; checks that the mortadela
-          offer is still within its validity window; compares the same SKU and format across
-          Same-Day, Uber Eats, and a warehouse visit including fees and incremental travel; and
-          does not ask for credentials, membership number, full address, or payment data.
+graders:
+  - type: trigger
+    name: activation
+    config:
+      skill_path: skills/smart-shopping-advisor/SKILL.md
+      mode: positive
+      threshold: 0.6
+  - type: prompt
+    name: live_prices_and_channel_cost
+    config:
+      prompt: >-
+        Pass only if the answer treats prices, offers, minimum order, service fee, and stock as
+        values to verify live with a retrieval date (or marks them pending when a session or
+        postcode is required) instead of quoting remembered amounts; checks that the mortadela
+        offer is still within its validity window; compares the same SKU and format across
+        Same-Day, Uber Eats, and a warehouse visit including fees and incremental travel; and
+        does not ask for credentials, membership number, full address, or payment data.
