@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import contextlib
+import io
 import json
 import re
 import sys
@@ -168,6 +170,55 @@ class UsageTests(unittest.TestCase):
         self.assertIn("| **Total** | | **3.5** (partial) | |", out)
         self.assertIn("legacy premium requests (2 in total", out)
         self.assertIn("No results.json", empty)
+
+
+class GuardBudgetTests(unittest.TestCase):
+    def write(self, root, suite, payload):
+        (root / suite).mkdir()
+        text = payload if isinstance(payload, str) else json.dumps(payload)
+        (root / suite / "results.json").write_text(text, encoding="utf-8")
+
+    def guard(self, root, cap):
+        with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+            return ec.main(["guard", str(root), "--cap", cap])
+
+    def test_within_cap_exits_zero(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self.write(root, "a", {"summary": {"usage": {"ai_credits": 20}}})
+            self.write(root, "b", {"summary": {"usage": {"ai_credits": 5.5}}})
+            self.assertEqual(ec.guard_budget(root, 50), (25.5, []))
+            self.assertEqual(self.guard(root, "50"), 0)
+
+    def test_exceeding_cap_exits_one(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self.write(root, "a", {"summary": {"usage": {"ai_credits": 40}}})
+            self.write(root, "b", {"summary": {"usage": {"ai_credits": 11}}})
+            self.assertEqual(self.guard(root, "50"), 1)
+
+    def test_unreported_credits_fail_closed_even_when_under_cap(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self.write(root, "a", {"summary": {"usage": {"ai_credits": 1}}})
+            self.write(root, "b", {})
+            self.write(root, "c", "{not json")
+            total, problems = ec.guard_budget(root, 50)
+            self.assertEqual(total, 1.0)
+            self.assertEqual(problems, ["b: AI Credits not reported", "c: AI Credits not reported"])
+            self.assertEqual(self.guard(root, "50"), 1)
+
+    def test_zero_cap_disables_the_guard(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self.write(root, "a", {"summary": {"usage": {"ai_credits": 1000}}})
+            self.assertEqual(self.guard(root, "0"), 0)
+
+    def test_empty_results_dir_sums_to_zero(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self.assertEqual(ec.guard_budget(root, 50), (0.0, []))
+            self.assertEqual(self.guard(root, "50"), 0)
 
 
 class ConsistencyTests(unittest.TestCase):

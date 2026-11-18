@@ -150,6 +150,14 @@ Source for the choice (GitHub Docs, [model multipliers](https://docs.github.com/
 
 After each run the step summary has an `AI Credits per suite` table (suite, model, AI Credits, tasks) built from `summary.usage.ai_credits` in each `results.json` (the authoritative total Waza reads from the Copilot SDK; if it is absent, the per-model `model_metrics.<model>.ai_credits` are summed only when every model reports one, because Waza treats a partial aggregate as unavailable). A suite with no AI Credits falls back to the legacy `summary.usage.premium_requests` (older results only), shown as `N premium requests (legacy)` and left out of the credit total, which is then flagged `(partial)`. A suite whose usage is missing or unparsable shows `not reported`. The totals cover the sessions Waza starts (tasks, triggers, prompt graders), not account-wide Copilot usage.
 
+### Run budget guard
+
+`workflow_dispatch` input `max_credits` (default `50`, string) caps the cumulative AI Credits of one run via `scripts/run-behavioral-suites.sh` and `scripts/eval_cost.py guard`. The guard runs **between suites**, summing the `results.json` files already written; it is cumulative, so each suite is checked against all spend that preceded it. Scheduled runs get the same default because `inputs` are empty there (`inputs.max_credits || '50'`).
+
+It is fail-closed: the run aborts and fails, and no baseline marker is written, when the cumulative spend exceeds the cap **or** any finished suite reports no AI Credits (missing, unparsable or partial usage makes the total a lower bound that cannot be verified).
+
+Overshoot is bounded by one suite: Waza has no native atomic spend cap — its execution budgets cover wall time, model turns and tool calls only — so the suite in flight when the cap is crossed always completes. Set `max_credits: 0` to disable the guard. Because the default 50 does not fund a full manual pass, raising the cap is the explicit consent step before running a full baseline.
+
 ### Cost expectations
 
 Measured on the default model with Waza 0.38.6, in the legacy premium-request unit and **before the graders were actually running** (see "Task graders" below; prompt graders add judge sessions, so expect higher numbers; first measurement in AI Credits comes from the next run's summary), premium requests per suite per run: backlog-management 4, deck-design-system 1, design-engineering 14, evidence-based-decision-research 3, github-build-or-reuse 34 (3 routing tasks, 2-3 minutes each with live research), github-repo-autopilot 36-38. Those six are about 92-94 of the total; the other eleven suites were not measured.

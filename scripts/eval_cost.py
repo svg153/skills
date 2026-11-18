@@ -5,9 +5,11 @@ Subcommands (all stdlib only, so they run on a bare GitHub-hosted runner):
 
   select   decide which suites a run must evaluate (see docs/evals.md)
   summary  render per-suite AI Credits as Markdown for $GITHUB_STEP_SUMMARY
+  guard    fail-closed cumulative AI-credit check across the suites a run has finished
 
 The decision logic lives in pure functions (`pick_baseline`, `suite_inputs`,
-`select_suites`, `ai_credits`, `premium_requests`) so it is unit-tested without git or gh.
+`select_suites`, `ai_credits`, `premium_requests`, `guard_budget`) so it is unit-tested
+without git or gh.
 """
 
 from __future__ import annotations
@@ -165,6 +167,29 @@ def ai_credits(results: object) -> float | None:
     return None
 
 
+def guard_budget(results_root: Path, cap: float) -> tuple[float, list[str]]:
+    """Sum AI Credits of the finished suites and list the ones that cannot be verified.
+
+    Waza has no atomic spend cap, so the guard runs between suites: credits already
+    written to disk are summed, and a suite whose usage is missing makes the total a
+    lower bound, which the caller must treat as failure (fail-closed). `cap` is part
+    of the signature but the comparison lives in `_cmd_guard`.
+    """
+    total = 0.0
+    problems: list[str] = []
+    for path in sorted(results_root.glob("*/results.json")):
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            data = None
+        credits = ai_credits(data)
+        if credits is None:
+            problems.append(f"{path.parent.name}: AI Credits not reported")
+        else:
+            total += credits
+    return total, problems
+
+
 def premium_requests(results: object) -> float | None:
     """Legacy premium requests (results written before Waza 0.41), or None.
 
@@ -281,6 +306,31 @@ def _cmd_select(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_guard(args: argparse.Namespace) -> int:
+    cap = args.cap
+    if cap <= 0:
+        print("budget guard disabled (cap<=0)")
+        return 0
+    total, problems = guard_budget(Path(args.results_root), cap)
+    if problems:
+        print(
+            "::error::budget guard fail-closed: cannot verify spend ("
+            + "; ".join(problems)
+            + ")",
+            file=sys.stderr,
+        )
+        return 1
+    if total > cap:
+        print(
+            f"::error::cumulative AI Credits {total:.4g} exceed run cap {cap:.4g}; "
+            "aborting before further suites",
+            file=sys.stderr,
+        )
+        return 1
+    print(f"budget guard: cumulative {total:.4g} / cap {cap:.4g} AI Credits")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="cmd", required=True)
@@ -294,9 +344,14 @@ def main(argv: list[str] | None = None) -> int:
     summ = sub.add_parser("summary")
     summ.add_argument("results_root")
     summ.add_argument("--model", default="")
+    guard = sub.add_parser("guard")
+    guard.add_argument("results_root")
+    guard.add_argument("--cap", type=float, required=True)
     args = parser.parse_args(argv)
     if args.cmd == "select":
         return _cmd_select(args)
+    if args.cmd == "guard":
+        return _cmd_guard(args)
     sys.stdout.write(render_summary(Path(args.results_root), args.model))
     return 0
 
