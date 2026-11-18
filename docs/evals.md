@@ -90,6 +90,25 @@ The previous `COPILOT_SDK_TOKEN` name was removed because it is not an authentic
 
 Once a supported credential path is available, the workflow runs every suite under `evals/` using the `copilot-sdk` executor, including capability-plugin skill suites.
 
+### Workspace isolation
+
+Waza gives each task an empty temp workspace, but the agent is an ordinary process with the runner user's privileges and can discover and modify the real checkout (for example through `~/work`). A first model-backed run (44134233088) showed this: one autopilot task ran `git init` in the checkout's parent directory followed by `git clean -ffd`, deleting `evals/` so every later suite failed with `failed to load spec`.
+
+`scripts/run-behavioral-suites.sh` therefore:
+
+- resolves the suite list to absolute paths once, before any suite runs;
+- runs each suite from a fresh, disposable copy of the repository under `$RUNNER_TEMP`, so any mutation stays in the copy;
+- makes the real checkout and its parent directory read-only while a suite runs (defense in depth; it stops accidental `git clean`, `git checkout`, `rm` and `git init`, not a deliberate `chmod`);
+- compares `HEAD`, the current ref and `git status --porcelain` (ignoring the results directory) before and after each suite, and aborts with an error naming the suite if the checkout changed.
+
+The script refuses to start when the checkout is not clean.
+
+### Token exposure and single-suite runs
+
+- When `COPILOT_GITHUB_TOKEN` is present (`user-token` mode) the agent environment contains no `GITHUB_TOKEN` or `GH_TOKEN`: the workflow does not export it and `scripts/run-behavioral-suites.sh` unsets any ambient one. The Copilot SDK only needs `COPILOT_GITHUB_TOKEN`, and a model-driven agent then cannot call `gh` against the live repository. `GITHUB_TOKEN` (`github.token`) is passed only in `actions-token` mode.
+- Tasks that need repository state must provide it as inline `inputs.files` fixtures and set a task-level `timeout_seconds`, instead of relying on the live repository (see `autopilot-maintain-repo-no-merge`).
+- `workflow_dispatch` accepts an optional `suite` input to run a single suite. It is passed through an environment variable, must match `[a-z0-9-]+` and must exist as `evals/<suite>/eval.yaml`; empty runs every suite. Scheduled runs always run every suite.
+
 Each model-backed run retains for 14 days Waza JSON, JUnit XML and per-task transcripts where available. Treat those artifacts as diagnostic evidence, not as a one-dimensional public quality score.
 
 ## Interpreting workflow status
