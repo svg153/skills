@@ -11,6 +11,24 @@
       "source": "./",
       "description": "Cross-agent catalog of reusable Agent Skills with provenance-aware lifecycle management.",
       "version": "1.0.0"
+    },
+    {
+      "name": "design-engineering",
+      "source": "./plugins/design-engineering",
+      "description": "Improve existing application interfaces through reusable design-engineering skills, browser evidence, and governed optional integrations.",
+      "version": "0.1.0"
+    },
+    {
+      "name": "image-to-slide",
+      "source": "./plugins/image-to-slide",
+      "description": "Rebuild slide images (PNG, JPG, PDF or screenshots) as editable slides with the same design: native PowerPoint on Windows and/or one self-contained HTML file, from one shared JSON spec.",
+      "version": "2.2.0"
+    },
+    {
+      "name": "planning",
+      "source": "./plugins/planning",
+      "description": "Plan and manage delivery work across GitHub and Jira without introducing a third project-management source of truth.",
+      "version": "0.1.0"
     }
   ]
 }

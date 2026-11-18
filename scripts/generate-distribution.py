@@ -349,19 +349,14 @@ def render(config: dict, catalog_names: list[str], runtime_names: list[str]) -> 
         ),
         Path(".codex-plugin/plugin.json"): dump(host_plugin),
         Path(".claude-plugin/plugin.json"): dump(host_plugin),
+        # Every host marketplace lists the SAME plugins (root bundle + every capability
+        # plugin); tests/test_marketplace_parity.py fails if one of them drifts.
         Path(".claude-plugin/marketplace.json"): dump(
             {
                 "name": bundle,
                 "description": description,
                 "owner": author,
-                "plugins": [
-                    {
-                        "name": bundle,
-                        "source": "./",
-                        "description": description,
-                        "version": version,
-                    }
-                ],
+                "plugins": marketplace_plugins,
             }
         ),
         Path(".cursor-plugin/marketplace.json"): dump(
@@ -371,10 +366,11 @@ def render(config: dict, catalog_names: list[str], runtime_names: list[str]) -> 
                 "metadata": {"description": description},
                 "plugins": [
                     {
-                        "name": bundle,
-                        "source": "./",
-                        "description": description,
+                        "name": entry["name"],
+                        "source": entry["source"],
+                        "description": entry["description"],
                     }
+                    for entry in marketplace_plugins
                 ],
             }
         ),
