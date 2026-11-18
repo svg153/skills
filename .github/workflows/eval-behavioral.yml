@@ -22,6 +22,11 @@ on:
           - default
           - claude-haiku-4.5
           - claude-sonnet-4.6
+      max_credits:
+        description: 'Fail-closed cumulative AI-credit cap for this run, checked between suites (0 disables). Default 50; raise explicitly to fund a full baseline.'
+        required: false
+        default: '50'
+        type: string
   schedule:
     - cron: '17 4 * * 1'
 
@@ -157,6 +162,7 @@ jobs:
           AUTH_MODE: ${{ steps.credentials.outputs.mode }}
           SUITES: ${{ steps.select.outputs.suites }}
           WAZA_MODEL: ${{ inputs.model }}
+          WAZA_MAX_CREDITS: ${{ inputs.max_credits || '50' }}
         run: |
           set -uo pipefail
           echo "Copilot auth mode: ${AUTH_MODE}"

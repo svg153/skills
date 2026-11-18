@@ -14,6 +14,8 @@ set -uo pipefail
 #   suite is one name or a comma-separated list; each must match [a-z0-9-]+ and
 #   exist as evals/<suite>/eval.yaml.
 # Env: WAZA_MODEL (optional, allowlisted) overrides every suite's config.model.
+#      WAZA_MAX_CREDITS (optional) is a fail-closed cumulative AI-credit cap for this
+#      run, checked between suites; unset/empty disables it, 0 disables it explicitly.
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
 parent="$(dirname "$root")"
@@ -48,6 +50,12 @@ if [[ -n "$model_override" && "$model_override" != "default" ]]; then
     exit 2
   fi
   model_args=(--model "$model_override")
+fi
+
+max_credits="${WAZA_MAX_CREDITS:-}"
+if [[ -n "$max_credits" && ! "$max_credits" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
+  echo "::error::WAZA_MAX_CREDITS must be a non-negative number" >&2
+  exit 2
 fi
 
 # With an explicit Copilot user token the agent needs no GitHub token: drop any
@@ -148,6 +156,16 @@ for spec in "${suites[@]}"; do
     echo "::error::suite '${skill}' modified the runner checkout. Results after it are not trustworthy; aborting." >&2
     diff <(printf '%s\n' "$baseline") <(printf '%s\n' "$after") | head -50 >&2 || true
     exit 1
+  fi
+  # Cumulative AI-credit guard between suites. Waza has no atomic spend cap (its
+  # execution budgets cover wall time, model turns and tool calls only), so a run can
+  # overshoot the cap by at most one suite. It fails closed: unreported or unparsable
+  # credits abort the run instead of letting untracked spend continue.
+  if [[ -n "$max_credits" ]]; then
+    if ! python3 "$root/scripts/eval_cost.py" guard "$results_root" --cap "$max_credits"; then
+      echo "::error::AI-credit budget guard aborted the run (fail-closed)." >&2
+      exit 1
+    fi
   fi
   rm -rf "$snap"
 done
