@@ -35,8 +35,15 @@ runs it on pull requests.
 | `.codex-plugin/plugin.json` | Codex compatibility metadata | Candidate for retirement after native Agent Plugins parity |
 | `.claude-plugin/plugin.json` | Claude Code compatibility metadata | Keep until native Agent Plugins parity |
 | `.claude-plugin/marketplace.json` | Claude marketplace compatibility | Keep until native Agent Plugins parity |
-| `.cursor-plugin/marketplace.json` | Cursor marketplace compatibility | Keep until native Agent Plugins parity |
-| `gemini-extension.json` | Gemini CLI extension metadata | Keep until native Agent Plugins parity |
+| `.cursor-plugin/marketplace.json` | Cursor marketplace compatibility | Keep: Cursor loads Agent Plugins natively, but multi-plugin repositories are still discovered through this file (the spec defines no marketplace) |
+| `gemini-extension.json` | Gemini CLI extension metadata | Keep until native Agent Plugins parity (no official support found on 2026-11-18) |
+
+**Marketplace parity.** All four marketplaces (`marketplace.json`,
+`.agents/plugins/marketplace.json`, `.claude-plugin/marketplace.json`,
+`.cursor-plugin/marketplace.json`) are rendered from one plugin list: the root
+bundle plus every capability plugin under `plugins/`. A new capability plugin
+therefore reaches every host at once. `tests/test_marketplace_parity.py` fails
+if any marketplace lists a different set (#120).
 
 The bundle model remains useful for the catalog: Agent Plugins v1 discovers
 skills from the fixed `skills/` directory, so adding a valid canonical skill does

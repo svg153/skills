@@ -11,6 +11,21 @@
       "name": "svg153-skills",
       "source": "./",
       "description": "Cross-agent catalog of reusable Agent Skills with provenance-aware lifecycle management."
+    },
+    {
+      "name": "design-engineering",
+      "source": "./plugins/design-engineering",
+      "description": "Improve existing application interfaces through reusable design-engineering skills, browser evidence, and governed optional integrations."
+    },
+    {
+      "name": "image-to-slide",
+      "source": "./plugins/image-to-slide",
+      "description": "Rebuild slide images (PNG, JPG, PDF or screenshots) as editable slides with the same design: native PowerPoint on Windows and/or one self-contained HTML file, from one shared JSON spec."
+    },
+    {
+      "name": "planning",
+      "source": "./plugins/planning",
+      "description": "Plan and manage delivery work across GitHub and Jira without introducing a third project-management source of truth."
     }
   ]
 }
