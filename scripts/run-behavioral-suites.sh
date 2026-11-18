@@ -11,7 +11,9 @@ set -uo pipefail
 #
 # Usage: scripts/run-behavioral-suites.sh [results-dir [suite]]
 #   results-dir default: <repo>/eval-results; suite default (empty): every suite.
-#   suite must match [a-z0-9-]+ and exist as evals/<suite>/eval.yaml.
+#   suite is one name or a comma-separated list; each must match [a-z0-9-]+ and
+#   exist as evals/<suite>/eval.yaml.
+# Env: WAZA_MODEL (optional, allowlisted) overrides every suite's config.model.
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
 parent="$(dirname "$root")"
@@ -21,9 +23,31 @@ results_rel=""
 [[ "$results_root" == "$root"/* ]] && results_rel="${results_root#"$root"/}"
 
 suite_filter="${2:-}"
-if [[ -n "$suite_filter" && ! "$suite_filter" =~ ^[a-z0-9-]+$ ]]; then
-  echo "::error::invalid suite name (allowed: [a-z0-9-]+)" >&2
-  exit 2
+# Comma-separated list of suites (validated one by one); empty means every suite.
+suite_list=()
+if [[ -n "$suite_filter" ]]; then
+  IFS=',' read -r -a suite_list <<< "$suite_filter"
+  for name in "${suite_list[@]}"; do
+    if [[ ! "$name" =~ ^[a-z0-9-]+$ ]]; then
+      echo "::error::invalid suite name (allowed: [a-z0-9-]+)" >&2
+      exit 2
+    fi
+  done
+fi
+
+# Optional model override (WAZA_MODEL), allowlisted. Empty or "default" keeps each
+# suite's config.model. Keep in sync with ALLOWED_MODELS in scripts/eval_cost.py.
+ALLOWED_MODELS=(claude-haiku-4.5 claude-sonnet-4.6)
+model_args=()
+model_override="${WAZA_MODEL:-}"
+if [[ -n "$model_override" && "$model_override" != "default" ]]; then
+  allowed=0
+  for m in "${ALLOWED_MODELS[@]}"; do [[ "$m" == "$model_override" ]] && allowed=1; done
+  if [[ $allowed -ne 1 ]]; then
+    echo "::error::model '$model_override' is not in the allowlist (${ALLOWED_MODELS[*]})" >&2
+    exit 2
+  fi
+  model_args=(--model "$model_override")
 fi
 
 # With an explicit Copilot user token the agent needs no GitHub token: drop any
@@ -37,13 +61,16 @@ git -C "$root" rev-parse --git-dir >/dev/null 2>&1 || { echo "::error::$root is 
 
 # Resolve the suite list to absolute paths once, before anything can change the tree.
 mapfile -t suites < <(find "$root/evals" -mindepth 2 -maxdepth 2 -name eval.yaml -print | sort)
-if [[ -n "$suite_filter" ]]; then
-  want="$root/evals/$suite_filter/eval.yaml"
-  if [[ ! -f "$want" ]]; then
-    echo "::error::unknown suite '$suite_filter': evals/$suite_filter/eval.yaml does not exist" >&2
-    exit 2
-  fi
-  suites=("$want")
+if [[ ${#suite_list[@]} -gt 0 ]]; then
+  suites=()
+  for name in "${suite_list[@]}"; do
+    want="$root/evals/$name/eval.yaml"
+    if [[ ! -f "$want" ]]; then
+      echo "::error::unknown suite '$name': evals/$name/eval.yaml does not exist" >&2
+      exit 2
+    fi
+    suites+=("$want")
+  done
 fi
 if [[ ${#suites[@]} -eq 0 ]]; then
   echo "::error::no evals/*/eval.yaml suites found under $root" >&2
@@ -108,7 +135,7 @@ for spec in "${suites[@]}"; do
   protect_checkout
   # Relative spec path inside the copy keeps skill and task paths resolved exactly
   # as they were; every output path is absolute.
-  if ! (cd "$snap" && waza run "evals/$skill/eval.yaml" \
+  if ! (cd "$snap" && waza run "evals/$skill/eval.yaml" "${model_args[@]}" \
       --output "$out/results.json" \
       --reporter "junit:$out/junit.xml" \
       --transcript-dir "$out/transcripts"); then

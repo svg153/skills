@@ -9,6 +9,9 @@ import sys
 
 import yaml
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from eval_cost import ALLOWED_MODELS  # noqa: E402
+
 ROOT = Path(__file__).resolve().parents[1]
 EVALS = ROOT / "evals"
 SKILLS = ROOT / "skills"
@@ -159,6 +162,15 @@ def main(argv: list[str] | None = None) -> None:
         config = spec.get("config")
         if not isinstance(config, dict) or config.get("executor") != "copilot-sdk":
             errors.append(f"{eval_path.relative_to(ROOT)}: config.executor must be 'copilot-sdk'")
+        if isinstance(config, dict) and "model" in config and config["model"] not in ALLOWED_MODELS:
+            errors.append(
+                f"{eval_path.relative_to(ROOT)}: config.model must be one of {', '.join(ALLOWED_MODELS)} "
+                "(or omitted for the Copilot default)"
+            )
+        if isinstance(config, dict):
+            timeout = config.get("timeout_seconds")
+            if not isinstance(timeout, int) or isinstance(timeout, bool) or not 1 <= timeout <= 600:
+                errors.append(f"{eval_path.relative_to(ROOT)}: config.timeout_seconds must be an integer in 1..600")
         if not skill_path.is_file():
             errors.append(f"{skill_path.relative_to(ROOT)}: covered skill is missing")
 
