@@ -101,6 +101,15 @@ const tts = (text) => {
   }
   return { file, dur: wavDuration(file) };
 };
+// Voice first, literally: synthesise every line before the browser opens. Piper loads its model on
+// each call (seconds), and doing it mid-recording left the page frozen on screen before each caption.
+if (voiceOn && !preview) {
+  const lines = (story.scenes ?? []).flatMap((sc) => sc.steps ?? []).map((s) =>
+    s.action === 'caption' ? (s.say === false ? '' : (s.say ?? s.text)) : s.action === 'title' ? (s.say ?? '') : '').filter(Boolean);
+  const t = Date.now();
+  lines.forEach((l) => tts(spoken(l)));
+  console.log(`voice: ${lines.length} lines ready in ${((Date.now() - t) / 1000).toFixed(1)} s`);
+}
 
 // ── Browser, context, overlays ───────────────────────────────────────────────────────────────
 const launchOpts = { headless: cfg.headless ?? true };
