@@ -13,7 +13,9 @@ Rules learned by recording real demos. Read them before the first recording.
 ## Recording
 
 - **The video starts at page creation.** Open on a dark `data:` URL title card so the first frames are not a half-loaded page. The engine always does this.
-- **Voice and caption sync uses `offset = videoDuration - loggedEnd`.** The script logs each line's start on its own clock; the video clock started a little earlier. The mixer measures the video length, subtracts the logged end (and about 0.3 s for closing the context) and shifts every line by that.
+- **Sync is measured with two magenta marks, not estimated.** The recording opens and closes with a 0.8 s magenta screen, and the script logs when each one ended (`syncAt`, `syncEndAt`). `mix.mjs` finds both in the video (frames at 50 fps, 4x4 px), trims before the first, retimes the video by `k = video span / script span` and cuts just before the second. Then video time = script time − `syncAt`, at the start and at the end.
+- **The recording does not run at wall-clock speed.** Measured: 4.3 % slow on an 87 s demo, so a fixed offset left the voice almost 4 s early by the end. The old estimate `videoDuration − loggedEnd` was also off by up to 5 s, because closing the context adds a variable lag at the end. Recordings without marks still mix with that estimate and a warning.
+- **With the video in a filter graph, `-shortest` does not stop an `apad`ded audio:** ffmpeg ran forever and ate 9 GB. Bound the audio with `atrim` to the video length instead.
 - **Take review screenshots right after the caption fades in.** A shot taken earlier shows a half-transparent caption.
 - **Remove the caption before scrolling to a new section.** Otherwise a stale caption sits over unrelated content. `scroll` and `goto` do it for you.
 - **Zoom around the viewport centre with `html{overflow-x:hidden}`.** Do not put `overflow-x:hidden` on `body`: it breaks sticky headers. Zooming around the element centre caused horizontal clipping.
@@ -26,6 +28,20 @@ Rules learned by recording real demos. Read them before the first recording.
 - **Reset the zoom on scroll.** The transform origin is in page coordinates, so scrolling while zoomed moves the framing; the init script unzooms on any scroll or `popstate`/`hashchange`. New documents start unzoomed.
 - **Spotlight is a rAF loop, not a transition.** The hole eases toward the element live rectangle, so it follows scroll. It is a fixed div outside `body`, so it does not follow `body` zoom.
 - **Camera still, moves just before the next framing.** Zoom and scroll between captions, not during one.
+
+## Audio
+
+- **Synthesise before recording.** Piper plus ffmpeg cost seconds per line. Doing it while the page records froze the page and made a 112 s demo 212 s long. `record.mjs` now pre-synthesises every line.
+- **Piper pads each line** with 0.1-0.6 s of silence at both ends. Trim it (`silenceremove`, head then reverse and head again for the tail: `stop_periods` would also cut at the pause between sentences) or lines start late against their caption.
+- **Normalise each line, then the mix.** Per-line loudnorm evens the lines out; the final loudnorm sets the programme to -16 LUFS.
+- **loudnorm alone does not guarantee the peak.** The measured mix peak was -0.8 dBFS in the MP4 after AAC. Put `alimiter` at 0.84 (-1.5 dB) after it.
+- **Do not use `aresample` after loudnorm in a per-line filter** ("Cannot select channel layout"); set `-ar`/`-ac` on the output instead.
+- **Duck music with a volume envelope built from the voice timeline**, not a sidechain: the depth is exact and does not depend on the voice level. Verify with `volumedetect` over a range with a line versus a gap.
+- **Music loops cleanly** if every frequency and the tremolo complete whole cycles in the loop length (`make-music-bed.mjs`, 8 s).
+- **Integrated LUFS drops when music is added** (-16.4 voice only, -19.2 with a bed 12 dB under the voice) because the music-only blocks pass the gate and dilute the average. The voice itself stays at -16: measure `volumedetect` over a line window instead (measured: 12 lines, with and without music within 0.1 dB).
+- **Mono voice to stereo:** `pan=stereo|c0=0.707*c0|c1=0.707*c0`. A plain upmix lowers the level 3 dB, a full-level pan raises the stereo LUFS 3 dB.
+- **The head start between video and script clock is not constant** (0.28 s, 2.25 s and 4.94 s on three runs of the same storyboard on a busy machine). That is why sync uses the magenta marks (see Recording).
+- **Piper speed:** davefx at `lengthScale` 1.0 reads about 165 words/min, 1.1 about 155, 1.2 about 148. 1.1 with 0.25 s sentence silence is the clear-narration default. See the sweep in the prototype notes.
 
 ## Measuring
 

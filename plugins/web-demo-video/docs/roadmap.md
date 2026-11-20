@@ -22,6 +22,7 @@ Status legend: `[ ]` open, `[~]` partly done, `[x]` done (kept for one release, 
 
 ## P2: capability
 
+- [x] **Voice polish and background music.** Per-line silence trim and loudnorm, `config.music` with looping, fades and voice ducking, mixed peak under -1 dBFS, Piper speed defaults from a measured sweep.
 - [ ] **More voices and languages in the docs.** A tested table of Piper voices per language, with the pronunciation fixes each needs.
 - [ ] **Cloud TTS as an explicit opt-in**, off by default, with a warning that scripts leave the machine.
 - [x] **Burned-in or sidecar subtitles** (`.vtt`) from `timeline.json`, for players that cannot show the band.

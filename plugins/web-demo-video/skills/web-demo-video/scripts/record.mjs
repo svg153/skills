@@ -9,7 +9,7 @@
 import { pathToFileURL, fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 import { join, dirname, resolve, isAbsolute } from 'node:path';
-import { renameSync, mkdirSync, writeFileSync, existsSync, readFileSync } from 'node:fs';
+import { renameSync, mkdirSync, writeFileSync, existsSync, readFileSync, copyFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 
@@ -92,14 +92,35 @@ function wavDuration(file) { // walk the RIFF chunks to the data chunk
   }
   return (b.length - 44) / byteRate;
 }
-const tts = (text) => {
-  const file = join(VO_DIR, createHash('sha1').update(`${voiceModel}|${voiceCfg.lengthScale ?? 1}|${text}`).digest('hex').slice(0, 12) + '.wav');
-  if (!existsSync(file)) {
-    const r = spawnSync(piperExe, ['-m', voiceModel, '--length_scale', String(voiceCfg.lengthScale ?? 1.0),
-      '--sentence_silence', String(voiceCfg.sentenceSilence ?? 0.25), '--output_file', file], { input: text, encoding: 'utf8' });
-    if (!existsSync(file)) throw new Error('piper failed: ' + (r.stderr || r.error));
+// Per-line clean-up (needs a full ffmpeg; skipped with a warning if none is found, or voice.polish=false):
+// trim the silence Piper leaves at both ends, so a line starts on its frame, then loudnorm each line to
+// -16 LUFS / TP -1.5 so all lines are even before the mix (ideas from launch-video-kit, MIT).
+// The head is trimmed with silenceremove; the tail by reversing, trimming, reversing (silenceremove's
+// stop_periods would also cut at the pause between sentences). A short pad is kept at each end.
+let ffmpegExe;
+if (voiceOn && voiceCfg.polish !== false) {
+  for (const from of [toolsDir && join(resolve(toolsDir), 'x.js'), join(process.cwd(), 'x.js')].filter(Boolean)) {
+    try { ffmpegExe = createRequire(from)('ffmpeg-static'); break; } catch { /* next */ }
   }
-  return { file, dur: wavDuration(file) };
+  ffmpegExe ??= spawnSync('ffmpeg', ['-version']).status === 0 ? 'ffmpeg' : undefined;
+  if (!ffmpegExe) console.warn('warning: no full ffmpeg found (npm i ffmpeg-static in --tools); voice lines are not trimmed or normalised.');
+}
+const trimDb = voiceCfg?.trimDb ?? -45;
+const POLISH = `silenceremove=start_periods=1:start_threshold=${trimDb}dB:start_silence=0.04,areverse,` +
+  `silenceremove=start_periods=1:start_threshold=${trimDb}dB:start_silence=0.12,areverse,loudnorm=I=-16:TP=-1.5:LRA=11`;
+const tts = (text) => {
+  const ls = voiceCfg.lengthScale ?? 1.1, ss = voiceCfg.sentenceSilence ?? 0.25;
+  const hash = createHash('sha1').update(`${voiceModel}|${ls}|${ss}|${ffmpegExe ? trimDb : 'raw'}|${text}`).digest('hex').slice(0, 12);
+  const raw = join(VO_DIR, hash + '.raw.wav'), file = join(VO_DIR, hash + '.wav');
+  if (!existsSync(file)) {
+    const r = spawnSync(piperExe, ['-m', voiceModel, '--length_scale', String(ls), '--sentence_silence', String(ss),
+      '--output_file', raw], { input: text, encoding: 'utf8' });
+    if (!existsSync(raw)) throw new Error('piper failed: ' + (r.stderr || r.error));
+    const p = ffmpegExe && spawnSync(ffmpegExe, ['-y', '-v', 'error', '-i', raw, '-af', POLISH, '-ar', '22050', '-ac', '1', file], { encoding: 'utf8' });
+    if (!p || p.status || !existsSync(file)) { if (p) console.warn('warning: voice polish failed: ' + p.stderr); copyFileSync(raw, file); }
+  }
+  const rawDur = existsSync(raw) ? wavDuration(raw) : undefined;
+  return { file, dur: wavDuration(file), rawDur };
 };
 // Voice first, literally: synthesise every line before the browser opens. Piper loads its model on
 // each call (seconds), and doing it mid-recording left the page frozen on screen before each caption.
@@ -222,6 +243,17 @@ page.setDefaultTimeout(8000); // a wrong selector fails in 8 s with a clear mess
 const t0 = Date.now();
 const now = () => (Date.now() - t0) / 1000;
 const pause = (ms) => page.waitForTimeout(preview ? ms / previewDiv : ms);
+// Sync mark: a moment of magenta, then black. mix.mjs finds the video frame where the magenta ends
+// and aligns the script clock to it (then trims it away). Estimating the offset from the video length
+// was off by seconds: closing the context adds a variable lag at the end of the recording.
+let syncAt = null;
+if (!preview) {
+  await page.goto('data:text/html,<body style="margin:0;background:%23ff00ff"></body>');
+  await page.waitForTimeout(800);
+  await page.evaluate(() => { document.body.style.background = '#000'; });
+  syncAt = now();
+  await page.waitForTimeout(200);
+}
 const shots = join(outDir, 'shots');
 mkdirSync(shots, { recursive: true });
 let shotN = 0;
@@ -233,7 +265,7 @@ let capOn = false, mx = W / 2, my = H / 3;
 const speak = (text) => {
   if (!voiceOn || !text) return 0;
   const v = tts(spoken(text));
-  vo.push({ at: now() + 0.35, file: v.file, dur: v.dur, text });
+  vo.push({ at: now() + 0.35, file: v.file, dur: v.dur, rawDur: v.rawDur, text });
   return v.dur;
 };
 const card = (t, s) => 'data:text/html;charset=utf-8,' + encodeURIComponent(`<!doctype html><meta charset="utf-8"><body style="margin:0;height:100vh;
@@ -454,6 +486,16 @@ for (const [si, scene] of (story.scenes ?? []).entries()) {
 }
 await uncaption();
 await pause(600);
+// End sync mark: the recorded video does not run at exactly wall-clock speed (frames are dropped or
+// stretched under load), so mix.mjs measures both marks and retimes the video between them.
+let syncEndAt = null;
+if (!preview) {
+  await page.evaluate(() => { const d = document.createElement('div'); d.id = '__sync'; d.style.cssText = 'position:fixed;inset:0;z-index:2147483647;background:#ff00ff'; document.documentElement.appendChild(d); });
+  await page.waitForTimeout(800);
+  await page.evaluate(() => document.getElementById('__sync')?.remove());
+  syncEndAt = now();
+  await page.waitForTimeout(300);
+}
 const tEnd = now();
 writeFileSync(join(outDir, preview ? 'preview-steps.json' : 'steps.json'), JSON.stringify({ totalSec: +tEnd.toFixed(2), steps: stepLog }, null, 1));
 
@@ -468,5 +510,6 @@ await browser.close();
 const dest = join(outDir, `${name}.webm`);
 renameSync(await video.path(), dest);
 writeFileSync(join(outDir, 'timeline.json'), JSON.stringify(timeline, null, 1));
-writeFileSync(join(outDir, 'vo.json'), JSON.stringify({ name, video: `${name}.webm`, tEnd, cue: cue ?? 0, language: cfg.language ?? '', scenes, lines: vo }, null, 1));
+writeFileSync(join(outDir, 'vo.json'), JSON.stringify({ name, video: `${name}.webm`, tEnd, syncAt, syncEndAt, cue: cue ?? 0, language: cfg.language ?? '', scenes, lines: vo,
+  ...(cfg.music?.file ? { music: { ...cfg.music, file: isAbsolute(cfg.music.file) ? cfg.music.file : join(baseDir, cfg.music.file) } } : {}) }, null, 1));
 console.log(dest, `${tEnd.toFixed(0)} s logged`, `cue ${cue} s`, `${shotN} shots`, `${vo.length} voice lines`);

@@ -26,7 +26,8 @@ A storyboard is one JSON file: a `config` block and a list of `scenes`, each wit
 | `headless` | `true` | Run without a window |
 | `baseDir` | `.` | Folder for relative `file` paths, relative to the storyboard |
 | `language` | none | Informational: language of captions and voice |
-| `voice` | none | `{ model, piper?, lengthScale?, sentenceSilence? }`. No `voice` (or `--no-voice`) means captions only. `model` is an absolute path or a file under `<tools>/voices/`. `piper` defaults to `<tools>/piper/piper.exe` |
+| `voice` | none | `{ model, piper?, lengthScale?, sentenceSilence?, polish?, trimDb? }`. No `voice` (or `--no-voice`) means captions only. `model` is an absolute path or a file under `<tools>/voices/`. `piper` defaults to `<tools>/piper/piper.exe`. `lengthScale` defaults to `1.1` (about 155 words/min in Spanish with davefx; 1.0 is about 165) and `sentenceSilence` to `0.25` s. `polish` (default `true`, needs ffmpeg-static in the tools dir) trims leading and trailing silence below `trimDb` (default `-45`) and loudnorms each line to -16 LUFS / TP -1.5 |
+| `music` | none | `{ file, volume?, duckTo?, fadeIn?, fadeOut? }`. Background bed, looped and trimmed to the video length, high-passed at 100 Hz. `volume` (default `0.25`) and `duckTo` (default `0.08`) are linear gains: the music sits at `volume` and glides to `duckTo` from 0.25 s before each voice line to 0.6 s after it. `fadeIn` / `fadeOut` in seconds (defaults 1.5 / 2.5). `file` is absolute or relative to `baseDir`. `mix.mjs --music <file>` overrides it. `scripts/make-music-bed.mjs` makes a royalty-free test bed |
 | `pronunciation` | `[]` | List of `[regex, replacement, flags?]` applied to the text sent to the TTS only. Flags default to `g` |
 | `style` | see below | Caption and title tokens |
 | `maxZoom` | `1.1` | Upper bound for any `zoom` scale |
@@ -66,7 +67,8 @@ Every step has an `action` and these fields. Selectors are Playwright selectors 
 - Overlays (caption, cursor, zoom helper) are injected into every page and recreated after each navigation. The cursor is woken by a 1 px mouse move.
 - A voice line starts 0.35 s after its caption appears. The line is logged in `vo.json`; `mix.mjs` converts that to audio delays.
 - `timeline.json` entries carry `scene` and `end` (when the caption faded) and `vo.json` carries `scenes` (name and start) and `language`: `export.mjs` builds subtitles and chapters from them. No new storyboard fields.
-- Voice lines are cached in `<outDir>/vo-cache` by model and text.
+- Voice lines are all synthesised before the browser starts (so Piper/ffmpeg time never freezes the recording) and cached in `<outDir>/vo-cache` by model, speed, silence, trim and text. `vo.json` logs `dur` (trimmed) and `rawDur` (as Piper wrote it).
+- The final mix is loudnorm -16 LUFS, then a limiter at -1.5 dBFS so the decoded peak stays under -1 dBFS.
 - Unknown actions and missing selectors stop the run with a message that names the scene.
 
 ## Robustness features

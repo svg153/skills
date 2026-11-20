@@ -33,7 +33,8 @@ Ideas taken from `launch-video-kit`: voice first then edit, one WAV per line, lo
 | Path (under `${CLAUDE_SKILL_DIR}`) | Purpose |
 |---|---|
 | `scripts/record.mjs <storyboard.json> <outDir> [--tools dir] [--no-voice] [--preview] [--browser exe]` | Engine. Drives the browser and writes `<name>.webm`, `vo.json`, `timeline.json`, `shots/` |
-| `scripts/mix.mjs <outDir> [--ffmpeg p] [--ffprobe p] [--tools dir]` | Lays the voice lines on the video, loudnorm, writes `<name>-voice.webm` and `.mp4` |
+| `scripts/mix.mjs <outDir> [--ffmpeg p] [--ffprobe p] [--tools dir] [--music file]` | Lays the voice lines on the video, optional ducked music (`--music`), loudnorm and peak limiter, writes `<name>-voice.webm` and `.mp4` |
+| `scripts/make-music-bed.mjs <out.mp3> [--tools dir]` | Makes a royalty-free, loopable test music bed (Am7 chord, slow tremolo) with ffmpeg lavfi |
 | `scripts/review.mjs <outDir> [--every N]` | Frames every N s, a sync frame per voice line, loudness report, black/freeze/silence detectors (PASS/WARN) |
 | `scripts/lint.mjs <storyboard.json> [--tools dir]` | Offline storyboard validation; exit 1 on errors. `record.mjs` runs it first |
 | `scripts/export.mjs <outDir> [--aspect 16:9/1:1/9:16] [--soft-subs] [--gif] [--gif-fps N] [--gif-width N] [--gif-from S] [--gif-seconds S]` | `.srt` and `.vtt` from the captions, an MP4 with scene chapters (optional mov_text track), an aspect preset, a two-pass-palette GIF. Writes to `<outDir>/export/` |
@@ -56,7 +57,7 @@ Ideas taken from `launch-video-kit`: voice first then edit, one WAV per line, lo
 2. **Write the storyboard: story first, voice lines first.** Write the narration as one short line per beat before any selector. Each line is a caption plus its `say`. Then add the actions that make the line true. Follow `references/storyboard.md`. Put pronunciation fixes (acronyms, product names, versions) in `config.pronunciation`.
 3. **Dry run with screenshots.** `node record.mjs story.json out --no-voice` is fast and tests every selector. Give captions a `shot` name and read `out/shots/*.png`: the caption must not hide the thing it talks about, and no native dropdown should be open. Fix selectors and wording.
 4. **Record.** Same command with voice on (drop `--no-voice`). Voice lines are cached by text, so re-recording only synthesises what changed.
-5. **Mix.** `node mix.mjs out --tools <dir>`. It prints the video length, the logged end and the head start. Without voice it only converts.
+5. **Mix.** `node mix.mjs out --tools <dir>`. It finds the two magenta sync marks, retimes the video to the script clock (prints the speed factor) and trims the marks away. Without voice it only converts.
    Optional: `node frame.mjs out/<name>-voice.mp4 out/<name>-framed.mp4 --label "app.example.com" --tools <dir>` for a presentation look (about 1x real time to encode at 1080p).
 6. **Review by measuring.** `node review.mjs out`. Open the sync frames: the caption on screen at each line start must match the voice line in the report. Check the overview frames for half-loaded pages, stale captions and clipped zoom. Loudness should be about -16 LUFS integrated with peak under -1 dBFS. A subagent can review the frames in parallel, one per batch, with the report as its checklist.
 6b. **Export (optional).** `node export.mjs out --tools <dir>` writes `.srt`/`.vtt` and an MP4 with one chapter per scene. Add `--aspect 9:16` for vertical, `--soft-subs` for a selectable subtitle track, `--gif` for a clip. Check with `ffprobe -show_chapters`.

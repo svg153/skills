@@ -57,3 +57,7 @@ Playwright can record a browser context to WebM (`recordVideo: { dir, size }`). 
 ## Framing
 
 The browser-window mockup on a gradient background in `frame.mjs` follows the look of **hookforge** and **truedemo** (both MIT licensed). Only the idea was used; the implementation (Playwright-rendered PNG plus an ffmpeg alpha mask) is original.
+
+## launch-video-kit: the audio chain
+
+[borjaperfra/launch-video-kit](https://github.com/borjaperfra/launch-video-kit) (MIT; ideas only, no code copied). Ideas only: per-line loudnorm at -16 LUFS / TP -1.5, trimming head and tail silence of each TTS line, and verifying music ducking by measurement. The implementation here is original.
