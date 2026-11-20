@@ -31,6 +31,12 @@
       "source": "./plugins/planning",
       "description": "Plan and manage delivery work across GitHub and Jira without introducing a third project-management source of truth.",
       "version": "0.1.0"
+    },
+    {
+      "name": "web-demo-video",
+      "source": "./plugins/web-demo-video",
+      "description": "Record product-demo videos of web pages that already exist by driving a real browser with Playwright from a storyboard: captions, a visible cursor, gentle zoom, real interactions and optional offline voice-over.",
+      "version": "0.1.0"
     }
   ]
 }

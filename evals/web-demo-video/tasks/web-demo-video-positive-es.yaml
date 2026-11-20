@@ -1,0 +1,17 @@
+id: web-demo-video-positive-es
+name: 'web-demo-video se activa para grabar una demo de una web existente (español)'
+inputs:
+  prompt: 'Graba un vídeo demo de esta web que ya tengo: con subtítulos, un cursor visible, zoom suave, clics reales y una voz en off que se genere sin salir de mi equipo.'
+expected:
+  should_trigger: true
+graders:
+- type: trigger
+  name: activation
+  config:
+    skill_path: plugins/web-demo-video/skills/web-demo-video/SKILL.md
+    mode: positive
+    threshold: 0.6
+- type: prompt
+  name: behavior_contract
+  config:
+    prompt: 'Pass only if the response records the real existing page with a browser driven from a storyboard, writes the voice lines first, uses an offline voice (no cloud services), does a dry run with screenshots and verifies with frames and loudness instead of trusting.'

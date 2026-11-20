@@ -1,0 +1,25 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "web-demo-video",
+  "version": "0.1.0",
+  "description": "Record product-demo videos of web pages that already exist by driving a real browser with Playwright from a storyboard: captions, a visible cursor, gentle zoom, real interactions and optional offline voice-over.",
+  "author": {
+    "name": "svg153",
+    "url": "https://github.com/svg153"
+  },
+  "homepage": "https://github.com/svg153/skills/tree/main/plugins/web-demo-video",
+  "repository": "https://github.com/svg153/skills",
+  "license": "MIT",
+  "keywords": [
+    "agent-plugins",
+    "agent-skills",
+    "demo",
+    "ffmpeg",
+    "playwright",
+    "screen-recording",
+    "tts",
+    "video",
+    "voice-over",
+    "web-demo-video"
+  ]
+}
