@@ -1,0 +1,27 @@
+{
+  "config": { "name": "camera-test", "viewport": { "width": 1280, "height": 720 }, "style": { "background": "#0d2b16", "accent": "#9be3a8", "bandRgb": "6,26,12" } },
+  "scenes": [
+    { "name": "Cursor and click", "steps": [
+      { "action": "goto", "file": "demo-site/index.html" },
+      { "action": "hover", "selector": "#filtro", "ms": 300 },
+      { "action": "click", "selector": "nav button[data-tab=calendario]", "focus": true },
+      { "action": "click", "selector": "nav button[data-tab=pedido]" },
+      { "action": "shot", "name": "after-click" }
+    ] },
+    { "name": "Spotlight", "steps": [
+      { "action": "spotlight", "selector": "#nombre" },
+      { "action": "caption", "label": "Spotlight", "text": "Only the name field is lit", "say": false, "shot": "spot-1" },
+      { "action": "spotlight", "selector": "#enviar", "padding": 14 },
+      { "action": "shot", "name": "spot-2" },
+      { "action": "unspotlight" },
+      { "action": "uncaption" }
+    ] },
+    { "name": "Camera", "steps": [
+      { "action": "click", "selector": "nav button[data-tab=inventario]" },
+      { "action": "zoom", "selector": "p.tip", "scale": 1.1 },
+      { "action": "shot", "name": "zoomed" },
+      { "action": "scroll", "to": "body", "offset": 0 },
+      { "action": "shot", "name": "zoom-reset-after-scroll" }
+    ] }
+  ]
+}

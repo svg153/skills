@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "name": "web-demo-video",
+  "version": "0.1.0",
+  "description": "Record product-demo videos of web pages that already exist by driving a real browser with Playwright from a storyboard: captions, a visible cursor, gentle zoom, real interactions and optional offline voice-over.",
+  "author": {
+    "name": "svg153",
+    "url": "https://github.com/svg153"
+  },
+  "repository": "https://github.com/svg153/skills",
+  "homepage": "https://github.com/svg153/skills/tree/main/plugins/web-demo-video",
+  "license": "MIT",
+  "keywords": [
+    "video",
+    "demo",
+    "playwright",
+    "screen-recording",
+    "voice-over",
+    "tts",
+    "ffmpeg"
+  ]
+}

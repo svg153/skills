@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Huerto Urbano (demo ficticia)</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Segoe UI,Helvetica,Arial,sans-serif;background:#f4f7f1;color:#1d2b1f}
+  header{position:sticky;top:0;z-index:5;background:#1f5a2c;color:#fff;padding:14px 40px;display:flex;align-items:center;gap:32px}
+  header h1{font-size:22px;margin:0}
+  nav{display:flex;gap:8px}
+  nav button{background:transparent;color:#d6efd9;border:0;padding:8px 16px;border-radius:6px;font-size:16px;cursor:pointer}
+  nav button.on{background:#fff;color:#1f5a2c;font-weight:600}
+  main{max-width:1100px;margin:0 auto;padding:28px 40px 260px}
+  section[hidden]{display:none}
+  h2{margin:28px 0 12px;font-size:24px}
+  .tools{display:flex;gap:12px;margin-bottom:16px}
+  input,select{font-size:16px;padding:9px 12px;border:1px solid #a9bfae;border-radius:6px;background:#fff}
+  input[type=text]{flex:1}
+  ul.list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+  ul.list li{background:#fff;border:1px solid #d3e0d5;border-radius:8px;padding:12px 16px;display:flex;justify-content:space-between}
+  ul.list li b{color:#1f5a2c}
+  .tag{font-size:13px;background:#e3f1e5;color:#1f5a2c;border-radius:20px;padding:2px 10px;margin-left:10px}
+  .scroller{overflow-x:auto;background:#fff;border:1px solid #d3e0d5;border-radius:8px;padding:14px 0}
+  .track{position:relative;width:1200px;height:230px;
+    background:repeating-linear-gradient(to right,#fff 0,#fff 59px,#e6eee7 59px,#e6eee7 60px)}
+  .week{position:absolute;top:0;font-size:12px;color:#6a806e;padding:2px 6px}
+  .bar{position:absolute;height:34px;border-radius:6px;background:#3d9a52;color:#fff;font-size:14px;line-height:34px;padding-left:0;
+    white-space:nowrap;overflow:hidden;user-select:none}
+  .bar span{padding-left:10px}
+  .bar::after{content:"";position:absolute;right:0;top:0;bottom:0;width:8px;background:rgba(0,0,0,.25);cursor:ew-resize}
+  .note{margin-top:12px;color:#4a604d}
+  form{display:grid;gap:14px;max-width:520px}
+  label{display:grid;gap:6px;font-weight:600}
+  button.primary{background:#1f5a2c;color:#fff;border:0;border-radius:6px;padding:11px 18px;font-size:16px;cursor:pointer;justify-self:start}
+  #ok{margin-top:16px;padding:14px 18px;background:#e3f1e5;border-radius:8px;color:#1f5a2c;font-weight:600}
+  #ok[hidden]{display:none}
+  p.tip{max-width:760px;line-height:1.6}
+</style>
+</head>
+<body>
+<header>
+  <h1>Huerto Urbano</h1>
+  <nav>
+    <button data-tab="inventario" class="on">Inventario</button>
+    <button data-tab="calendario">Calendario</button>
+    <button data-tab="pedido">Pedido</button>
+  </nav>
+</header>
+<main>
+  <section id="inventario">
+    <h2>Inventario del huerto</h2>
+    <div class="tools">
+      <input id="filtro" type="text" placeholder="Buscar por nombre...">
+      <select id="categoria">
+        <option value="">Todas las categorías</option>
+        <option value="hortaliza">Hortaliza</option>
+        <option value="aromática">Aromática</option>
+        <option value="fruta">Fruta</option>
+      </select>
+    </div>
+    <ul class="list" id="lista"></ul>
+    <h2>Consejos de temporada</h2>
+    <p class="tip">Riega por la mañana temprano para perder menos agua. Acolcha el suelo con paja para mantener la humedad y frenar las malas hierbas.</p>
+    <p class="tip">Rota los cultivos cada temporada: las legumbres devuelven nitrógeno a la tierra y las hortalizas de hoja lo agradecen.</p>
+    <p class="tip">Revisa las hojas cada semana: detectar una plaga a tiempo permite tratarla sin productos fuertes.</p>
+    <p class="tip">Guarda las semillas sobrantes en un bote cerrado, en un lugar fresco y seco, con la fecha anotada.</p>
+    <h2>Herramientas compartidas</h2>
+    <p class="tip">Las palas, los rastrillos y las regaderas están en el cobertizo. Devuélvelas limpias para el siguiente turno.</p>
+  </section>
+
+  <section id="calendario" hidden>
+    <h2>Siembras de la temporada</h2>
+    <p class="note">Arrastra el borde derecho de una barra para alargar o acortar la siembra.</p>
+    <div class="scroller" id="scroller"><div class="track" id="track"></div></div>
+    <p class="note" id="resumen"></p>
+  </section>
+
+  <section id="pedido" hidden>
+    <h2>Pedir plantones</h2>
+    <form id="form">
+      <label>Nombre<input id="nombre" type="text" placeholder="Tu nombre"></label>
+      <label>Plantón
+        <select id="planton">
+          <option>Tomate</option><option>Lechuga</option><option>Albahaca</option><option>Fresa</option>
+        </select>
+      </label>
+      <label>Cantidad<input id="cantidad" type="number" min="1" value="1"></label>
+      <button class="primary" id="enviar" type="submit">Enviar pedido</button>
+    </form>
+    <div id="ok" hidden></div>
+  </section>
+</main>
+<script>
+  const items = [
+    ['Tomate cherry', 'hortaliza', 24], ['Lechuga romana', 'hortaliza', 18], ['Calabacín', 'hortaliza', 9],
+    ['Albahaca', 'aromática', 30], ['Romero', 'aromática', 6], ['Menta', 'aromática', 14],
+    ['Fresa', 'fruta', 40], ['Frambuesa', 'fruta', 12],
+  ];
+  const lista = document.getElementById('lista');
+  const render = () => {
+    const q = document.getElementById('filtro').value.toLowerCase(), c = document.getElementById('categoria').value;
+    const rows = items.filter(([n, cat]) => n.toLowerCase().includes(q) && (!c || cat === c));
+    lista.innerHTML = rows.map(([n, cat, k]) => `<li><span>${n}<span class="tag">${cat}</span></span><b>${k} uds.</b></li>`).join('')
+      || '<li>No hay resultados</li>';
+  };
+  document.getElementById('filtro').addEventListener('input', render);
+  document.getElementById('categoria').addEventListener('change', render);
+  render();
+
+  document.querySelectorAll('nav button').forEach((b) => b.addEventListener('click', () => {
+    document.querySelectorAll('nav button').forEach((x) => x.classList.toggle('on', x === b));
+    document.querySelectorAll('main > section').forEach((s) => { s.hidden = s.id !== b.dataset.tab; });
+    window.scrollTo(0, 0);
+  }));
+
+  // Calendar: bars measured in weeks (60 px each); the right edge is draggable.
+  const track = document.getElementById('track');
+  const plan = [['Tomate', 2, 6], ['Lechuga', 0, 4], ['Albahaca', 5, 5], ['Fresa', 8, 6], ['Calabacín', 13, 5]];
+  for (let w = 0; w < 20; w++) track.insertAdjacentHTML('beforeend', `<div class="week" style="left:${w * 60}px">S${w + 1}</div>`);
+  plan.forEach(([n, s, len], i) => {
+    const bar = document.createElement('div');
+    bar.className = 'bar'; bar.id = 'bar-' + n.normalize('NFD').toLowerCase().replace(/[^a-z]/g, '');
+    bar.dataset.weeks = len; bar.dataset.name = n;
+    Object.assign(bar.style, { left: s * 60 + 'px', top: 28 + i * 40 + 'px', width: len * 60 + 'px' });
+    bar.innerHTML = `<span>${n} · ${len} semanas</span>`;
+    track.appendChild(bar);
+  });
+  const resumen = () => {
+    const bars = [...track.querySelectorAll('.bar')];
+    document.getElementById('resumen').textContent =
+      `${bars.length} siembras · ${bars.reduce((a, b) => a + Number(b.dataset.weeks), 0)} semanas de cultivo en total`;
+  };
+  resumen();
+  let drag = null;
+  track.addEventListener('mousedown', (e) => {
+    const bar = e.target.closest('.bar'); if (!bar) return;
+    const r = bar.getBoundingClientRect();
+    if (e.clientX < r.right - 14) return; // only the right edge resizes
+    drag = { bar, x: e.clientX, w: bar.offsetWidth }; e.preventDefault();
+  });
+  addEventListener('mousemove', (e) => {
+    if (!drag) return;
+    const weeks = Math.max(1, Math.round((drag.w + e.clientX - drag.x) / 60));
+    drag.bar.style.width = weeks * 60 + 'px'; drag.bar.dataset.weeks = weeks;
+    drag.bar.firstChild.textContent = `${drag.bar.dataset.name} · ${weeks} semanas`; resumen();
+  });
+  addEventListener('mouseup', () => { drag = null; });
+
+  document.getElementById('form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const ok = document.getElementById('ok');
+    ok.textContent = `Pedido enviado: ${document.getElementById('cantidad').value} × ${document.getElementById('planton').value} para ${document.getElementById('nombre').value || 'ti'}.`;
+    ok.hidden = false;
+  });
+</script>
+</body>
+</html>

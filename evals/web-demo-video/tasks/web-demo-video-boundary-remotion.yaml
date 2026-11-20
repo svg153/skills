@@ -1,0 +1,13 @@
+id: web-demo-video-boundary-remotion
+name: 'web-demo-video negative: animated launch video built from scratch belongs to Remotion'
+inputs:
+  prompt: 'Build a 30-second animated launch video from scratch in Remotion with motion graphics and kinetic typography; there is no web page to record.'
+expected:
+  should_trigger: false
+graders:
+- type: trigger
+  name: boundary
+  config:
+    skill_path: plugins/web-demo-video/skills/web-demo-video/SKILL.md
+    mode: negative
+    threshold: 0.6

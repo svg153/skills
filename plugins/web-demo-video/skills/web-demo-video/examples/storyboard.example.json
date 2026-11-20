@@ -1,0 +1,76 @@
+{
+  "config": {
+    "name": "demo-huerto",
+    "viewport": { "width": 1280, "height": 720 },
+    "language": "es",
+    "baseDir": ".",
+    "voice": { "model": "es_ES-davefx-medium.onnx", "lengthScale": 1.0, "sentenceSilence": 0.25 },
+    "pronunciation": [["\\buds\\.", "unidades"], ["Huerto Urbano", "Huerto Urbano"]],
+    "style": { "background": "#0d2b16", "accent": "#9be3a8", "bandRgb": "6,26,12" },
+    "_comment": "Optional keys: executablePath (browser), channel, headless, maxZoom. Piper and the voice are found in --tools <dir>. Fictitious content only."
+  },
+  "scenes": [
+    {
+      "name": "Intro",
+      "steps": [
+        { "action": "title", "title": "Huerto Urbano", "subtitle": "Una demo ficticia: inventario, calendario y pedidos", "say": "Huerto Urbano. Una demostración con inventario, calendario y pedidos." },
+        { "action": "goto", "file": "demo-site/index.html" },
+        { "action": "caption", "label": "Inventario", "text": "El inventario muestra qué hay plantado en el huerto", "shot": "inventario" }
+      ]
+    },
+    {
+      "name": "Filtrar",
+      "steps": [
+        { "action": "caption", "label": "Inventario", "text": "Un filtro de texto encuentra una planta en un momento", "say": "Un filtro de texto encuentra una planta al instante." },
+        { "action": "type", "selector": "#filtro", "text": "fre", "delayMs": 120, "expect": { "visible": "#lista" } },
+        { "action": "caption", "label": "Inventario", "text": "Solo queda la fresa", "shot": "filtro-texto" },
+        { "action": "uncaption" },
+        { "action": "type", "selector": "#filtro", "text": "", "clear": true },
+        { "action": "select", "selector": "#categoria", "value": "aromática" },
+        { "action": "caption", "label": "Inventario", "text": "O se filtra por categoría, por ejemplo las aromáticas", "shot": "filtro-categoria" },
+        { "action": "uncaption" },
+        { "action": "select", "selector": "#categoria", "value": "" },
+        { "action": "scroll", "to": "text:Consejos de temporada", "offset": 90 },
+        { "action": "zoom", "selector": "p.tip" },
+        { "action": "caption", "label": "Inventario", "text": "Más abajo hay consejos de temporada para cada turno" },
+        { "action": "unzoom" },
+        { "action": "uncaption" }
+      ]
+    },
+    {
+      "name": "Calendario",
+      "steps": [
+        { "action": "scroll", "to": "body", "offset": 0 },
+        { "action": "click", "selector": "nav button[data-tab=calendario]", "expect": { "visible": "#scroller" } },
+        { "action": "caption", "label": "Calendario", "text": "El calendario reparte las siembras por semanas", "shot": "calendario" },
+        { "action": "uncaption" },
+        { "action": "hscroll", "container": "#scroller", "toSelector": "#bar-calabacin", "offset": 120 },
+        { "action": "caption", "label": "Calendario", "text": "Para ver las siembras tardías basta con desplazarse a un lado" },
+        { "action": "uncaption" },
+        { "action": "hscroll", "container": "#scroller", "toSelector": "#track", "offset": 0 },
+        { "action": "drag", "selector": "#bar-fresa", "dx": 120, "dy": 0, "grip": "right-edge" },
+        { "action": "caption", "label": "Calendario", "text": "Arrastrando el borde de una barra, la fresa dura dos semanas más", "shot": "calendario-arrastre" },
+        { "action": "uncaption" }
+      ]
+    },
+    {
+      "name": "Pedido",
+      "steps": [
+        { "action": "click", "selector": "nav button[data-tab=pedido]" },
+        { "action": "type", "selector": "#nombre", "text": "Lucía", "delayMs": 110 },
+        { "action": "select", "selector": "#planton", "value": "Albahaca" },
+        { "action": "caption", "label": "Pedido", "text": "Un formulario sencillo para pedir plantones", "shot": "pedido" },
+        { "action": "uncaption" },
+        { "action": "click", "selector": "#enviar", "expect": { "text": ["#ok", "Albahaca"] } },
+        { "action": "caption", "label": "Pedido", "text": "Al enviarlo, la página confirma el pedido", "shot": "pedido-ok" },
+        { "action": "uncaption" }
+      ]
+    },
+    {
+      "name": "Cierre",
+      "steps": [
+        { "action": "title", "title": "Huerto Urbano", "subtitle": "Todo en una sola página", "say": "Todo en una sola página." }
+      ]
+    }
+  ]
+}

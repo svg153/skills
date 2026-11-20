@@ -1,0 +1,17 @@
+id: web-demo-video-en-positive
+name: 'web-demo-video activates for recording a demo of an existing web app (English)'
+inputs:
+  prompt: 'Record a demo video of our existing dashboard web app: show the filter, the chart tab and the export form with captions, a visible cursor and an offline voice-over.'
+expected:
+  should_trigger: true
+graders:
+- type: trigger
+  name: activation
+  config:
+    skill_path: plugins/web-demo-video/skills/web-demo-video/SKILL.md
+    mode: positive
+    threshold: 0.6
+- type: prompt
+  name: behavior_contract
+  config:
+    prompt: 'Pass only if the response records the real existing page with a browser driven from a storyboard (voice lines first, dry run with screenshots, record, mix, review by frames and loudness), keeps the voice offline, does not rebuild the UI as components, and says what it could not verify (it cannot hear the audio).'
