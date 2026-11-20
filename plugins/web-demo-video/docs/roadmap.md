@@ -24,8 +24,8 @@ Status legend: `[ ]` open, `[~]` partly done, `[x]` done (kept for one release, 
 
 - [ ] **More voices and languages in the docs.** A tested table of Piper voices per language, with the pronunciation fixes each needs.
 - [ ] **Cloud TTS as an explicit opt-in**, off by default, with a warning that scripts leave the machine.
-- [ ] **Burned-in or sidecar subtitles** (`.vtt`) from `timeline.json`, for players that cannot show the band.
+- [x] **Burned-in or sidecar subtitles** (`.vtt`) from `timeline.json`, for players that cannot show the band.
 - [ ] **Mobile viewports and touch.** Done when a storyboard with `viewport` and `isMobile` taps instead of clicking and the cursor is hidden.
-- [ ] **Chapter markers** in the MP4 from scene names.
 - [x] **Camera and cursor polish:** Bezier cursor with overshoot, click ripple and press animation, `spotlight`/`unspotlight`, spring zoom that resets on scroll, click `focus`.
+- [x] **Chapter markers** in the MP4 from scene names.
 - [ ] Ideas from research: _(add here)_

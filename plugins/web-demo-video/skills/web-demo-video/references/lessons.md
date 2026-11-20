@@ -42,3 +42,11 @@ Rules learned by recording real demos. Read them before the first recording.
 - **Frozen is fine under a fresh caption.** A still page while a caption is read is normal; only long stills with no new caption count as dead air.
 - **Silence between voice lines is normal; silence inside a line is not.** `silencedetect` hits are only reported when they fall inside a line's span.
 - **Silent action runs show up as dead air.** The example storyboard has 8-9 s stretches with no voice; add a short caption with `say` when it matters.
+
+## Exports
+
+- **Subtitle times = logged time + the head start.** The video starts before the script clock, so `export.mjs` adds the same `lead` as `mix.mjs` (read from `mix.json`). Cues end when the caption fades (`timeline.json` `end`), never overlap, and wrap to two lines above 42 characters.
+- **Chapters need the first one at 0.** Scene 1 is stretched back to 0 s so the title card is covered. Verify with `ffprobe -show_chapters`. MP4 also shows an extra `bin_data` stream: that is the QuickTime chapter track, not an error.
+- **9:16 and 1:1 pad, they do not crop.** A desktop page is 16:9; a centred crop to 9:16 drops 68% of the width, so the cursor and clicks leave the frame. The page is scaled to the output width over a blurred, darkened copy of itself. The caption band stays attached to the page, so in 9:16 it sits mid-frame, not at the bottom.
+- **GIFs are big.** A 2-minute 16:9 demo at 10 fps and 640 px is about 7 MB. Export a clip (`--gif-from`, `--gif-seconds`) at 8 fps and 480 px, two passes (`palettegen` then `paletteuse`, bayer dither, rectangle diffs).
+- **Soft subtitles are mov_text** and need an MP4. Set the track language from `config.language` (`es` becomes `spa`).

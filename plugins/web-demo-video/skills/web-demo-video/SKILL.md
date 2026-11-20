@@ -36,6 +36,7 @@ Ideas taken from `launch-video-kit`: voice first then edit, one WAV per line, lo
 | `scripts/mix.mjs <outDir> [--ffmpeg p] [--ffprobe p] [--tools dir]` | Lays the voice lines on the video, loudnorm, writes `<name>-voice.webm` and `.mp4` |
 | `scripts/review.mjs <outDir> [--every N]` | Frames every N s, a sync frame per voice line, loudness report, black/freeze/silence detectors (PASS/WARN) |
 | `scripts/lint.mjs <storyboard.json> [--tools dir]` | Offline storyboard validation; exit 1 on errors. `record.mjs` runs it first |
+| `scripts/export.mjs <outDir> [--aspect 16:9/1:1/9:16] [--soft-subs] [--gif] [--gif-fps N] [--gif-width N] [--gif-from S] [--gif-seconds S]` | `.srt` and `.vtt` from the captions, an MP4 with scene chapters (optional mov_text track), an aspect preset, a two-pass-palette GIF. Writes to `<outDir>/export/` |
 | `scripts/fix-piper-voice.mjs <voice.onnx.json>` | Patches voices that Piper for Windows 2023.11.14-2 rejects |
 | `references/storyboard.md` | The storyboard JSON: config and every action |
 | `references/lessons.md` | Hard-won rules. Read before the first recording |
@@ -56,6 +57,7 @@ Ideas taken from `launch-video-kit`: voice first then edit, one WAV per line, lo
 4. **Record.** Same command with voice on (drop `--no-voice`). Voice lines are cached by text, so re-recording only synthesises what changed.
 5. **Mix.** `node mix.mjs out --tools <dir>`. It prints the video length, the logged end and the head start. Without voice it only converts.
 6. **Review by measuring.** `node review.mjs out`. Open the sync frames: the caption on screen at each line start must match the voice line in the report. Check the overview frames for half-loaded pages, stale captions and clipped zoom. Loudness should be about -16 LUFS integrated with peak under -1 dBFS. A subagent can review the frames in parallel, one per batch, with the report as its checklist.
+6b. **Export (optional).** `node export.mjs out --tools <dir>` writes `.srt`/`.vtt` and an MP4 with one chapter per scene. Add `--aspect 9:16` for vertical, `--soft-subs` for a selectable subtitle track, `--gif` for a clip. Check with `ffprobe -show_chapters`.
 7. **Deliver**, and say plainly what was **not** verified. The agent cannot hear audio: pronunciation, pacing and voice quality need a human listener. State the video path, duration, loudness numbers and what was checked on frames.
 
 ## Rules

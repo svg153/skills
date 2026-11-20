@@ -217,7 +217,8 @@ const shots = join(outDir, 'shots');
 mkdirSync(shots, { recursive: true });
 let shotN = 0;
 const shot = async (n) => { shotN++; await page.screenshot({ path: join(shots, `${String(shotN).padStart(2, '0')}-${n}.png`) }); };
-const timeline = [], vo = [];
+const timeline = [], vo = [], scenes = []; // scenes: chapter starts for export.mjs
+let curScene = '', openCap; // openCap: the caption entry on screen, closed when it fades
 let capOn = false, mx = W / 2, my = H / 3;
 
 const speak = (text) => {
@@ -278,7 +279,7 @@ const centreOf = async (sel) => {
 };
 // After a navigation the fake cursor is recreated: move the mouse 1 px so it shows up again.
 const wake = async () => { await page.mouse.move(mx + 1, my); mx += 1; };
-const uncaption = async () => { if (!capOn) return; capOn = false; await page.evaluate(() => window.__cap()); await pause(400); };
+const uncaption = async () => { if (!capOn) return; capOn = false; if (openCap && !openCap.closed) openCap.end = +now().toFixed(2), openCap.closed = true; await page.evaluate(() => window.__cap()); await pause(400); };
 // focus: true (or a scale) zooms gently toward the click point while the cursor presses, then back out.
 const clickOn = async (sel, focus) => {
   const b = await centreOf(sel), cx = b.x + b.width / 2, cy = b.y + b.height / 2;
@@ -309,12 +310,15 @@ const actions = {
   async caption(s) {
     const say = s.say === false ? '' : (s.say ?? s.text);
     const dur = speak(say);
-    timeline.push({ at: +now().toFixed(1), label: s.label ?? '', text: s.text, shot: s.shot ?? '' });
+    const entry = { at: +now().toFixed(2), label: s.label ?? '', text: s.text, shot: s.shot ?? '', scene: curScene };
+    if (openCap && !openCap.closed) openCap.end = entry.at; // replaced by the next caption
+    openCap = entry; timeline.push(entry);
     await page.evaluate(([l, t]) => window.__cap(l, t), [s.label ?? '', s.text]);
     capOn = true;
     await pause(700); // fade-in
     if (s.shot) await shot(s.shot);
     await pause(Math.max(2800, s.text.length * 70, dur * 1000 + 700) - 700 + (s.extraMs ?? 0));
+    entry.end ??= +now().toFixed(2); // fallback if it is never closed
   },
   uncaption,
   async click(s) { await clickOn(s.selector, s.focus); },
@@ -426,6 +430,7 @@ async function fail(si, scene, i, step, err) {
 
 for (const [si, scene] of (story.scenes ?? []).entries()) {
   console.log(`scene ${si + 1}: ${scene.name ?? ''}`);
+  curScene = scene.name ?? `Scene ${si + 1}`; scenes.push({ name: curScene, at: +now().toFixed(2) });
   for (const [i, step] of (scene.steps ?? []).entries()) {
     const fn = actions[step.action];
     if (!fn) throw new Error(`unknown action "${step.action}" in scene ${scene.name ?? si + 1}`);
@@ -454,5 +459,5 @@ await browser.close();
 const dest = join(outDir, `${name}.webm`);
 renameSync(await video.path(), dest);
 writeFileSync(join(outDir, 'timeline.json'), JSON.stringify(timeline, null, 1));
-writeFileSync(join(outDir, 'vo.json'), JSON.stringify({ name, video: `${name}.webm`, tEnd, cue: cue ?? 0, lines: vo }, null, 1));
+writeFileSync(join(outDir, 'vo.json'), JSON.stringify({ name, video: `${name}.webm`, tEnd, cue: cue ?? 0, language: cfg.language ?? '', scenes, lines: vo }, null, 1));
 console.log(dest, `${tEnd.toFixed(0)} s logged`, `cue ${cue} s`, `${shotN} shots`, `${vo.length} voice lines`);

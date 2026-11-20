@@ -65,6 +65,7 @@ Every step has an `action` and these fields. Selectors are Playwright selectors 
 - The recording opens on a dark `data:` card, so the first frames are never a half-loaded page.
 - Overlays (caption, cursor, zoom helper) are injected into every page and recreated after each navigation. The cursor is woken by a 1 px mouse move.
 - A voice line starts 0.35 s after its caption appears. The line is logged in `vo.json`; `mix.mjs` converts that to audio delays.
+- `timeline.json` entries carry `scene` and `end` (when the caption faded) and `vo.json` carries `scenes` (name and start) and `language`: `export.mjs` builds subtitles and chapters from them. No new storyboard fields.
 - Voice lines are cached in `<outDir>/vo-cache` by model and text.
 - Unknown actions and missing selectors stop the run with a message that names the scene.
 
