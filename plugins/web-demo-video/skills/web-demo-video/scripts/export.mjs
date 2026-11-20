@@ -49,7 +49,7 @@ const dur = probe(src, 'duration');
 let lead;
 if (existsSync(join(outDir, 'mix.json'))) lead = JSON.parse(readFileSync(join(outDir, 'mix.json'), 'utf8')).lead;
 lead ??= Math.max(0, probe(join(outDir, vo.video), 'duration') - tEnd - 0.3); // same formula as mix.mjs
-console.log(`source ${src}\n${dur.toFixed(1)} s, head start ${lead.toFixed(2)} s`);
+console.log(`source ${src}\n${dur.toFixed(1)} s, script-to-video offset ${lead.toFixed(2)} s`);
 
 const exp = join(outDir, 'export');
 mkdirSync(exp, { recursive: true });

@@ -33,7 +33,7 @@ const ff = (args) => spawnSync(ffmpeg, ['-y', '-v', 'error', ...args], { encodin
 const r1 = ff(['-i', final, '-vf', `fps=1/${every}`, join(rev, 'frames', 'f%03d.png')]);
 if (r1.status) throw new Error(r1.stderr);
 
-// 2. Sync frames: video time = line start + head start + 0.9 s (caption fully visible).
+// 2. Sync frames: video time = line start + offset + 0.9 s (caption fully visible).
 const rows = [];
 for (const [i, l] of vo.lines.entries()) {
   const t = l.at + mix.lead + 0.9;
@@ -98,7 +98,7 @@ if (mix.hasVoice) {
 
 const md = [
   `# Review of ${final}`, '',
-  `- Duration: ${mix.duration.toFixed(1)} s, head start ${mix.lead.toFixed(2)} s, cue ${cue.toFixed(2)} s (first real frame at ${(lead + cue).toFixed(2)} s in the video)`,
+  `- Duration: ${mix.duration.toFixed(1)} s, script-to-video offset ${mix.lead.toFixed(2)} s (video time = script time + offset, after retiming), cue ${cue.toFixed(2)} s (first real frame at ${(lead + cue).toFixed(2)} s in the video)`,
   `- Loudness: ${loud} ${verdict}`,
   `- Automatic checks: ${checks.every((c) => c.status === 'PASS') ? 'PASS' : 'WARN'}`,
   ...checks.map((c) => `  - ${c.status}: ${c.name}: ${c.detail}`),
