@@ -22,7 +22,7 @@
       "name": "Filtrar",
       "steps": [
         { "action": "caption", "label": "Inventario", "text": "Un filtro de texto encuentra una planta en un momento", "say": "Un filtro de texto encuentra una planta al instante." },
-        { "action": "type", "selector": "#filtro", "text": "fre", "delayMs": 120 },
+        { "action": "type", "selector": "#filtro", "text": "fre", "delayMs": 120, "expect": { "visible": "#lista" } },
         { "action": "caption", "label": "Inventario", "text": "Solo queda la fresa", "shot": "filtro-texto" },
         { "action": "uncaption" },
         { "action": "type", "selector": "#filtro", "text": "", "clear": true },
@@ -41,7 +41,7 @@
       "name": "Calendario",
       "steps": [
         { "action": "scroll", "to": "body", "offset": 0 },
-        { "action": "click", "selector": "nav button[data-tab=calendario]" },
+        { "action": "click", "selector": "nav button[data-tab=calendario]", "expect": { "visible": "#scroller" } },
         { "action": "caption", "label": "Calendario", "text": "El calendario reparte las siembras por semanas", "shot": "calendario" },
         { "action": "uncaption" },
         { "action": "hscroll", "container": "#scroller", "toSelector": "#bar-fresa", "offset": 120 },
@@ -60,7 +60,7 @@
         { "action": "select", "selector": "#planton", "value": "Albahaca" },
         { "action": "caption", "label": "Pedido", "text": "Un formulario sencillo para pedir plantones", "shot": "pedido" },
         { "action": "uncaption" },
-        { "action": "click", "selector": "#enviar" },
+        { "action": "click", "selector": "#enviar", "expect": { "text": ["#ok", "Albahaca"] } },
         { "action": "caption", "label": "Pedido", "text": "Al enviarlo, la página confirma el pedido", "shot": "pedido-ok" },
         { "action": "uncaption" }
       ]

@@ -67,3 +67,40 @@ Every step has an `action` and these fields. Selectors are Playwright selectors 
 - A voice line starts 0.35 s after its caption appears. The line is logged in `vo.json`; `mix.mjs` converts that to audio delays.
 - Voice lines are cached in `<outDir>/vo-cache` by model and text.
 - Unknown actions and missing selectors stop the run with a message that names the scene.
+
+## Robustness features
+
+### `config.holdAfterActionMs` and `holdMs`
+
+After every interactive action (`click`, `type`, `select`, `drag`, `hscroll`, `hover`) the engine waits `config.holdAfterActionMs` (default `400`) so actions never feel rushed. A step can override it with `holdMs`; `0` disables it. It comes on top of the action's own wait.
+
+### `expect` (per step)
+
+Checked after the step and its hold. Retried every 100 ms until `timeoutMs` (default 3000). One object or a list of objects:
+
+| Key | Passes when |
+|---|---|
+| `visible` | the selector is visible |
+| `hidden` | the selector is not visible |
+| `text` | `[selector, substring]`: the element's text contains the substring (case sensitive) |
+| `url` | the page URL contains the substring |
+| `timeoutMs` | wait limit for this check |
+
+```json
+{ "action": "click", "selector": "#send", "expect": { "text": ["#ok", "Order sent"] } }
+```
+
+A failed `expect` (or any step that throws, such as a selector that matches nothing; Playwright's timeout is 8 s) stops the run with exit code 1. The message names the scene and step, prints the step JSON and saves `shots/FAIL-s<scene>-step<n>-<action>.png`. No video is written for a failed run.
+
+### `lint.mjs`
+
+`node lint.mjs story.json [--tools dir] [--strict]` checks the storyboard without a browser: unknown actions or fields (fields starting with `_` are comments), missing required fields, captions that wrap (warn above one line, error above two; about `0.85 x width / (0.5 x captionPx)` characters per line), a `click`/`drag` followed straight by another click/drag or ending the scene with no hold, a `zoom` never undone by `unzoom` before the scene ends (error), `goto` files and the voice model that do not exist. Exit 1 on errors (or on warnings with `--strict`). `record.mjs` runs it first; `--no-lint` skips it.
+
+### `--preview`
+
+`node record.mjs story.json out --preview [--preview-div 4]`: no video and no voice. Every pause is divided by 4 (or `--preview-div`), CSS transitions and smooth scrolling are made instant so shots still show the final state, and the caption `shot`s are saved. Writes `preview-steps.json` (seconds per step). Use it to iterate on selectors and `expect`s. About 2.7x faster on the example (28 s against 77 s): mouse glides and page loads do not shrink.
+
+### Outputs
+
+- `steps.json` (`preview-steps.json` in preview): `{ totalSec, steps: [{ scene, step, action, start, sec }] }` on the script clock. `review.mjs` uses it to ignore title cards.
+- `vo.json` has a new field **`cue`** (seconds, script clock): when the first real page (title card or site) was committed. Before it there is only the dark opening card. In the video file that moment is `lead + cue`, where `lead` is in `mix.json`. `timeline.json` stays a plain array of captions. Consumers may trim `lead + cue` seconds from the start.

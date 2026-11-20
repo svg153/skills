@@ -6,7 +6,7 @@
 //
 // <tools dir> (optional) may hold: node_modules/playwright-core, piper/piper(.exe), voices/<model>.onnx.
 // Writes to <outDir>: <name>.webm, vo.json (voice lines + timing), timeline.json, shots/*.png, vo-cache/*.wav.
-import { pathToFileURL } from 'node:url';
+import { pathToFileURL, fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 import { join, dirname, resolve, isAbsolute } from 'node:path';
 import { renameSync, mkdirSync, writeFileSync, existsSync, readFileSync } from 'node:fs';
@@ -17,11 +17,20 @@ const argv = process.argv.slice(2);
 const flag = (n) => { const i = argv.indexOf(n); if (i < 0) return undefined; const [, v] = argv.splice(i, 2); return v; };
 const toolsDir = flag('--tools');
 const browserFlag = flag('--browser') ?? process.env.WEB_DEMO_VIDEO_BROWSER;
-const noVoiceFlag = argv.includes('--no-voice');
+const previewDiv = Math.max(1, Number(flag('--preview-div') ?? 4));
+const preview = argv.includes('--preview'); // no video, no voice, holds divided by previewDiv
+const noLint = argv.includes('--no-lint');
+const noVoiceFlag = argv.includes('--no-voice') || preview;
 const [storyPath, outArg] = argv.filter((a) => !a.startsWith('--'));
 if (!storyPath || !outArg) {
-  console.error('usage: node record.mjs <storyboard.json> <outDir> [--tools <dir>] [--no-voice] [--browser <chrome.exe>]');
+  console.error('usage: node record.mjs <storyboard.json> <outDir> [--tools <dir>] [--no-voice] [--browser <chrome.exe>] [--preview [--preview-div 4]] [--no-lint]');
   process.exit(2);
+}
+if (!noLint) { // fail fast on a broken storyboard, before launching a browser
+  const lintArgs = [join(dirname(fileURLToPath(import.meta.url)), 'lint.mjs'), storyPath, ...(toolsDir ? ['--tools', toolsDir] : [])];
+  const r = spawnSync(process.execPath, lintArgs, { encoding: 'utf8' });
+  process.stdout.write(r.stdout ?? '');
+  if (r.status) { console.error('Storyboard lint failed: fix the errors above (or pass --no-lint).'); process.exit(1); }
 }
 const story = JSON.parse(readFileSync(storyPath, 'utf8').replace(/^﻿/, ''));
 const cfg = story.config ?? {};
@@ -99,7 +108,16 @@ const exe = browserFlag ?? cfg.executablePath;
 if (exe) launchOpts.executablePath = exe;
 else if (cfg.channel) launchOpts.channel = cfg.channel;
 const browser = await chromium.launch(launchOpts);
-const ctx = await browser.newContext({ viewport: { width: W, height: H }, recordVideo: { dir: outDir, size: { width: W, height: H } } });
+const ctx = await browser.newContext({ viewport: { width: W, height: H }, ...(preview ? {} : { recordVideo: { dir: outDir, size: { width: W, height: H } } }) });
+if (preview) { // instant transitions and scrolls, so shots taken after shortened holds still show the final state
+  await ctx.addInitScript(() => {
+    const s = document.createElement('style'); s.textContent = '*{transition:none!important}';
+    (document.head ?? document.documentElement).appendChild(s);
+    for (const [o, n] of [[window, 'scrollTo'], [Element.prototype, 'scrollTo'], [Element.prototype, 'scrollIntoView']]) {
+      const f = o[n]; o[n] = function (a, ...r) { return f.call(this, a && typeof a === 'object' ? { ...a, behavior: 'instant' } : a, ...r); };
+    }
+  });
+}
 
 // Overlays are installed on every page (they are recreated after each navigation).
 await ctx.addInitScript(({ st, maxZoom, ripple }) => {
@@ -191,9 +209,10 @@ await ctx.addInitScript(({ st, maxZoom, ripple }) => {
 }, { st, maxZoom, ripple: (cfg.cursor?.ripple ?? true) });
 
 const page = await ctx.newPage(); // the video starts here
+page.setDefaultTimeout(8000); // a wrong selector fails in 8 s with a clear message, not 30 s
 const t0 = Date.now();
 const now = () => (Date.now() - t0) / 1000;
-const pause = (ms) => page.waitForTimeout(ms);
+const pause = (ms) => page.waitForTimeout(preview ? ms / previewDiv : ms);
 const shots = join(outDir, 'shots');
 mkdirSync(shots, { recursive: true });
 let shotN = 0;
@@ -366,23 +385,74 @@ const actions = {
 // The video starts at page creation: open on a dark card so the first frames are never a half-loaded page.
 await page.goto(card('', ''));
 await pause(400);
+
+// cue = script-clock time when the first REAL page (title card or site) has been committed. Everything
+// before it is the dark opening card. Written to vo.json as `cue`; mix/export may trim up to lead + cue.
+let cue = null, navs = 0;
+page.on('framenavigated', (f) => { if (f === page.mainFrame() && ++navs === 1 && cue === null) cue = +(now() + 0.1).toFixed(2); });
+
+const INTERACTIVE = new Set(['click', 'type', 'select', 'drag', 'hscroll', 'hover']);
+const holdAfter = cfg.holdAfterActionMs ?? 400; // breathing room after every interactive action
+const stepLog = [];
+
+// `expect`: { visible | hidden: selector, text: [selector, substring], url: substring, timeoutMs? } or a list of them.
+async function check(expect) {
+  for (const e of Array.isArray(expect) ? expect : [expect]) {
+    const limit = Date.now() + (e.timeoutMs ?? 3000);
+    const poll = async (what, ok) => { // retries until the timeout, then throws with the last observation
+      let seen;
+      for (;;) {
+        try { const r = await ok(); if (r.ok) return; seen = r.seen; } catch (err) { seen = err.message.split('\n')[0]; }
+        if (Date.now() > limit) throw new Error(`expected ${what}; ${seen}`);
+        await page.waitForTimeout(100);
+      }
+    };
+    if (e.visible) await poll(`"${e.visible}" to be visible`, async () => { const v = await loc(e.visible).isVisible(); return { ok: v, seen: v ? '' : 'not visible' }; });
+    if (e.hidden) await poll(`"${e.hidden}" to be hidden`, async () => { const v = await loc(e.hidden).isVisible(); return { ok: !v, seen: 'still visible' }; });
+    if (e.text) await poll(`"${e.text[0]}" to contain "${e.text[1]}"`, async () => {
+      const t = (await loc(e.text[0]).textContent({ timeout: 500 })) ?? ''; return { ok: t.includes(e.text[1]), seen: `found "${t.trim().slice(0, 80)}"` };
+    });
+    if (e.url) await poll(`the URL to contain "${e.url}"`, async () => ({ ok: page.url().includes(e.url), seen: `URL is ${page.url().slice(0, 120)}` }));
+  }
+}
+async function fail(si, scene, i, step, err) {
+  const file = join(shots, `FAIL-s${si + 1}-step${i + 1}-${step.action}.png`);
+  await page.screenshot({ path: file }).catch(() => {});
+  console.error(`\nSTEP FAILED in scene ${si + 1} "${scene.name ?? ''}", step ${i + 1} (${step.action}): ${err.message.split('\n')[0]}\n` +
+    `  step: ${JSON.stringify(step)}\n  screenshot: ${file}`);
+  await ctx.close().catch(() => {}); await browser.close().catch(() => {});
+  process.exit(1);
+}
+
 for (const [si, scene] of (story.scenes ?? []).entries()) {
   console.log(`scene ${si + 1}: ${scene.name ?? ''}`);
-  for (const step of scene.steps ?? []) {
+  for (const [i, step] of (scene.steps ?? []).entries()) {
     const fn = actions[step.action];
     if (!fn) throw new Error(`unknown action "${step.action}" in scene ${scene.name ?? si + 1}`);
-    await fn(step);
+    const ts = now();
+    try {
+      await fn(step);
+      if (INTERACTIVE.has(step.action)) { const h = step.holdMs ?? holdAfter; if (h > 0) await pause(h); }
+      if (step.expect) await check(step.expect);
+    } catch (err) { await fail(si, scene, i, step, err); }
+    stepLog.push({ scene: si + 1, step: i + 1, action: step.action, start: +ts.toFixed(2), sec: +(now() - ts).toFixed(2) });
   }
 }
 await uncaption();
 await pause(600);
 const tEnd = now();
+writeFileSync(join(outDir, preview ? 'preview-steps.json' : 'steps.json'), JSON.stringify({ totalSec: +tEnd.toFixed(2), steps: stepLog }, null, 1));
 
+if (preview) {
+  await ctx.close(); await browser.close();
+  console.log(`preview done in ${tEnd.toFixed(1)} s (holds / ${previewDiv}), ${shotN} shots in ${shots}. No video, no voice.`);
+  process.exit(0);
+}
 const video = page.video();
 await ctx.close();
 await browser.close();
 const dest = join(outDir, `${name}.webm`);
 renameSync(await video.path(), dest);
 writeFileSync(join(outDir, 'timeline.json'), JSON.stringify(timeline, null, 1));
-writeFileSync(join(outDir, 'vo.json'), JSON.stringify({ name, video: `${name}.webm`, tEnd, lines: vo }, null, 1));
-console.log(dest, `${tEnd.toFixed(0)} s logged`, `${shotN} shots`, `${vo.length} voice lines`);
+writeFileSync(join(outDir, 'vo.json'), JSON.stringify({ name, video: `${name}.webm`, tEnd, cue: cue ?? 0, lines: vo }, null, 1));
+console.log(dest, `${tEnd.toFixed(0)} s logged`, `cue ${cue} s`, `${shotN} shots`, `${vo.length} voice lines`);

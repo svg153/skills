@@ -32,3 +32,13 @@ Rules learned by recording real demos. Read them before the first recording.
 - **Loudness:** `ebur128` integrated about -16 LUFS, true peak below -1 dBFS. `review.mjs` reports both.
 - **Sync:** extract the frame at `line start + offset (+ about 0.9 s)` and confirm the caption on screen is the one the line reads.
 - **You cannot hear the result.** Say so when you deliver. A human has to check pronunciation and pacing.
+
+## Reliability
+
+- **A failed `expect` must stop the run and leave a screenshot.** A wrong selector or a page that did not change otherwise produces a nice-looking video of the wrong thing. Add one `expect` after each step that changes state.
+- **Iterate with `--preview`, record once.** Preview skips the video and the voice and divides the holds by 4, but a full run still takes minutes.
+- **Screenshots after shortened holds need instant transitions.** In preview the caption fade (0.45 s) and smooth scrolls would be half done at the shot, so preview disables them.
+- **Dark title cards are not "black frames".** `blackdetect` flags them; `review.mjs` ignores the title windows and the opening card (before `lead + cue`).
+- **Frozen is fine under a fresh caption.** A still page while a caption is read is normal; only long stills with no new caption count as dead air.
+- **Silence between voice lines is normal; silence inside a line is not.** `silencedetect` hits are only reported when they fall inside a line's span.
+- **Silent action runs show up as dead air.** The example storyboard has 8-9 s stretches with no voice; add a short caption with `say` when it matters.

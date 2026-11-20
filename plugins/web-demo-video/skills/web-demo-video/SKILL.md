@@ -32,9 +32,10 @@ Ideas taken from `launch-video-kit`: voice first then edit, one WAV per line, lo
 
 | Path (under `${CLAUDE_SKILL_DIR}`) | Purpose |
 |---|---|
-| `scripts/record.mjs <storyboard.json> <outDir> [--tools dir] [--no-voice] [--browser exe]` | Engine. Drives the browser and writes `<name>.webm`, `vo.json`, `timeline.json`, `shots/` |
+| `scripts/record.mjs <storyboard.json> <outDir> [--tools dir] [--no-voice] [--preview] [--browser exe]` | Engine. Drives the browser and writes `<name>.webm`, `vo.json`, `timeline.json`, `shots/` |
 | `scripts/mix.mjs <outDir> [--ffmpeg p] [--ffprobe p] [--tools dir]` | Lays the voice lines on the video, loudnorm, writes `<name>-voice.webm` and `.mp4` |
-| `scripts/review.mjs <outDir> [--every N]` | Frames every N s, a sync frame per voice line, loudness report |
+| `scripts/review.mjs <outDir> [--every N]` | Frames every N s, a sync frame per voice line, loudness report, black/freeze/silence detectors (PASS/WARN) |
+| `scripts/lint.mjs <storyboard.json> [--tools dir]` | Offline storyboard validation; exit 1 on errors. `record.mjs` runs it first |
 | `scripts/fix-piper-voice.mjs <voice.onnx.json>` | Patches voices that Piper for Windows 2023.11.14-2 rejects |
 | `references/storyboard.md` | The storyboard JSON: config and every action |
 | `references/lessons.md` | Hard-won rules. Read before the first recording |

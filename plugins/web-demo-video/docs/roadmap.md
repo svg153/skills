@@ -6,15 +6,16 @@ Status legend: `[ ]` open, `[~]` partly done, `[x]` done (kept for one release, 
 
 ## P1: robustness
 
-- [ ] **A `--check` mode that validates a storyboard without recording.**
+- [~] **A `--check` mode that validates a storyboard without recording.**
   - Why: a typo in a selector currently shows up minutes into a recording.
   - How: load each page, resolve every selector and `text:` heading, and list the failures with the scene name.
   - Done when: `record.mjs story.json out --check` exits non-zero on a missing selector and names it.
+  - Partly done: `lint.mjs` checks the storyboard offline (schema, files, captions, zooms), and `record.mjs --preview` runs every selector quickly with `expect` checks. A browser-based `--check` that only resolves selectors is still open.
 - [ ] **Measure the head start instead of estimating it.**
   - Why: `offset = videoDuration - loggedEnd - 0.3` assumes a constant context-close latency.
   - How: flash a marker (a one-frame colour change on the title card) at a logged time and detect it in the video with ffmpeg.
   - Done when: `mix.mjs` reports the measured offset and the sync frames agree within one frame.
-- [ ] **A scripted sync check.**
+- [ ] **A scripted sync check.** (`review.mjs` now has black, freeze and silence detectors; OCR sync is still open.)
   - Why: today a person or subagent opens the sync frames and reads them.
   - How: OCR the caption area of each sync frame and compare it with the logged text.
   - Done when: `review.mjs` prints PASS or FAIL per line without a human.
