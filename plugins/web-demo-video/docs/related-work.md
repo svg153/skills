@@ -50,3 +50,7 @@ Playwright can record a browser context to WebM (`recordVideo: { dir, size }`). 
 ## Piper
 
 [Piper](https://github.com/rhasspy/piper) is a fast offline neural TTS. It keeps scripts on the machine, which is why it is the default. Known issue: see `fix-piper-voice.mjs` and `lessons.md`.
+
+## `ghost-cursor` and `glidecut`
+
+[`Xetera/ghost-cursor`](https://github.com/Xetera/ghost-cursor) (MIT): human-like mouse paths (Bezier curves, Fitts-style overshoot). `web-demo-video` re-implements the idea in a few lines (cubic Bezier, ease-in-out, overshoot and settle); no code copied. [`0xbobaaa/glidecut`](https://github.com/0xbobaaa/glidecut) (MIT): a spring-driven camera and "zoom on intent, reset on scroll or page change", which the zoom helper follows. [`dxdleady/playwright-demo-video`](https://github.com/dxdleady/playwright-demo-video) (MIT): spotlight and cursor helper API as inspiration.

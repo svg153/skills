@@ -102,7 +102,17 @@ const browser = await chromium.launch(launchOpts);
 const ctx = await browser.newContext({ viewport: { width: W, height: H }, recordVideo: { dir: outDir, size: { width: W, height: H } } });
 
 // Overlays are installed on every page (they are recreated after each navigation).
-await ctx.addInitScript(({ st, maxZoom }) => {
+await ctx.addInitScript(({ st, maxZoom, ripple }) => {
+  // Spring-like easing as a CSS linear() list: slightly under-damped, so the camera settles with a tiny overshoot.
+  const spring = (() => {
+    const z = 0.7, w = 9, wd = w * Math.sqrt(1 - z * z), pts = [];
+    for (let i = 0; i <= 30; i++) {
+      const t = i / 30 * 1.1; // 1.1 s of motion is shown over the .9 s transition: the tail is cut when it is within 0.5 %
+      pts.push((1 - Math.exp(-z * w * t) * (Math.cos(wd * t) + z * w / wd * Math.sin(wd * t))).toFixed(4));
+    }
+    pts[pts.length - 1] = '1';
+    return `linear(${pts.join(',')})`;
+  })();
   const css = `
   #__cap{position:fixed;left:0;right:0;bottom:0;height:24%;z-index:2147483600;pointer-events:none;display:flex;
     flex-direction:column;justify-content:flex-end;align-items:center;padding:0 5% 2.2%;opacity:0;transition:opacity .45s;box-sizing:border-box;
@@ -110,9 +120,16 @@ await ctx.addInitScript(({ st, maxZoom }) => {
   #__cap.on{opacity:1}
   #__cap .k{font-size:${st.labelPx}px;letter-spacing:.14em;text-transform:uppercase;color:${st.accent};font-weight:600;margin-bottom:.4em}
   #__cap .t{font-size:${st.captionPx}px;line-height:1.25;color:${st.text};font-weight:500;text-align:center;max-width:85%}
-  #__cur{position:fixed;z-index:2147483602;width:22px;height:22px;margin:-3px 0 0 -3px;pointer-events:none;left:-50px;top:-50px;transition:transform .12s}
-  #__cur.down{transform:scale(.8)}
-  html{overflow-x:hidden} body{transition:transform .9s cubic-bezier(.4,0,.2,1)}`;
+  #__cur{position:fixed;z-index:2147483602;width:22px;height:22px;margin:-3px 0 0 -3px;pointer-events:none;left:-50px;top:-50px;
+    transform-origin:3px 3px;transition:transform .14s cubic-bezier(.3,1.6,.5,1)}
+  #__cur.down{transform:scale(.78);transition-duration:.07s}
+  .__rip{position:fixed;z-index:2147483601;pointer-events:none;width:64px;height:64px;margin:-32px 0 0 -32px;border-radius:50%;
+    border:3px solid ${st.accent};background:color-mix(in srgb,${st.accent} 40%,transparent);box-shadow:0 0 0 1.5px rgba(0,0,0,.35),0 0 14px ${st.accent};opacity:0;animation:__rip .65s ease-out forwards}
+  @keyframes __rip{0%{transform:scale(.15);opacity:.95}70%{opacity:.5}100%{transform:scale(1);opacity:0}}
+  #__spot{position:fixed;z-index:2147483590;pointer-events:none;opacity:0;transition:opacity .45s;left:0;top:0;width:0;height:0;
+    box-shadow:0 0 0 9999px rgba(${st.bandRgb},.72),0 0 0 3px ${st.accent}}
+  #__spot.on{opacity:1}
+  html{overflow-x:hidden} body{transition:transform .9s ${spring}}`;
   const mount = () => {
     if (document.getElementById('__cap')) return;
     const s = document.createElement('style'); s.textContent = css; document.documentElement.appendChild(s);
@@ -121,8 +138,16 @@ await ctx.addInitScript(({ st, maxZoom }) => {
     cur.innerHTML = '<svg width="22" height="22" viewBox="0 0 22 22"><path d="M3 2l14 8-6 1.6L8 18z" fill="#fff" stroke="#111" stroke-width="1.6" stroke-linejoin="round"/></svg>';
     document.documentElement.append(cap, cur);
     addEventListener('mousemove', (e) => { cur.style.left = e.clientX + 'px'; cur.style.top = e.clientY + 'px'; }, true);
-    addEventListener('mousedown', () => cur.classList.add('down'), true);
+    addEventListener('mousedown', (e) => {
+      cur.classList.add('down');
+      if (!ripple) return;
+      const r = document.createElement('div'); r.className = '__rip'; r.style.left = e.clientX + 'px'; r.style.top = e.clientY + 'px';
+      r.addEventListener('animationend', () => r.remove()); document.documentElement.appendChild(r);
+    }, true);
     addEventListener('mouseup', () => cur.classList.remove('down'), true);
+    // The camera never stays zoomed into the wrong place: any scroll or in-page navigation resets it.
+    addEventListener('scroll', () => { if (zoomed && (Math.abs(scrollY - zoomed.y) > 3 || Math.abs(scrollX - zoomed.x) > 3)) window.__zoom(); }, { passive: true });
+    for (const ev of ['popstate', 'hashchange']) addEventListener(ev, () => window.__zoom());
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount); else mount();
   window.__cap = (label, text) => {
@@ -132,13 +157,38 @@ await ctx.addInitScript(({ st, maxZoom }) => {
   };
   // Camera: scale the body around the VIEWPORT centre (never the element centre: that clips sideways).
   // html{overflow-x:hidden} hides the overflow; putting it on body would break sticky headers.
-  window.__zoom = (s) => {
+  // Optional (ox, oy) are viewport coordinates to zoom around (used by click `focus`); default is the centre.
+  let zoomed = null;
+  window.__zoom = (s, ox, oy) => {
     const b = document.body;
-    if (!s || s === 1) { b.style.transform = ''; return; }
-    b.style.transformOrigin = `${innerWidth / 2 + scrollX}px ${innerHeight / 2 + scrollY}px`;
+    if (!s || s === 1) { zoomed = null; b.style.transform = ''; return; }
+    zoomed = { x: scrollX, y: scrollY };
+    b.style.transformOrigin = `${(ox ?? innerWidth / 2) + scrollX}px ${(oy ?? innerHeight / 2) + scrollY}px`;
     b.style.transform = `scale(${Math.min(s, maxZoom)})`;
   };
-}, { st, maxZoom });
+  // Spotlight: dim everything except one element. A rAF loop eases the hole toward the element's live
+  // rectangle, so it also follows scrolling and moves smoothly from one element to the next.
+  let spotEl = null, spotRaf = 0;
+  window.__spot = (el, pad = 10, radius = 12) => {
+    mount();
+    let d = document.getElementById('__spot');
+    if (!d) { d = document.createElement('div'); d.id = '__spot'; document.documentElement.appendChild(d); }
+    if (!el) { d.classList.remove('on'); spotEl = null; return; }
+    const first = !spotEl; spotEl = el;
+    let cur = null, last = performance.now();
+    const tick = (now) => {
+      if (!spotEl) return;
+      const r = spotEl.getBoundingClientRect(), dt = Math.min(0.1, (now - last) / 1000); last = now;
+      const g = { x: r.left - pad, y: r.top - pad, w: r.width + 2 * pad, h: r.height + 2 * pad };
+      const a = first && !cur ? 1 : 1 - Math.exp(-dt / 0.11);
+      cur = cur ? { x: cur.x + (g.x - cur.x) * a, y: cur.y + (g.y - cur.y) * a, w: cur.w + (g.w - cur.w) * a, h: cur.h + (g.h - cur.h) * a } : g;
+      d.style.cssText += `;left:${cur.x}px;top:${cur.y}px;width:${cur.w}px;height:${cur.h}px;border-radius:${radius}px`;
+      spotRaf = requestAnimationFrame(tick);
+    };
+    cancelAnimationFrame(spotRaf); spotRaf = requestAnimationFrame(tick);
+    d.classList.add('on');
+  };
+}, { st, maxZoom, ripple: (cfg.cursor?.ripple ?? true) });
 
 const page = await ctx.newPage(); // the video starts here
 const t0 = Date.now();
@@ -164,7 +214,42 @@ const card = (t, s) => 'data:text/html;charset=utf-8,' + encodeURIComponent(`<!d
 const esc = (s = '') => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 const loc = (sel) => page.locator(sel).first();
-const glide = async (x, y, steps = 18) => { mx = x; my = y; await page.mouse.move(x, y, { steps }); };
+// Cursor path: a cubic Bezier with two off-axis control points, eased in and out, that overshoots the target
+// a little and settles back (the idea of ghost-cursor, MIT, re-implemented). Seeded, so a re-record is identical.
+// `config.cursor.path: "straight"` restores the old straight line.
+const cursorCfg = { path: 'bezier', ...(cfg.cursor ?? {}) };
+let seed = 20240607;
+const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+const easeInOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+const easeOut = (t) => 1 - Math.pow(1 - t, 3);
+// Calls fn(t) for t in 0..1 over `ms`, moving the real mouse each time (the overlay cursor follows mousemove).
+async function sweep(ms, fn) {
+  const s = Date.now();
+  for (;;) {
+    const t = Math.min(1, (Date.now() - s) / ms), [x, y] = fn(t);
+    await page.mouse.move(x, y);
+    if (t >= 1) return;
+    await pause(6);
+  }
+}
+const glide = async (x, y, steps = 18) => {
+  const x0 = mx, y0 = my, d = Math.hypot(x - x0, y - y0);
+  mx = x; my = y;
+  if (cursorCfg.path === 'straight' || d < 6) { await page.mouse.move(x, y, { steps }); return; }
+  const ux = (x - x0) / d, uy = (y - y0) / d, nx = -uy, ny = ux; // unit direction and its normal
+  const side = rnd() < 0.5 ? -1 : 1, b1 = side * d * (0.08 + rnd() * 0.12), b2 = side * d * (0.03 + rnd() * 0.08);
+  const over = d > 140 ? Math.min(14, d * 0.04) : 0; // overshoot distance in px
+  const ex = x + ux * over, ey = y + uy * over;      // the Bezier ends past the target
+  const p1 = [x0 + (ex - x0) * 0.3 + nx * b1, y0 + (ey - y0) * 0.3 + ny * b1];
+  const p2 = [x0 + (ex - x0) * 0.75 + nx * b2, y0 + (ey - y0) * 0.75 + ny * b2];
+  const bez = (t) => {
+    const u = 1 - t, a = u * u * u, b = 3 * u * u * t, c = 3 * u * t * t, e = t * t * t;
+    return [a * x0 + b * p1[0] + c * p2[0] + e * ex, a * y0 + b * p1[1] + c * p2[1] + e * ey];
+  };
+  await sweep(Math.min(1100, Math.max(420, 300 + d * 0.9)), (t) => bez(easeInOut(t)));
+  if (over) await sweep(170, (t) => { const e = easeOut(t); return [ex + (x - ex) * e, ey + (y - ey) * e]; });
+  await page.mouse.move(x, y);
+};
 const centreOf = async (sel) => {
   const l = loc(sel);
   await l.scrollIntoViewIfNeeded();
@@ -175,10 +260,14 @@ const centreOf = async (sel) => {
 // After a navigation the fake cursor is recreated: move the mouse 1 px so it shows up again.
 const wake = async () => { await page.mouse.move(mx + 1, my); mx += 1; };
 const uncaption = async () => { if (!capOn) return; capOn = false; await page.evaluate(() => window.__cap()); await pause(400); };
-const clickOn = async (sel) => {
-  const b = await centreOf(sel);
-  await glide(b.x + b.width / 2, b.y + b.height / 2); await pause(250);
-  await page.mouse.down(); await pause(90); await page.mouse.up(); await pause(500);
+// focus: true (or a scale) zooms gently toward the click point while the cursor presses, then back out.
+const clickOn = async (sel, focus) => {
+  const b = await centreOf(sel), cx = b.x + b.width / 2, cy = b.y + b.height / 2;
+  await glide(cx, cy);
+  if (focus) { await page.evaluate(([s, x, y]) => window.__zoom(s, x, y), [focus === true ? 1.06 : focus, cx, cy]); await pause(500); }
+  else await pause(250);
+  await page.mouse.down(); await pause(110); await page.mouse.up(); await pause(500);
+  if (focus) { await page.evaluate(() => window.__zoom()); await pause(600); }
 };
 
 const actions = {
@@ -209,7 +298,15 @@ const actions = {
     await pause(Math.max(2800, s.text.length * 70, dur * 1000 + 700) - 700 + (s.extraMs ?? 0));
   },
   uncaption,
-  async click(s) { await clickOn(s.selector); },
+  async click(s) { await clickOn(s.selector, s.focus); },
+  // Dim everything except the element. Stays until `unspotlight` (it follows scrolling).
+  async spotlight(s) {
+    const l = loc(s.selector);
+    await l.scrollIntoViewIfNeeded();
+    await l.evaluate((el, [pad, radius]) => window.__spot(el, pad, radius), [s.padding ?? 10, s.radius ?? 12]);
+    await pause(s.ms ?? 900);
+  },
+  async unspotlight() { await page.evaluate(() => window.__spot()); await pause(600); },
   async hover(s) { const b = await centreOf(s.selector); await glide(b.x + b.width / 2, b.y + b.height / 2); await pause(s.ms ?? 500); },
   async type(s) {
     await clickOn(s.selector);

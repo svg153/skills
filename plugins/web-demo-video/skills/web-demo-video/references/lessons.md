@@ -20,6 +20,11 @@ Rules learned by recording real demos. Read them before the first recording.
 - **After each navigation the fake cursor is recreated.** Move the mouse 1 px so it shows up again.
 - **Native `<select>` dropdowns render open in screenshots.** Glide the cursor to the select, then use `selectOption`.
 - **Pages with a "stale" or "generated on" banner:** regenerate the site before recording, or the banner is in every frame.
+- **A straight cursor line looks robotic.** The engine moves the real mouse along a seeded Bezier with easing and an overshoot, paced by wall clock (about 6 ms per move). `page.mouse.move(..., {steps})` is too fast to show in a 25 fps video.
+- **Ripple colour must work on light and dark pages.** A pale accent ring vanishes on a white button: the ripple has a tinted fill and a thin dark outer line.
+- **A zoom origin inside the viewport never shows blank space** (scaling up only crops), so click `focus` can zoom around the click point; the cursor then stays on the target.
+- **Reset the zoom on scroll.** The transform origin is in page coordinates, so scrolling while zoomed moves the framing; the init script unzooms on any scroll or `popstate`/`hashchange`. New documents start unzoomed.
+- **Spotlight is a rAF loop, not a transition.** The hole eases toward the element live rectangle, so it follows scroll. It is a fixed div outside `body`, so it does not follow `body` zoom.
 - **Camera still, moves just before the next framing.** Zoom and scroll between captions, not during one.
 
 ## Measuring

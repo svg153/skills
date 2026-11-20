@@ -26,4 +26,5 @@ Status legend: `[ ]` open, `[~]` partly done, `[x]` done (kept for one release, 
 - [ ] **Burned-in or sidecar subtitles** (`.vtt`) from `timeline.json`, for players that cannot show the band.
 - [ ] **Mobile viewports and touch.** Done when a storyboard with `viewport` and `isMobile` taps instead of clicking and the cursor is hidden.
 - [ ] **Chapter markers** in the MP4 from scene names.
+- [x] **Camera and cursor polish:** Bezier cursor with overshoot, click ripple and press animation, `spotlight`/`unspotlight`, spring zoom that resets on scroll, click `focus`.
 - [ ] Ideas from research: _(add here)_
