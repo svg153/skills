@@ -50,3 +50,10 @@ Rules learned by recording real demos. Read them before the first recording.
 - **9:16 and 1:1 pad, they do not crop.** A desktop page is 16:9; a centred crop to 9:16 drops 68% of the width, so the cursor and clicks leave the frame. The page is scaled to the output width over a blurred, darkened copy of itself. The caption band stays attached to the page, so in 9:16 it sits mid-frame, not at the bottom.
 - **GIFs are big.** A 2-minute 16:9 demo at 10 fps and 640 px is about 7 MB. Export a clip (`--gif-from`, `--gif-seconds`) at 8 fps and 480 px, two passes (`palettegen` then `paletteuse`, bayer dither, rectangle diffs).
 - **Soft subtitles are mov_text** and need an MP4. Set the track language from `config.language` (`es` becomes `spa`).
+## Sharpness and framing
+
+- **`deviceScaleFactor: 2` does not work with Playwright video.** With a 2560x1440 `recordVideo.size` the page is drawn at 1x in the top-left corner and the rest is grey. Do not use it.
+- **A 1920x1080 viewport is the way to a sharper video.** Text strokes are finer and less blocky than at 1280x720. The layout is the one of a bigger screen (more content fits), and caption sizes scale with the width. Cost on the example: WebM 6.3 MB vs 4.8 MB (+32%), same duration and same record time (recording is real-time bound). Default stays 1280x720; use 1920x1080 for the final take.
+- **Framed output** (`frame.mjs`): render the static window (background, shadow, title bar) as a PNG with Playwright, a second PNG as the mask, then overlay with ffmpeg `alphamerge`. Expect slow encodes on a busy machine (about 5 min for 75 s at 1080p, `-preset medium`).
+- **Example calendar:** an element that is scrolled sideways hides the first bars. Keep the drag step with the container at scroll 0 (`hscroll` back to `#track` offset 0) and make the whole timeline fit the drag shot.
+- Ids built with `replace(/[^a-z]/g,'')` drop accented letters (`Calabacín` became `calabacn`): normalise with NFD first.

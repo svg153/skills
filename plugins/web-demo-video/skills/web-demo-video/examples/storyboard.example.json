@@ -44,10 +44,11 @@
         { "action": "click", "selector": "nav button[data-tab=calendario]", "expect": { "visible": "#scroller" } },
         { "action": "caption", "label": "Calendario", "text": "El calendario reparte las siembras por semanas", "shot": "calendario" },
         { "action": "uncaption" },
-        { "action": "hscroll", "container": "#scroller", "toSelector": "#bar-fresa", "offset": 120 },
+        { "action": "hscroll", "container": "#scroller", "toSelector": "#bar-calabacin", "offset": 120 },
         { "action": "caption", "label": "Calendario", "text": "Para ver las siembras tardías basta con desplazarse a un lado" },
         { "action": "uncaption" },
-        { "action": "drag", "selector": "#bar-fresa", "dx": 200, "dy": 0, "grip": "right-edge" },
+        { "action": "hscroll", "container": "#scroller", "toSelector": "#track", "offset": 0 },
+        { "action": "drag", "selector": "#bar-fresa", "dx": 120, "dy": 0, "grip": "right-edge" },
         { "action": "caption", "label": "Calendario", "text": "Arrastrando el borde de una barra, la fresa dura dos semanas más", "shot": "calendario-arrastre" },
         { "action": "uncaption" }
       ]

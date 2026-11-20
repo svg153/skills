@@ -20,7 +20,7 @@ A storyboard is one JSON file: a `config` block and a list of `scenes`, each wit
 | Key | Default | Meaning |
 |---|---|---|
 | `name` | `demo` | Base name of the output files |
-| `viewport` | `{width:1280,height:720}` | Browser viewport and video size. Caption font sizes scale with the width |
+| `viewport` | `{width:1280,height:720}` | Browser viewport and video size. Caption font sizes scale with the width. Use `1920x1080` for visibly sharper text (see lessons.md) |
 | `executablePath` | Playwright's chromium | Path of a Chromium-based browser (also `--browser` or env `WEB_DEMO_VIDEO_BROWSER`, which win) |
 | `channel` | none | Playwright channel such as `chrome`, used when no executable is given |
 | `headless` | `true` | Run without a window |

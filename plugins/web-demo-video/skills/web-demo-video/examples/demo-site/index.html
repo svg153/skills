@@ -23,11 +23,12 @@
   ul.list li b{color:#1f5a2c}
   .tag{font-size:13px;background:#e3f1e5;color:#1f5a2c;border-radius:20px;padding:2px 10px;margin-left:10px}
   .scroller{overflow-x:auto;background:#fff;border:1px solid #d3e0d5;border-radius:8px;padding:14px 0}
-  .track{position:relative;width:2000px;height:230px;
-    background:repeating-linear-gradient(to right,#fff 0,#fff 99px,#e6eee7 99px,#e6eee7 100px)}
+  .track{position:relative;width:1200px;height:230px;
+    background:repeating-linear-gradient(to right,#fff 0,#fff 59px,#e6eee7 59px,#e6eee7 60px)}
   .week{position:absolute;top:0;font-size:12px;color:#6a806e;padding:2px 6px}
-  .bar{position:absolute;height:34px;border-radius:6px;background:#3d9a52;color:#fff;font-size:14px;line-height:34px;padding-left:10px;
+  .bar{position:absolute;height:34px;border-radius:6px;background:#3d9a52;color:#fff;font-size:14px;line-height:34px;padding-left:0;
     white-space:nowrap;overflow:hidden;user-select:none}
+  .bar span{padding-left:10px}
   .bar::after{content:"";position:absolute;right:0;top:0;bottom:0;width:8px;background:rgba(0,0,0,.25);cursor:ew-resize}
   .note{margin-top:12px;color:#4a604d}
   form{display:grid;gap:14px;max-width:520px}
@@ -114,16 +115,16 @@
     window.scrollTo(0, 0);
   }));
 
-  // Calendar: bars measured in weeks (100 px each); the right edge is draggable.
+  // Calendar: bars measured in weeks (60 px each); the right edge is draggable.
   const track = document.getElementById('track');
-  const plan = [['Tomate', 2, 6], ['Lechuga', 0, 4], ['Albahaca', 5, 5], ['Fresa', 9, 7], ['Calabacín', 13, 5]];
-  for (let w = 0; w < 20; w++) track.insertAdjacentHTML('beforeend', `<div class="week" style="left:${w * 100}px">S${w + 1}</div>`);
+  const plan = [['Tomate', 2, 6], ['Lechuga', 0, 4], ['Albahaca', 5, 5], ['Fresa', 8, 6], ['Calabacín', 13, 5]];
+  for (let w = 0; w < 20; w++) track.insertAdjacentHTML('beforeend', `<div class="week" style="left:${w * 60}px">S${w + 1}</div>`);
   plan.forEach(([n, s, len], i) => {
     const bar = document.createElement('div');
-    bar.className = 'bar'; bar.id = 'bar-' + n.toLowerCase().replace(/[^a-z]/g, '');
+    bar.className = 'bar'; bar.id = 'bar-' + n.normalize('NFD').toLowerCase().replace(/[^a-z]/g, '');
     bar.dataset.weeks = len; bar.dataset.name = n;
-    Object.assign(bar.style, { left: s * 100 + 'px', top: 28 + i * 40 + 'px', width: len * 100 + 'px' });
-    bar.textContent = `${n} · ${len} semanas`;
+    Object.assign(bar.style, { left: s * 60 + 'px', top: 28 + i * 40 + 'px', width: len * 60 + 'px' });
+    bar.innerHTML = `<span>${n} · ${len} semanas</span>`;
     track.appendChild(bar);
   });
   const resumen = () => {
@@ -141,9 +142,9 @@
   });
   addEventListener('mousemove', (e) => {
     if (!drag) return;
-    const weeks = Math.max(1, Math.round((drag.w + e.clientX - drag.x) / 100));
-    drag.bar.style.width = weeks * 100 + 'px'; drag.bar.dataset.weeks = weeks;
-    drag.bar.textContent = `${drag.bar.dataset.name} · ${weeks} semanas`; resumen();
+    const weeks = Math.max(1, Math.round((drag.w + e.clientX - drag.x) / 60));
+    drag.bar.style.width = weeks * 60 + 'px'; drag.bar.dataset.weeks = weeks;
+    drag.bar.firstChild.textContent = `${drag.bar.dataset.name} · ${weeks} semanas`; resumen();
   });
   addEventListener('mouseup', () => { drag = null; });
 
